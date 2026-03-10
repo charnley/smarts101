@@ -2,15 +2,18 @@
 	import './layout.css';
 	import favicon from '$lib/assets/favicon.svg';
 
-	import AppSidebar from "$lib/components/app-sidebar.svelte";
-	import * as Breadcrumb from "$lib/components/ui/breadcrumb/index.js";
-	import { Separator } from "$lib/components/ui/separator/index.js";
-	import * as Sidebar from "$lib/components/ui/sidebar/index.js";
+	import AppSidebar from '$lib/components/app-sidebar.svelte';
+	import { ModeWatcher } from 'mode-watcher';
+	import * as Breadcrumb from '$lib/components/ui/breadcrumb/index.js';
+	import { Separator } from '$lib/components/ui/separator/index.js';
+	import * as Sidebar from '$lib/components/ui/sidebar/index.js';
 
 	let { children } = $props();
 </script>
 
 <svelte:head><link rel="icon" href={favicon} /></svelte:head>
+
+<ModeWatcher />
 
 <Sidebar.Provider>
 	<AppSidebar />
@@ -32,9 +35,8 @@
 				<!-- </Breadcrumb.Root> -->
 			</div>
 		</header>
-<div class="gap-4 p-4 pt-0">
-{@render children()}
+		<div class="gap-4 p-4 pt-0">
+			{@render children()}
 		</div>
 	</Sidebar.Inset>
 </Sidebar.Provider>
-
