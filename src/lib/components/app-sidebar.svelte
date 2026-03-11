@@ -18,7 +18,7 @@
 				title: 'Playground',
 				url: '#',
 				icon: SquareTerminalIcon,
-				isActive: true,
+				isActive: false,
 				items: [
 					{
 						title: 'History',
@@ -133,30 +133,30 @@
 </script>
 
 <Sidebar.Root bind:ref variant="inset" {...restProps}>
-	<Sidebar.Header>
-		<Sidebar.Menu>
-			<Sidebar.MenuItem>
-				<Sidebar.MenuButton size="lg">
-					{#snippet child({ props })}
-						<a href="##" {...props}>
-							<div
-								class="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground"
-							>
-								<CommandIcon class="size-4" />
-							</div>
-							<div class="grid flex-1 text-start text-sm leading-tight">
-								<span class="truncate font-medium">Acme Inc</span>
-								<span class="truncate text-xs">Enterprise</span>
-							</div>
-						</a>
-					{/snippet}
-				</Sidebar.MenuButton>
-			</Sidebar.MenuItem>
-		</Sidebar.Menu>
-	</Sidebar.Header>
+	<!-- <Sidebar.Header> -->
+	<!-- 	<Sidebar.Menu> -->
+	<!-- 		<Sidebar.MenuItem> -->
+	<!-- 			<Sidebar.MenuButton size="lg"> -->
+	<!-- 				{#snippet child({ props })} -->
+	<!-- 					<a href="##" {...props}> -->
+	<!-- 						<div -->
+	<!-- 							class="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground" -->
+	<!-- 						> -->
+	<!-- 							<CommandIcon class="size-4" /> -->
+	<!-- 						</div> -->
+	<!-- 						<div class="grid flex-1 text-start text-sm leading-tight"> -->
+	<!-- 							<span class="truncate font-medium">Acme Inc</span> -->
+	<!-- 							<span class="truncate text-xs">Enterprise</span> -->
+	<!-- 						</div> -->
+	<!-- 					</a> -->
+	<!-- 				{/snippet} -->
+	<!-- 			</Sidebar.MenuButton> -->
+	<!-- 		</Sidebar.MenuItem> -->
+	<!-- 	</Sidebar.Menu> -->
+	<!-- </Sidebar.Header> -->
 	<Sidebar.Content>
 		<NavMain items={data.navMain} />
-		<NavProjects projects={data.projects} />
+		<!-- <NavProjects projects={data.projects} /> -->
 	</Sidebar.Content>
 	<Sidebar.Footer>
 		<Button variant="ghost" size="icon" onclick={toggleMode} aria-label="Toggle theme">
