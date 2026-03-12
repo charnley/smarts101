@@ -1,7 +1,4 @@
-import {
-
-	createTable,
-} from "@tanstack/table-core";
+import { createTable } from '@tanstack/table-core';
 
 /**
  * Creates a reactive TanStack table object for Svelte.
@@ -35,12 +32,9 @@ export function createSvelteTable(options) {
 			state: {},
 			onStateChange() {},
 			renderFallbackValue: null,
-			mergeOptions: (
-				defaultOptions,
-				options
-			) => {
+			mergeOptions: (defaultOptions, options) => {
 				return mergeObjects(defaultOptions, options);
-			},
+			}
 		},
 		options
 	);
@@ -58,7 +52,7 @@ export function createSvelteTable(options) {
 					else state = mergeObjects(state, updater);
 
 					options.onStateChange?.(updater);
-				},
+				}
 			});
 		});
 	}
@@ -79,11 +73,8 @@ export function createSvelteTable(options) {
  * Proxy-based to avoid known WebKit recursion issue.
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function mergeObjects(
-	...sources
-) {
-	const resolve = (src) =>
-		typeof src === "function" ? (src() ?? undefined) : src;
+export function mergeObjects(...sources) {
+	const resolve = (src) => (typeof src === 'function' ? (src() ?? undefined) : src);
 
 	const findSourceWithKey = (key) => {
 		for (let i = sources.length - 1; i >= 0; i--) {
@@ -97,7 +88,7 @@ export function mergeObjects(
 		get(_, key) {
 			const src = findSourceWithKey(key);
 
-			return src?.[key ];
+			return src?.[key];
 		},
 
 		has(_, key) {
@@ -110,7 +101,7 @@ export function mergeObjects(
 			for (const s of sources) {
 				const obj = resolve(s);
 				if (obj) {
-					for (const k of Reflect.ownKeys(obj) ) {
+					for (const k of Reflect.ownKeys(obj)) {
 						all.add(k);
 					}
 				}
@@ -125,9 +116,9 @@ export function mergeObjects(
 				configurable: true,
 				enumerable: true,
 				// eslint-disable-next-line @typescript-eslint/no-explicit-any
-				value: (src )[key],
-				writable: true,
+				value: src[key],
+				writable: true
 			};
-		},
-	}) ;
+		}
+	});
 }

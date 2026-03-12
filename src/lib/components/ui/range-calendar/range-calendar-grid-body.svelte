@@ -1,5 +1,5 @@
 <script>
-	import { RangeCalendar as RangeCalendarPrimitive } from "bits-ui";
+	import { RangeCalendar as RangeCalendarPrimitive } from 'bits-ui';
 
 	let { ref = $bindable(null), ...restProps } = $props();
 </script>

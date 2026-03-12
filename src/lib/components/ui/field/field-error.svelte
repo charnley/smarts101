@@ -1,12 +1,6 @@
 <script>
-	import { cn } from "$lib/utils.js";
-	let {
-		ref = $bindable(null),
-		class: className,
-		children,
-		errors,
-		...restProps
-	} = $props();
+	import { cn } from '$lib/utils.js';
+	let { ref = $bindable(null), class: className, children, errors, ...restProps } = $props();
 
 	const hasContent = $derived.by(() => {
 		// has slotted error
@@ -32,7 +26,7 @@
 		bind:this={ref}
 		role="alert"
 		data-slot="field-error"
-		class={cn("text-destructive text-sm font-normal", className)}
+		class={cn('text-sm font-normal text-destructive', className)}
 		{...restProps}
 	>
 		{#if children}

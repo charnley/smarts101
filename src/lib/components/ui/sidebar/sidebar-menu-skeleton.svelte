@@ -1,6 +1,6 @@
 <script>
-	import { cn } from "$lib/utils.js";
-	import { Skeleton } from "$lib/components/ui/skeleton/index.js";
+	import { cn } from '$lib/utils.js';
+	import { Skeleton } from '$lib/components/ui/skeleton/index.js';
 	let {
 		ref = $bindable(null),
 		class: className,
@@ -17,7 +17,7 @@
 	bind:this={ref}
 	data-slot="sidebar-menu-skeleton"
 	data-sidebar="menu-skeleton"
-	class={cn("flex h-8 items-center gap-2 rounded-md px-2", className)}
+	class={cn('flex h-8 items-center gap-2 rounded-md px-2', className)}
 	{...restProps}
 >
 	{#if showIcon}

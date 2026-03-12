@@ -1,5 +1,5 @@
 <script>
-	import { Dialog as DialogPrimitive } from "bits-ui";
+	import { Dialog as DialogPrimitive } from 'bits-ui';
 
 	let { open = $bindable(false), ...restProps } = $props();
 </script>
