@@ -1,5 +1,5 @@
 <script>
-	import { Command as CommandPrimitive } from "bits-ui";
+	import { Command as CommandPrimitive } from 'bits-ui';
 
 	let { ref = $bindable(null), ...restProps } = $props();
 </script>

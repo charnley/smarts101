@@ -1,12 +1,12 @@
 <script>
-	import Command from "./command.svelte";
-	import * as Dialog from "$lib/components/ui/dialog/index.js";
+	import Command from './command.svelte';
+	import * as Dialog from '$lib/components/ui/dialog/index.js';
 	let {
 		open = $bindable(false),
 		ref = $bindable(null),
-		value = $bindable(""),
-		title = "Command Palette",
-		description = "Search for a command to run",
+		value = $bindable(''),
+		title = 'Command Palette',
+		description = 'Search for a command to run',
 		portalProps,
 		children,
 		...restProps

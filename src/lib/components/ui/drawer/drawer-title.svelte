@@ -1,17 +1,13 @@
 <script>
-	import { Drawer as DrawerPrimitive } from "vaul-svelte";
-	import { cn } from "$lib/utils.js";
+	import { Drawer as DrawerPrimitive } from 'vaul-svelte';
+	import { cn } from '$lib/utils.js';
 
-	let {
-		ref = $bindable(null),
-		class: className,
-		...restProps
-	} = $props();
+	let { ref = $bindable(null), class: className, ...restProps } = $props();
 </script>
 
 <DrawerPrimitive.Title
 	bind:ref
 	data-slot="drawer-title"
-	class={cn("text-foreground font-semibold", className)}
+	class={cn('font-semibold text-foreground', className)}
 	{...restProps}
 />

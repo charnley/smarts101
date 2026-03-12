@@ -1,9 +1,9 @@
 <script>
-	import { cn } from "$lib/utils.js";
+	import { cn } from '$lib/utils.js';
 	let {
 		ref = $bindable(null),
 		class: className,
-		variant = "legend",
+		variant = 'legend',
 		children,
 		...restProps
 	} = $props();
@@ -14,9 +14,9 @@
 	data-slot="field-legend"
 	data-variant={variant}
 	class={cn(
-		"mb-3 font-medium",
-		"data-[variant=legend]:text-base",
-		"data-[variant=label]:text-sm",
+		'mb-3 font-medium',
+		'data-[variant=legend]:text-base',
+		'data-[variant=label]:text-sm',
 		className
 	)}
 	{...restProps}

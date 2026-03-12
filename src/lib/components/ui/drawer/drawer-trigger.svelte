@@ -1,5 +1,5 @@
 <script>
-	import { Drawer as DrawerPrimitive } from "vaul-svelte";
+	import { Drawer as DrawerPrimitive } from 'vaul-svelte';
 
 	let { ref = $bindable(null), ...restProps } = $props();
 </script>

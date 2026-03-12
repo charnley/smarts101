@@ -1,12 +1,8 @@
 <script>
-	import EllipsisIcon from "@lucide/svelte/icons/ellipsis";
-	import { cn } from "$lib/utils.js";
+	import EllipsisIcon from '@lucide/svelte/icons/ellipsis';
+	import { cn } from '$lib/utils.js';
 
-	let {
-		ref = $bindable(null),
-		class: className,
-		...restProps
-	} = $props();
+	let { ref = $bindable(null), class: className, ...restProps } = $props();
 </script>
 
 <span
@@ -14,7 +10,7 @@
 	data-slot="breadcrumb-ellipsis"
 	role="presentation"
 	aria-hidden="true"
-	class={cn("flex size-9 items-center justify-center", className)}
+	class={cn('flex size-9 items-center justify-center', className)}
 	{...restProps}
 >
 	<EllipsisIcon class="size-4" />

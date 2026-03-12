@@ -1,5 +1,5 @@
 <script>
-	import { AlertDialog as AlertDialogPrimitive } from "bits-ui";
+	import { AlertDialog as AlertDialogPrimitive } from 'bits-ui';
 
 	let { ref = $bindable(null), ...restProps } = $props();
 </script>

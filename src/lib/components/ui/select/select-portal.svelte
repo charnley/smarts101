@@ -1,5 +1,5 @@
 <script>
-	import { Select as SelectPrimitive } from "bits-ui";
+	import { Select as SelectPrimitive } from 'bits-ui';
 
 	let { ...restProps } = $props();
 </script>

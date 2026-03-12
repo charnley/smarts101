@@ -1,5 +1,5 @@
 <script>
-	import { THEMES } from "./chart-utils.js";
+	import { THEMES } from './chart-utils.js';
 
 	let { id, config } = $props();
 
@@ -19,18 +19,18 @@
 				return color ? `\t--color-${key}: ${color};` : null;
 			});
 
-			content += color.join("\n") + "\n}";
+			content += color.join('\n') + '\n}';
 
 			themeContents.push(content);
 		}
 
-		return themeContents.join("\n");
+		return themeContents.join('\n');
 	});
 </script>
 
 {#if themeContents}
 	{#key id}
-		<svelte:element this={"style"}>
+		<svelte:element this={'style'}>
 			{themeContents}
 		</svelte:element>
 	{/key}

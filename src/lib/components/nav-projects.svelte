@@ -1,15 +1,13 @@
 <script>
-	import * as DropdownMenu from "$lib/components/ui/dropdown-menu/index.js";
-	import * as Sidebar from "$lib/components/ui/sidebar/index.js";
-	import { useSidebar } from "$lib/components/ui/sidebar/index.js";
-	import EllipsisIcon from "@lucide/svelte/icons/ellipsis";
-	import FolderIcon from "@lucide/svelte/icons/folder";
-	import ShareIcon from "@lucide/svelte/icons/share";
-	import Trash2Icon from "@lucide/svelte/icons/trash-2";
+	import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
+	import * as Sidebar from '$lib/components/ui/sidebar/index.js';
+	import { useSidebar } from '$lib/components/ui/sidebar/index.js';
+	import EllipsisIcon from '@lucide/svelte/icons/ellipsis';
+	import FolderIcon from '@lucide/svelte/icons/folder';
+	import ShareIcon from '@lucide/svelte/icons/share';
+	import Trash2Icon from '@lucide/svelte/icons/trash-2';
 
-	let {
-		projects,
-	} = $props();
+	let { projects } = $props();
 
 	const sidebar = useSidebar();
 </script>
@@ -38,8 +36,8 @@
 					</DropdownMenu.Trigger>
 					<DropdownMenu.Content
 						class="w-48"
-						side={sidebar.isMobile ? "bottom" : "right"}
-						align={sidebar.isMobile ? "end" : "start"}
+						side={sidebar.isMobile ? 'bottom' : 'right'}
+						align={sidebar.isMobile ? 'end' : 'start'}
 					>
 						<DropdownMenu.Item>
 							<FolderIcon class="text-muted-foreground" />

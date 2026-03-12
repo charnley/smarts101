@@ -1,35 +1,35 @@
 <script module>
-	import { tv } from "tailwind-variants";
+	import { tv } from 'tailwind-variants';
 
 	export const fieldVariants = tv({
-		base: "group/field data-[invalid=true]:text-destructive flex w-full gap-3",
+		base: 'group/field data-[invalid=true]:text-destructive flex w-full gap-3',
 		variants: {
 			orientation: {
-				vertical: "flex-col [&>*]:w-full [&>.sr-only]:w-auto",
+				vertical: 'flex-col [&>*]:w-full [&>.sr-only]:w-auto',
 				horizontal: [
-					"flex-row items-center",
-					"[&>[data-slot=field-label]]:flex-auto",
-					"has-[>[data-slot=field-content]]:items-start has-[>[data-slot=field-content]]:[&>[role=checkbox],[role=radio]]:mt-px",
+					'flex-row items-center',
+					'[&>[data-slot=field-label]]:flex-auto',
+					'has-[>[data-slot=field-content]]:items-start has-[>[data-slot=field-content]]:[&>[role=checkbox],[role=radio]]:mt-px'
 				],
 				responsive: [
-					"flex-col @md/field-group:flex-row @md/field-group:items-center [&>*]:w-full @md/field-group:[&>*]:w-auto [&>.sr-only]:w-auto",
-					"@md/field-group:[&>[data-slot=field-label]]:flex-auto",
-					"@md/field-group:has-[>[data-slot=field-content]]:items-start @md/field-group:has-[>[data-slot=field-content]]:[&>[role=checkbox],[role=radio]]:mt-px",
-				],
-			},
+					'flex-col @md/field-group:flex-row @md/field-group:items-center [&>*]:w-full @md/field-group:[&>*]:w-auto [&>.sr-only]:w-auto',
+					'@md/field-group:[&>[data-slot=field-label]]:flex-auto',
+					'@md/field-group:has-[>[data-slot=field-content]]:items-start @md/field-group:has-[>[data-slot=field-content]]:[&>[role=checkbox],[role=radio]]:mt-px'
+				]
+			}
 		},
 		defaultVariants: {
-			orientation: "vertical",
-		},
+			orientation: 'vertical'
+		}
 	});
 </script>
 
 <script>
-	import { cn } from "$lib/utils.js";
+	import { cn } from '$lib/utils.js';
 	let {
 		ref = $bindable(null),
 		class: className,
-		orientation = "vertical",
+		orientation = 'vertical',
 		children,
 		...restProps
 	} = $props();

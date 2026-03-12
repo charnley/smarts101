@@ -2,6 +2,7 @@
 	import BookOpenIcon from '@lucide/svelte/icons/book-open';
 	import BotIcon from '@lucide/svelte/icons/bot';
 	import ChartPieIcon from '@lucide/svelte/icons/chart-pie';
+	import FlaskConicalIcon from '@lucide/svelte/icons/flask-conical';
 	import FrameIcon from '@lucide/svelte/icons/frame';
 	import MapIcon from '@lucide/svelte/icons/map';
 	import Settings2Icon from '@lucide/svelte/icons/settings-2';
@@ -16,23 +17,10 @@
 		navMain: [
 			{
 				title: 'Playground',
-				url: '#',
-				icon: SquareTerminalIcon,
-				isActive: false,
-				items: [
-					{
-						title: 'History',
-						url: '#'
-					},
-					{
-						title: 'Starred',
-						url: '#'
-					},
-					{
-						title: 'Settings',
-						url: '#'
-					}
-				]
+				url: '/playground',
+				icon: FlaskConicalIcon,
+				isActive: true,
+				items: []
 			},
 			{
 				title: 'Models',
