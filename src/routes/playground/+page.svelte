@@ -95,11 +95,8 @@
 <div class="playground">
 	<!-- ── SMARTS input ── -->
 	<section class="playground__query">
-		<div class="playground__query-header">
-			<FlaskConicalIcon size={18} />
-			<h2 class="playground__title">SMARTS Playground</h2>
-		</div>
 
+		<p class="playground__hint">Start from: <a href="#">RNA</a>, Druglike, DNA, Chembl</p>
 		<div class="playground__input-wrap" class:has-error={!!smartsError}>
 			<input
 				class="playground__smarts-input"
@@ -111,13 +108,8 @@
 				autocomplete="off"
 			/>
 		</div>
-
 		{#if smartsError}
 			<p class="playground__error" role="alert">{smartsError}</p>
-		{:else if activeSmarts}
-			<p class="playground__hint">Highlighting: <code>{activeSmarts}</code></p>
-		{:else}
-			<p class="playground__hint">Type a SMARTS pattern above to highlight substructure matches.</p>
 		{/if}
 	</section>
 
@@ -188,7 +180,6 @@
 		display: flex;
 		flex-direction: column;
 		gap: 8px;
-		max-width: 640px;
 		margin: 0 auto;
 		width: 100%;
 	}
@@ -230,6 +221,8 @@
 		outline: none;
 		color: var(--foreground);
 		box-sizing: border-box;
+
+		width: 100%;
 	}
 
 	.playground__smarts-input::placeholder {

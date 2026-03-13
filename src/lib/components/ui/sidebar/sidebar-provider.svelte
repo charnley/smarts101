@@ -11,7 +11,7 @@
 
 	let {
 		ref = $bindable(null),
-		open = $bindable(true),
+		open = $bindable(false),
 		onOpenChange = () => {},
 		class: className,
 		style,
