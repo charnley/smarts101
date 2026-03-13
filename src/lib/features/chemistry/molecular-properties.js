@@ -93,7 +93,7 @@ export const getProperties = (SMILES) => {
 			mostAbundantMonoisotopic: distribution?.mostAbundantMass?.x ?? 0,
 			weightedMean: distribution?.weightedMeanMass ?? 0
 		};
-	} catch (error) {
+	} catch (/** @type {any} */ error) {
 		properties.error = error?.message || String(error);
 	} finally {
 		return properties;

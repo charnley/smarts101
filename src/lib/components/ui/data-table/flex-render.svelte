@@ -2,6 +2,7 @@
 	lang="ts"
 	generics="TData, TValue, TContext extends HeaderContext<TData, TValue> | CellContext<TData, TValue>"
 >
+	import type { HeaderContext, CellContext } from '@tanstack/table-core';
 	import { RenderComponentConfig, RenderSnippetConfig } from './render-helpers.js';
 	let { content, context, attach } = $props();
 </script>

@@ -2,9 +2,17 @@
 	import { Avatar as AvatarPrimitive } from 'bits-ui';
 	import { cn } from '$lib/utils.js';
 
+	/** @type {{
+	 *   ref?: HTMLElement | null,
+	 *   loadingStatus?: import('bits-ui').AvatarImageLoadingStatus,
+	 *   class?: string,
+	 *   [key: string]: any
+	 * }} */
 	let {
 		ref = $bindable(null),
-		loadingStatus = $bindable('loading'),
+		loadingStatus = $bindable(
+			/** @type {import('bits-ui').AvatarImageLoadingStatus} */ ('loading')
+		),
 		class: className,
 		...restProps
 	} = $props();

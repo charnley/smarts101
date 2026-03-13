@@ -26,6 +26,13 @@
 
 <script>
 	import { cn } from '$lib/utils.js';
+	/** @type {{
+	 *   ref?: HTMLElement | null,
+	 *   class?: string,
+	 *   orientation?: 'vertical' | 'horizontal' | 'responsive',
+	 *   children?: import('svelte').Snippet,
+	 *   [key: string]: any
+	 * }} */
 	let {
 		ref = $bindable(null),
 		class: className,

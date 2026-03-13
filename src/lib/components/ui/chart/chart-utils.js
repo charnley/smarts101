@@ -2,7 +2,13 @@ import { getContext, setContext } from 'svelte';
 
 export const THEMES = { light: '', dark: '.dark' };
 
-// Helper to extract item config from a payload.
+/**
+ * Helper to extract item config from a payload.
+ * @param {Record<string, any>} config
+ * @param {Record<string, any>} payload
+ * @param {string} key
+ * @returns {any}
+ */
 export function getPayloadConfigFromPayload(config, payload, key) {
 	if (typeof payload !== 'object' || payload === null) return undefined;
 
@@ -32,6 +38,10 @@ export function getPayloadConfigFromPayload(config, payload, key) {
 
 const chartContextKey = Symbol('chart-context');
 
+/**
+ * @param {any} value
+ * @returns {any}
+ */
 export function setChartContext(value) {
 	return setContext(chartContextKey, value);
 }
