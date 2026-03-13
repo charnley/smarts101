@@ -17,6 +17,10 @@
 export class RenderComponentConfig {
 	component;
 	props;
+	/**
+	 * @param {any} component
+	 * @param {Record<string, any>} props
+	 */
 	constructor(component, props = {}) {
 		this.component = component;
 		this.props = props;
@@ -41,6 +45,10 @@ export class RenderComponentConfig {
 export class RenderSnippetConfig {
 	snippet;
 	params;
+	/**
+	 * @param {any} snippet
+	 * @param {any} params
+	 */
 	constructor(snippet, params) {
 		this.snippet = snippet;
 		this.params = params;
@@ -52,9 +60,9 @@ export class RenderSnippetConfig {
  *
  * This is only to be used with Svelte Components - use `renderSnippet` for Svelte Snippets.
  *
- * @param component A Svelte component
- * @param props The props to pass to `component`
- * @returns A `RenderComponentConfig` object that helps svelte-table know how to render the header/cell component.
+ * @param {any} component A Svelte component
+ * @param {Record<string, any>} props The props to pass to `component`
+ * @returns {RenderComponentConfig} A `RenderComponentConfig` object that helps svelte-table know how to render the header/cell component.
  * @example
  * ```ts
  * // +page.svelte
@@ -80,9 +88,9 @@ export function renderComponent(component, props = {}) {
  *
  * This is only to be used with Snippets - use `renderComponent` for Svelte Components.
  *
- * @param snippet
- * @param params
- * @returns - A `RenderSnippetConfig` object that helps svelte-table know how to render the header/cell snippet.
+ * @param {any} snippet
+ * @param {any} params
+ * @returns {RenderSnippetConfig} A `RenderSnippetConfig` object that helps svelte-table know how to render the header/cell snippet.
  * @example
  * ```ts
  * // +page.svelte

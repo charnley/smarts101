@@ -26,6 +26,14 @@
 	import { Toggle as TogglePrimitive } from 'bits-ui';
 	import { cn } from '$lib/utils.js';
 
+	/** @type {{
+	 *   ref?: HTMLElement | null,
+	 *   pressed?: boolean,
+	 *   class?: string,
+	 *   size?: 'default' | 'sm' | 'lg',
+	 *   variant?: 'default' | 'outline',
+	 *   [key: string]: any
+	 * }} */
 	let {
 		ref = $bindable(null),
 		pressed = $bindable(false),

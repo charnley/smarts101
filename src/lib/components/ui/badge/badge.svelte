@@ -22,6 +22,14 @@
 <script>
 	import { cn } from '$lib/utils.js';
 
+	/** @type {{
+	 *   ref?: HTMLElement | null,
+	 *   href?: string,
+	 *   class?: string,
+	 *   variant?: 'default' | 'secondary' | 'destructive' | 'outline',
+	 *   children?: import('svelte').Snippet,
+	 *   [key: string]: any
+	 * }} */
 	let {
 		ref = $bindable(null),
 		href,

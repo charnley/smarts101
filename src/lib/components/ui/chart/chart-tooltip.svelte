@@ -2,7 +2,11 @@
 	import { cn } from '$lib/utils.js';
 	import { getPayloadConfigFromPayload, useChart } from './chart-utils.js';
 	import { getTooltipContext, Tooltip as TooltipPrimitive } from 'layerchart';
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	/**
+	 * @param {any} value
+	 * @param {any} _payload
+	 * @returns {string}
+	 */
 	function defaultFormatter(value, _payload) {
 		return `${value}`;
 	}

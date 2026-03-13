@@ -3,7 +3,9 @@
  * Dedicated worker for RDKit-based substructure matching
  */
 
-import initRDKitModule from '@rdkit/rdkit';
+import _initRDKitModule from '@rdkit/rdkit';
+/** @type {(opts: any) => Promise<any>} */
+const initRDKitModule = /** @type {any} */ (_initRDKitModule);
 import wasmUrl from '@rdkit/rdkit/dist/RDKit_minimal.wasm?url';
 
 let rdkitInitialized = false;
@@ -125,6 +127,7 @@ const performRDKitSearch = (smarts, smilesList, includeAtomBondIndices = false) 
 	}
 
 	const indices = matches.map((ok, i) => (ok ? i : -1)).filter((i) => i >= 0);
+	/** @type {{ matches: any[], indices: number[], atomBondMatches?: any[], allAtomBondMatches?: any[] }} */
 	const result = { matches, indices };
 
 	if (includeAtomBondIndices && atomBondMatches) {
@@ -164,6 +167,7 @@ const performSubstructureSearch = async (smarts, smiles, includeAtomBondIndices 
 			try {
 				const searchResult = performRDKitSearch(currentSmarts, smilesArray, includeAtomBondIndices);
 
+				/** @type {{ queryIndex: number, smarts: string, engine: string, totalTargets: number, matchCount: number, matches: any[], matchedIndices: number[], matchedSmiles: string[], success: boolean, error: null|string, atomBondMatches?: any[], allAtomBondMatches?: any[] }} */
 				const resultObject = {
 					queryIndex: i,
 					smarts: currentSmarts,

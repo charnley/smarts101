@@ -32,6 +32,17 @@
 </script>
 
 <script>
+	/** @type {{
+	 *   class?: string,
+	 *   variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link',
+	 *   size?: 'default' | 'sm' | 'lg' | 'icon' | 'icon-sm' | 'icon-lg',
+	 *   ref?: HTMLElement | null,
+	 *   href?: string,
+	 *   type?: 'button' | 'submit' | 'reset',
+	 *   disabled?: boolean,
+	 *   children?: import('svelte').Snippet,
+	 *   [key: string]: any
+	 * }} */
 	let {
 		class: className,
 		variant = 'default',

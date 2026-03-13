@@ -2,8 +2,8 @@ import { createTable } from '@tanstack/table-core';
 
 /**
  * Creates a reactive TanStack table object for Svelte.
- * @param options Table options to create the table with.
- * @returns A reactive table object.
+ * @param {any} options Table options to create the table with.
+ * @returns {any} A reactive table object.
  * @example
  * ```svelte
  * <script>
@@ -32,7 +32,7 @@ export function createSvelteTable(options) {
 			state: {},
 			onStateChange() {},
 			renderFallbackValue: null,
-			mergeOptions: (defaultOptions, options) => {
+			mergeOptions: (/** @type {any} */ defaultOptions, /** @type {any} */ options) => {
 				return mergeObjects(defaultOptions, options);
 			}
 		},
@@ -47,7 +47,7 @@ export function createSvelteTable(options) {
 			return mergeObjects(resolvedOptions, options, {
 				state: mergeObjects(state, options.state || {}),
 
-				onStateChange: (updater) => {
+				onStateChange: (/** @type {any} */ updater) => {
 					if (updater instanceof Function) state = updater(state);
 					else state = mergeObjects(state, updater);
 
@@ -73,10 +73,12 @@ export function createSvelteTable(options) {
  * Proxy-based to avoid known WebKit recursion issue.
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
+/** @param {...any} sources */
 export function mergeObjects(...sources) {
-	const resolve = (src) => (typeof src === 'function' ? (src() ?? undefined) : src);
+	const resolve = (/** @type {any} */ src) =>
+		typeof src === 'function' ? (src() ?? undefined) : src;
 
-	const findSourceWithKey = (key) => {
+	const findSourceWithKey = (/** @type {any} */ key) => {
 		for (let i = sources.length - 1; i >= 0; i--) {
 			const obj = resolve(sources[i]);
 			if (obj && key in obj) return obj;
