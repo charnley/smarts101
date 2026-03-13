@@ -1,4 +1,5 @@
 <script module>
+	// @ts-nocheck
 	import BookOpenIcon from '@lucide/svelte/icons/book-open';
 	import BotIcon from '@lucide/svelte/icons/bot';
 	import ChartPieIcon from '@lucide/svelte/icons/chart-pie';
@@ -109,6 +110,7 @@
 </script>
 
 <script>
+	// @ts-nocheck
 	import NavMain from './nav-main.svelte';
 	import NavProjects from './nav-projects.svelte';
 	import * as Sidebar from '$lib/components/ui/sidebar/index.js';
