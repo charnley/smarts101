@@ -34,9 +34,9 @@ export function createSvelteTable(options) {
 			renderFallbackValue: null,
 			mergeOptions: (/** @type {any} */ defaultOptions, /** @type {any} */ options) => {
 				return mergeObjects(defaultOptions, options);
-			}
+			},
 		},
-		options
+		options,
 	);
 
 	const table = createTable(resolvedOptions);
@@ -52,7 +52,7 @@ export function createSvelteTable(options) {
 					else state = mergeObjects(state, updater);
 
 					options.onStateChange?.(updater);
-				}
+				},
 			});
 		});
 	}
@@ -119,8 +119,8 @@ export function mergeObjects(...sources) {
 				enumerable: true,
 				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 				value: src[key],
-				writable: true
+				writable: true,
 			};
-		}
+		},
 	});
 }

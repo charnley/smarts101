@@ -69,7 +69,7 @@ export async function runSmartsSearch(definitions, definition) {
 				[...queries],
 				definition,
 				'rdkit',
-				true
+				true,
 			);
 
 			// @ts-ignore
@@ -90,7 +90,7 @@ export async function runSmartsSearch(definitions, definition) {
 							id: smartsId,
 							name: smartsName,
 							query: queries,
-							matches: matchList
+							matches: matchList,
 						});
 					}
 				}
@@ -109,7 +109,7 @@ export async function runSmartsSearch(definitions, definition) {
 			query: meta.query,
 			color: meta.color,
 			atoms: [...(instance.atoms || [])],
-			bonds: [...(instance.bonds || [])]
+			bonds: [...(instance.bonds || [])],
 		}));
 	});
 
@@ -117,6 +117,6 @@ export async function runSmartsSearch(definitions, definition) {
 		highlightMatches,
 		detectedMatches,
 		allAtomsMatches,
-		allBondsMatches
+		allBondsMatches,
 	};
 }

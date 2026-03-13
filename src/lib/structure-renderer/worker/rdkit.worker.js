@@ -58,7 +58,7 @@ const PALETTE_LIGHT = {
 	16: [0.5, 0.25, 0], // S  — brown/orange
 	17: [0, 0.5, 0], // Cl — green
 	35: [0, 0.5, 0], // Br — green
-	53: [0.25, 0, 0.5] // I  — violet
+	53: [0.25, 0, 0.5], // I  — violet
 };
 
 const PALETTE_DARK = {
@@ -72,7 +72,7 @@ const PALETTE_DARK = {
 	16: [0.9, 0.75, 0.1], // S  — yellow-orange
 	17: [0.2, 0.9, 0.4], // Cl — bright green
 	35: [0.2, 0.9, 0.4], // Br — bright green
-	53: [0.7, 0.4, 0.9] // I  — light violet
+	53: [0.7, 0.4, 0.9], // I  — light violet
 };
 
 /** Generate an SVG with atom/bond class annotations for highlight support */
@@ -83,7 +83,7 @@ async function generateStructureSVG({
 	needsHighlights = true,
 	darkMode = false,
 	showAtomIndices = false,
-	userDrawingOptions = {}
+	userDrawingOptions = {},
 }) {
 	const mol = getMolecule(moleculeInput);
 
@@ -106,7 +106,7 @@ async function generateStructureSVG({
 		addAtomIndices: showAtomIndices,
 		...userDrawingOptions,
 		width: parseInt(`${width}`),
-		height: parseInt(`${height}`)
+		height: parseInt(`${height}`),
 	};
 
 	// First pass: get bond→atom mapping
@@ -139,8 +139,8 @@ async function generateStructureSVG({
 				...baseOptions,
 				atoms: allAtoms,
 				bonds: allBonds,
-				highlightColour: [1, 1, 1, 0]
-			})
+				highlightColour: [1, 1, 1, 0],
+			}),
 		);
 		const el = new DOMParser().parseFromString(svg, 'text/xml').documentElement;
 		viewBox = el.getAttribute('viewBox') || `0 0 ${width} ${height}`;

@@ -94,7 +94,7 @@ class WorkerPool {
 							clearTimeout(timeout);
 							reject(e);
 						},
-				timeout
+				timeout,
 			});
 			this.msgToWorker.set(id, idx);
 
@@ -167,12 +167,12 @@ class WorkerPool {
 
 const renderPool = new WorkerPool('RDKit-Render', RDKitWorker, RENDER_POOL_SIZE, {
 	sendInit: true,
-	format: 'type-payload'
+	format: 'type-payload',
 });
 
 const searchPool = new WorkerPool('RDKit-Search', RDKitSearchWorker, SEARCH_POOL_SIZE, {
 	sendInit: false,
-	format: 'flat'
+	format: 'flat',
 });
 
 // Eagerly warm up the render pool
@@ -187,7 +187,7 @@ export const rdkitWorker = {
 	generateSVG: (params) => renderPool.send('generateSVG', params),
 	/** @param {string} definition */
 	extractStructureDefinition: (definition) => renderPool.send('extractStructure', { definition }),
-	terminate: () => renderPool.terminate()
+	terminate: () => renderPool.terminate(),
 };
 
 /**
@@ -203,7 +203,7 @@ export const performSubstructureSearchAsync = (
 	smarts,
 	smiles,
 	_engine = 'rdkit',
-	includeAtomBondIndices = false
+	includeAtomBondIndices = false,
 ) => searchPool.send('search', { smarts, smiles, includeAtomBondIndices });
 
 /** Legacy alias used by playground/page.svelte */

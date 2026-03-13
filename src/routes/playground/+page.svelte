@@ -2,13 +2,24 @@
 	import { performSubstructureSearch } from '$lib/structure-renderer/worker-manager.js';
 	import MoleculeBox from '$lib/components/MoleculeBox.svelte';
 	import { mode } from 'mode-watcher';
-	import { RNA_BASES, DNA_BASES, DRUGLIKE_MOLECULES, DEFAULT_MOLECULES } from '$lib/molecules.js';
+	import {
+		RNA_BASES,
+		DNA_BASES,
+		DRUGLIKE_MOLECULES,
+		AMINO_ACIDS,
+		PEPTIDES,
+		CHEMBL,
+		DEFAULT_MOLECULES,
+	} from '$lib/molecules.js';
 
 	// ── Molecule sets ────────────────────────────────────────────────────────
 	const SETS = {
 		druglike: { label: 'Druglike', molecules: DRUGLIKE_MOLECULES },
+		aminoacids: { label: 'Amino Acids', molecules: AMINO_ACIDS },
+		peptides: { label: 'Peptides', molecules: PEPTIDES },
 		rna: { label: 'RNA Bases', molecules: RNA_BASES },
-		dna: { label: 'DNA Bases', molecules: DNA_BASES }
+		dna: { label: 'DNA Bases', molecules: DNA_BASES },
+		chembl: { label: 'ChEMBL', molecules: CHEMBL },
 	};
 
 	/**
@@ -39,7 +50,7 @@
 				.split('\n')
 				.map((line) => line.trim())
 				.filter((line) => line.length > 0)
-				.map((smiles) => ({ smiles, name: smiles }))
+				.map((smiles) => ({ smiles, name: smiles })),
 		);
 	}
 
@@ -65,12 +76,12 @@
 		activeSmarts
 			? {
 					definitions: [
-						{ smarts: activeSmarts, color: activeSmartsColor, id: 'query', name: 'Query' }
+						{ smarts: activeSmarts, color: activeSmartsColor, id: 'query', name: 'Query' },
 					],
 					outline: true,
-					fill: false
+					fill: false,
 				}
-			: { definitions: [] }
+			: { definitions: [] },
 	);
 
 	// ── View mode toggle ─────────────────────────────────────────────────────

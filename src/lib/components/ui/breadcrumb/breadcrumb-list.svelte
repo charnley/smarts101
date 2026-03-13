@@ -10,7 +10,7 @@
 	data-slot="breadcrumb-list"
 	class={cn(
 		'flex flex-wrap items-center gap-1.5 text-sm break-words text-muted-foreground sm:gap-2.5',
-		className
+		className,
 	)}
 	{...restProps}
 >

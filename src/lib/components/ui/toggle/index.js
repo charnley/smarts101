@@ -4,5 +4,5 @@ export { toggleVariants } from './toggle.svelte';
 export {
 	Root,
 	//
-	Root as Toggle
+	Root as Toggle,
 };

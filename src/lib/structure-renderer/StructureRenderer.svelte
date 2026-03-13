@@ -30,7 +30,7 @@
 		 */
 		darkMode = null,
 		/** Show atom index numbers on the molecule. Default false. */
-		showAtomIndices = false
+		showAtomIndices = false,
 	} = $props();
 
 	// Resolve dark mode: prop override takes priority, otherwise follow the app theme.
@@ -73,10 +73,10 @@
 					height,
 					userDrawingOptions: {
 						darkMode: isDark,
-						showAtomIndices
+						showAtomIndices,
 					},
 					showBondIndices: false,
-					needsHighlights: hasHighlights
+					needsHighlights: hasHighlights,
 				});
 
 				if (!svgRoot) throw new Error('No SVG from RDKit');
@@ -89,7 +89,7 @@
 						svgRoot,
 						svgViewBox,
 						highlights,
-						definition: smiles
+						definition: smiles,
 					});
 				}
 			} catch (/** @type {any} */ err) {

@@ -22,34 +22,34 @@
 		component: StructureRenderer,
 		tags: ['autodocs'],
 		parameters: {
-			layout: 'centered'
+			layout: 'centered',
 		},
 		argTypes: {
 			smiles: {
 				control: 'text',
-				description: 'SMILES string of the molecule to render'
+				description: 'SMILES string of the molecule to render',
 			},
 			highlights: {
 				control: 'object',
 				description:
-					'Highlight config: { definitions: [{ smarts, color, id?, name? }], outline?, fill? }'
+					'Highlight config: { definitions: [{ smarts, color, id?, name? }], outline?, fill? }',
 			},
 			width: {
 				control: { type: 'range', min: 100, max: 600, step: 10 },
-				description: 'Width of the renderer in pixels'
+				description: 'Width of the renderer in pixels',
 			},
 			height: {
 				control: { type: 'range', min: 100, max: 500, step: 10 },
-				description: 'Height of the renderer in pixels'
+				description: 'Height of the renderer in pixels',
 			},
 			darkMode: {
 				control: 'boolean',
-				description: 'Force dark mode palette. Leave unset (null) to auto-follow the app theme.'
+				description: 'Force dark mode palette. Leave unset (null) to auto-follow the app theme.',
 			},
 			showAtomIndices: {
 				control: 'boolean',
-				description: 'Show atom index numbers on the molecule. Default false.'
-			}
+				description: 'Show atom index numbers on the molecule. Default false.',
+			},
 		},
 		args: {
 			smiles: DEFAULT_SMILES,
@@ -58,8 +58,8 @@
 			height: 220,
 			// Pin to light mode by default so stories look consistent regardless of browser theme.
 			// The "Dark mode" story overrides this to true.
-			darkMode: false
-		}
+			darkMode: false,
+		},
 	});
 </script>
 
@@ -111,7 +111,7 @@
 	name="Morphine — no highlight"
 	args={{
 		smiles: 'OC1=CC=C2CC3N(C)CCC34C2=C1OC4',
-		highlights: { definitions: [] }
+		highlights: { definitions: [] },
 	}}
 />
 
@@ -120,7 +120,7 @@
 	name="Caffeine — highlight N"
 	args={{
 		smiles: 'Cn1cnc2c1c(=O)n(C)c(=O)n2C',
-		highlights: makeHighlights('[#7]', '#3b82f6')
+		highlights: makeHighlights('[#7]', '#3b82f6'),
 	}}
 />
 
@@ -134,7 +134,7 @@
 	args={{
 		smiles: 'OC[C@H]1OC(O)[C@H](O)[C@@H](O)[C@@H]1O',
 		highlights: { definitions: [] },
-		darkMode: false
+		darkMode: false,
 	}}
 />
 
@@ -143,7 +143,7 @@
 	args={{
 		smiles: 'OC[C@H]1OC(O)[C@H](O)[C@@H](O)[C@@H]1O',
 		highlights: { definitions: [] },
-		darkMode: true
+		darkMode: true,
 	}}
 >
 	{#snippet template(args)}

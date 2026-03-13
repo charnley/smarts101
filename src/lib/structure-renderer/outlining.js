@@ -132,7 +132,7 @@ function extractShapeDescriptors(svgElement) {
 						hasFill,
 						hasStroke,
 						strokeWidth: sw,
-						closed: true
+						closed: true,
 					});
 				break;
 			}
@@ -151,7 +151,7 @@ function extractShapeDescriptors(svgElement) {
 						hasFill,
 						hasStroke,
 						strokeWidth: sw,
-						closed: true
+						closed: true,
 					});
 				break;
 			}
@@ -169,7 +169,7 @@ function extractShapeDescriptors(svgElement) {
 					hasFill,
 					hasStroke,
 					strokeWidth: sw,
-					closed: false
+					closed: false,
 				});
 				break;
 			}
@@ -188,7 +188,7 @@ function extractShapeDescriptors(svgElement) {
 						hasFill,
 						hasStroke,
 						strokeWidth: sw,
-						closed: true
+						closed: true,
 					});
 				break;
 			}
@@ -289,7 +289,7 @@ export async function createSurroundingOutline({
 	bondOverlapCounts,
 	strokeWidth = 1,
 	extraOffset = 0,
-	outlineOptions = {}
+	outlineOptions = {},
 }) {
 	const { atoms, bonds } = match;
 
@@ -376,7 +376,7 @@ export async function createSurroundingOutline({
 		outerOnly: outlineOptions.outerOnly ?? true,
 		strokeExpand: outlineOptions.strokeExpand ?? 6,
 		mergeClusters: outlineOptions.mergeClusters ?? true,
-		mergeClustersAfterOffset: outlineOptions.mergeClustersAfterOffset ?? true
+		mergeClustersAfterOffset: outlineOptions.mergeClustersAfterOffset ?? true,
 	};
 
 	// ---- Compute surrounding outline ----
@@ -391,7 +391,7 @@ export async function createSurroundingOutline({
 				strokeColor,
 				viewBox,
 				defaultOutlineOptions,
-				strokeWidth
+				strokeWidth,
 			);
 		} else {
 			// Merge all cluster path-data into a single <path>
@@ -462,7 +462,7 @@ async function processIndividualShapes(
 	strokeColor,
 	viewBox,
 	outlineOptions,
-	strokeWidth = 1
+	strokeWidth = 1,
 ) {
 	const BATCH_SIZE = 8;
 	for (let batchStart = 0; batchStart < allShapes.length; batchStart += BATCH_SIZE) {
@@ -477,7 +477,7 @@ async function processIndividualShapes(
 				const isBond = /** @type {SVGElement} */ (elem).classList
 					? Array.prototype.some.call(
 							/** @type {SVGElement} */ (elem).classList,
-							(/** @type {string} */ cls) => cls.startsWith('bond-')
+							(/** @type {string} */ cls) => cls.startsWith('bond-'),
 						)
 					: false;
 				const clonedElem = /** @type {SVGElement} */ (elem.cloneNode(true));
@@ -486,7 +486,7 @@ async function processIndividualShapes(
 
 				const clusters = await computeSurroundingOutline(batchSvg, outlineOptions);
 				return { elem, clusters };
-			})
+			}),
 		);
 
 		for (let idx = 0; idx < results.length; idx++) {
@@ -510,7 +510,7 @@ async function processIndividualShapes(
 				const elem = batch[idx];
 				console.warn(
 					'[surrounding-outline] Error computing outline for single element:',
-					result.reason
+					result.reason,
 				);
 				const directCopy = /** @type {SVGElement} */ (elem.cloneNode(true));
 				applyDirectCopyStyle(directCopy, elem.tagName, strokeColor, strokeWidth);
