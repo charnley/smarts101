@@ -3,6 +3,7 @@
 	import MoleculeBox from '$lib/components/MoleculeBox.svelte';
 	import PlusIcon from '@lucide/svelte/icons/plus';
 	import FlaskConicalIcon from '@lucide/svelte/icons/flask-conical';
+	import { mode } from 'mode-watcher';
 
 	// ── Default molecules ────────────────────────────────────────────────────
 	// Extend this array to add more starting molecules.
@@ -25,11 +26,16 @@
 	/** The validated SMARTS that gets passed down to renderers */
 	let activeSmarts = $state('');
 
+	/** Blue that reads well on both light and dark backgrounds */
+	let activeSmartsColor = $derived(mode.current === 'dark' ? '#60a5fa' : '#2563eb');
+
 	/** Softspots object built from the active SMARTS pattern */
 	let softspots = $derived(
 		activeSmarts
 			? {
-					definitions: [{ smarts: activeSmarts, color: '#f97316', id: 'query', name: 'Query' }],
+					definitions: [
+						{ smarts: activeSmarts, color: activeSmartsColor, id: 'query', name: 'Query' }
+					],
 					outline: true,
 					fill: false
 				}
@@ -95,7 +101,6 @@
 <div class="playground">
 	<!-- ── SMARTS input ── -->
 	<section class="playground__query">
-
 		<p class="playground__hint">Start from: <a href="#">RNA</a>, Druglike, DNA, Chembl</p>
 		<div class="playground__input-wrap" class:has-error={!!smartsError}>
 			<input
