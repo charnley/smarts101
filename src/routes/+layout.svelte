@@ -10,7 +10,10 @@
 	let { children } = $props();
 </script>
 
-<svelte:head><link rel="icon" href={favicon} /></svelte:head>
+<svelte:head>
+	<title>Learn SMARTS</title>
+	<link rel="icon" href={favicon} />
+</svelte:head>
 
 <ModeWatcher />
 
@@ -21,7 +24,7 @@
 			<div class="flex items-center gap-2 px-4">
 				<Sidebar.Trigger class="-ms-1" onclick={() => {}} />
 				<Separator orientation="vertical" class="me-2 data-[orientation=vertical]:h-4" />
-				<div class="headline">SMARTS 101 - A Language for Describing Molecular Patterns</div>
+				<div class="headline">Learn SMARTS</div>
 			</div>
 		</header>
 		<div class="gap-4 p-4 pt-0">
