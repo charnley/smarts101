@@ -1,7 +1,9 @@
 <script module>
 	// @ts-nocheck
 	import BookOpenIcon from '@lucide/svelte/icons/book-open';
+	import BookOpenCheckIcon from '@lucide/svelte/icons/book-open-check';
 	import BotIcon from '@lucide/svelte/icons/bot';
+	import InfoIcon from '@lucide/svelte/icons/info';
 	import ChartPieIcon from '@lucide/svelte/icons/chart-pie';
 	import FlaskConicalIcon from '@lucide/svelte/icons/flask-conical';
 	import FrameIcon from '@lucide/svelte/icons/frame';
@@ -55,16 +57,16 @@
 				]
 			},
 			{
-				title: 'Test',
+				title: 'Quiz',
 				url: '/test',
-				icon: FlaskConicalIcon,
+				icon: BookOpenCheckIcon,
 				isActive: true,
 				items: []
 			},
 			{
 				title: 'about',
 				url: '/about',
-				icon: FlaskConicalIcon,
+				icon: InfoIcon,
 				isActive: true,
 				items: []
 			}
