@@ -184,17 +184,8 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		background: color-mix(in srgb, var(--background, white) 60%, transparent);
+		background: color-mix(in srgb, var(--card, white) 60%, transparent);
 		backdrop-filter: blur(1px);
-	}
-
-	.sr-spinner {
-		width: 28px;
-		height: 28px;
-		border: 3px solid color-mix(in srgb, currentColor 20%, transparent);
-		border-top-color: currentColor;
-		border-radius: 50%;
-		animation: sr-spin 0.7s linear infinite;
 	}
 
 	@keyframes sr-spin {

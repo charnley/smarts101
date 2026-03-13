@@ -34,43 +34,6 @@
 		box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
 	}
 
-	.molecule-box__header {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		padding: 6px 10px;
-		min-height: 28px;
-		border-bottom: 1px solid var(--border, #e2e8f0);
-	}
-
-	.molecule-box__name {
-		font-size: 12px;
-		font-weight: 600;
-		color: var(--muted-foreground, #64748b);
-		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
-	}
-
-	.molecule-box__remove {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		padding: 2px;
-		background: none;
-		border: none;
-		cursor: pointer;
-		color: var(--muted-foreground, #94a3b8);
-		border-radius: 3px;
-		margin-left: auto;
-		flex-shrink: 0;
-	}
-
-	.molecule-box__remove:hover {
-		background: var(--destructive, #fee2e2);
-		color: var(--destructive-foreground, #dc2626);
-	}
-
 	.molecule-box__renderer {
 		display: flex;
 		align-items: center;
@@ -79,14 +42,4 @@
 		background: var(--card);
 	}
 
-	.molecule-box__smiles {
-		padding: 4px 10px 6px;
-		font-size: 10px;
-		font-family: ui-monospace, monospace;
-		color: var(--muted-foreground, #94a3b8);
-		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
-		border-top: 1px solid var(--border, #e2e8f0);
-	}
 </style>
