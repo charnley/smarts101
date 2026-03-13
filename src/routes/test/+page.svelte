@@ -1,1 +1,5 @@
-<h1>Ready to test your knowledge?</h1>
+<div class="article">
+
+	<h1>Test your SMARTS skills</h1>
+
+</div>

@@ -1,3 +1,9 @@
-<h1>Who?</h1>
+<div class="article">
 
-Who made this crap? and why?
+	<h1>About...</h1>
+
+    <p>Who wrote this and why?</p>
+
+    <p>By me, because I needed something similar when I have to re-learn it.</p>
+
+</div>
