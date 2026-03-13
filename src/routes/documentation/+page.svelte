@@ -5,7 +5,10 @@
 <div class="article">
 	<h1>Introduction to SMARTS</h1>
 
-	<p class="article-lead">Standing on the shoulders of giants.</p>
+	<p>
+		Standing on the shoulders of giants, SMARTS was developed by Daylight Chemical Information
+		Systems, the same company that introduced SMILES.
+	</p>
 
 	<h2>What is SMARTS?</h2>
 
@@ -15,11 +18,6 @@
 		structures, making it possible to search, filter, and classify molecules based on substructure
 		patterns.
 	</p>
-
-	<blockquote>
-		A SMARTS pattern is a string that describes a set of molecules — any molecule matching the
-		pattern is considered a hit.
-	</blockquote>
 
 	<h2>Atom Primitives</h2>
 
@@ -36,6 +34,8 @@
 		<li><code>[#6]</code> — carbon by atomic number (aliphatic or aromatic)</li>
 		<li><code>[*]</code> — any atom (wildcard)</li>
 	</ul>
+
+	<SmartsDemo smiles="c1ccccc1C(=O)O" smarts={['[c]', '[C]', '[#6]', '[*]']} />
 
 	<h3>Atom Properties</h3>
 
@@ -108,5 +108,3 @@
 		hydrogen.
 	</p>
 </div>
-
-<SmartsDemo smiles="c1ccccc1C(=O)O" smarts={['c1ccccc1', 'C(=O)O']} />

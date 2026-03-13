@@ -12,14 +12,9 @@
 	import SquareTerminalIcon from '@lucide/svelte/icons/square-terminal';
 
 	const data = {
-		user: {
-			name: 'shadcn',
-			email: 'm@example.com',
-			avatar: '/avatars/shadcn.jpg',
-		},
 		navMain: [
 			{
-				title: 'SMARTS Query',
+				title: 'SMARTS',
 				url: '/',
 				icon: FlaskConicalIcon,
 				isActive: true,
@@ -69,23 +64,6 @@
 				icon: InfoIcon,
 				isActive: true,
 				items: [],
-			},
-		],
-		projects: [
-			{
-				name: 'Design Engineering',
-				url: '#',
-				icon: FrameIcon,
-			},
-			{
-				name: 'Sales & Marketing',
-				url: '#',
-				icon: ChartPieIcon,
-			},
-			{
-				name: 'Travel',
-				url: '#',
-				icon: MapIcon,
 			},
 		],
 	};
