@@ -51,7 +51,7 @@
 	let viewMode = $state(/** @type {'grid' | 'edit'} */ ('grid'));
 
 	/** Raw text in the textarea editor — synced from molecules when entering edit mode */
-	let textareaValue = $state(toTextarea(molecules));
+	let textareaValue = $state('');
 
 	let rawSmarts = $state('');
 	let smartsError = $state(/** @type {string|null} */ (null));
@@ -119,7 +119,7 @@
 		}
 		try {
 			// Validate by running a search against a simple molecule
-			const result = await performSubstructureSearch([trimmed], 'C', false);
+			const result = await performSubstructureSearch([trimmed], 'C');
 			if (!result?.success) throw new Error(result?.error ?? 'Invalid SMARTS');
 			smartsError = null;
 			activeSmarts = trimmed;
@@ -163,7 +163,10 @@
 				<div class="playground__sets">
 					<span class="playground__sets-label">Start from:</span>
 					{#each Object.entries(SETS) as [key, set]}
-						<button class="playground__set-btn" onclick={() => loadSet(key)}>
+						<button
+							class="playground__set-btn"
+							onclick={() => loadSet(/** @type {keyof typeof SETS} */ (key))}
+						>
 							{set.label}
 						</button>
 					{/each}

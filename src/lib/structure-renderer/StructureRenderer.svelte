@@ -140,7 +140,7 @@
 
 	{#if isRendering}
 		<div class="sr-overlay" role="status" aria-label="Rendering…">
-			<Spinner />
+			<Spinner class="" />
 		</div>
 	{/if}
 

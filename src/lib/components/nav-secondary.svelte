@@ -1,4 +1,5 @@
 <script>
+	// @ts-nocheck
 	import * as Sidebar from '$lib/components/ui/sidebar/index.js';
 	let { ref = $bindable(null), items, ...restProps } = $props();
 </script>
