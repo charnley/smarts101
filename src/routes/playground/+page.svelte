@@ -1,24 +1,57 @@
 <script>
 	import { performSubstructureSearch } from '$lib/structure-renderer/worker-manager.js';
 	import MoleculeBox from '$lib/components/MoleculeBox.svelte';
-	import PlusIcon from '@lucide/svelte/icons/plus';
 	import { mode } from 'mode-watcher';
+	import { RNA_BASES, DNA_BASES, DRUGLIKE_MOLECULES, DEFAULT_MOLECULES } from '$lib/molecules.js';
 
-	// ── Default molecules ────────────────────────────────────────────────────
-	// Extend this array to add more starting molecules.
-	/** @type {{ id: number, smiles: string, name: string }[]} */
-	const DEFAULT_MOLECULES = [
-		{ id: 1, smiles: 'CC(=O)Oc1ccccc1C(=O)O', name: 'Aspirin' },
-		{ id: 2, smiles: 'Cn1cnc2c1c(=O)n(C)c(=O)n2C', name: 'Caffeine' },
-		{ id: 3, smiles: 'CC(C)Cc1ccc(cc1)C(C)C(=O)O', name: 'Ibuprofen' },
-		{ id: 4, smiles: 'CC(=O)Nc1ccc(O)cc1', name: 'Paracetamol' },
-		{ id: 5, smiles: 'OC[C@H]1OC(O)[C@H](O)[C@@H](O)[C@@H]1O', name: 'Glucose' },
-		{ id: 6, smiles: 'c1ccc2c(c1)cc1ccc3cccc4ccc2c1c34', name: 'Pyrene' }
-	];
+	// ── Molecule sets ────────────────────────────────────────────────────────
+	const SETS = {
+		druglike: { label: 'Druglike', molecules: DRUGLIKE_MOLECULES },
+		rna: { label: 'RNA Bases', molecules: RNA_BASES },
+		dna: { label: 'DNA Bases', molecules: DNA_BASES }
+	};
+
+	/**
+	 * Assign sequential IDs to a molecule list.
+	 * @param {{ smiles: string, name: string }[]} list
+	 * @returns {{ id: number, smiles: string, name: string }[]}
+	 */
+	function withIds(list) {
+		return list.map((m, i) => ({ ...m, id: i + 1 }));
+	}
+
+	/**
+	 * Serialize molecules to textarea text (one SMILES per line).
+	 * @param {{ smiles: string }[]} list
+	 */
+	function toTextarea(list) {
+		return list.map((m) => m.smiles).join('\n');
+	}
+
+	/**
+	 * Parse textarea text into a molecule list.
+	 * @param {string} text
+	 * @returns {{ id: number, smiles: string, name: string }[]}
+	 */
+	function fromTextarea(text) {
+		return withIds(
+			text
+				.split('\n')
+				.map((line) => line.trim())
+				.filter((line) => line.length > 0)
+				.map((smiles) => ({ smiles, name: smiles }))
+		);
+	}
 
 	// ── State ────────────────────────────────────────────────────────────────
-	let molecules = $state(DEFAULT_MOLECULES.map((m) => ({ ...m })));
+	let molecules = $state(withIds(DEFAULT_MOLECULES));
 	let nextId = $state(DEFAULT_MOLECULES.length + 1);
+
+	/** 'grid' shows the molecule cards; 'edit' shows the textarea editor */
+	let viewMode = $state(/** @type {'grid' | 'edit'} */ ('grid'));
+
+	/** Raw text in the textarea editor — synced from molecules when entering edit mode */
+	let textareaValue = $state(toTextarea(molecules));
 
 	let rawSmarts = $state('');
 	let smartsError = $state(/** @type {string|null} */ (null));
@@ -41,9 +74,30 @@
 			: { definitions: [] }
 	);
 
-	let newSmiles = $state('');
-	let newName = $state('');
-	let showAddForm = $state(false);
+	// ── View mode toggle ─────────────────────────────────────────────────────
+	function switchToEdit() {
+		textareaValue = toTextarea(molecules);
+		viewMode = 'edit';
+	}
+
+	function switchToGrid() {
+		const parsed = fromTextarea(textareaValue);
+		if (parsed.length > 0) {
+			molecules = parsed;
+			nextId = parsed.length + 1;
+		}
+		viewMode = 'grid';
+	}
+
+	// ── Load a named molecule set ─────────────────────────────────────────────
+	/** @param {keyof typeof SETS} setKey */
+	function loadSet(setKey) {
+		const list = withIds(SETS[setKey].molecules);
+		molecules = list;
+		nextId = list.length + 1;
+		textareaValue = toTextarea(list);
+		viewMode = 'grid';
+	}
 
 	// ── Debounced SMARTS validation ──────────────────────────────────────────
 	let debounceTimer = /** @type {ReturnType<typeof setTimeout>|null} */ (null);
@@ -76,31 +130,16 @@
 		}
 	}
 
-	// ── Add / remove molecules ────────────────────────────────────────────────
-	function addMolecule() {
-		const smiles = newSmiles.trim();
-		if (!smiles) return;
-		molecules = [...molecules, { id: nextId++, smiles, name: newName.trim() || smiles }];
-		newSmiles = '';
-		newName = '';
-		showAddForm = false;
-	}
-
+	// ── Remove molecule ───────────────────────────────────────────────────────
 	/** @param {number} id */
 	function removeMolecule(id) {
 		molecules = molecules.filter((m) => m.id !== id);
-	}
-
-	function onAddKeydown(/** @type {KeyboardEvent} */ e) {
-		if (e.key === 'Enter') addMolecule();
-		if (e.key === 'Escape') showAddForm = false;
 	}
 </script>
 
 <div class="playground">
 	<!-- ── SMARTS input ── -->
 	<section class="playground__query">
-		<p class="playground__hint">Start from: <a href="#">RNA</a>, Druglike, DNA, Chembl</p>
 		<div class="playground__input-wrap" class:has-error={!!smartsError}>
 			<input
 				class="playground__smarts-input"
@@ -117,19 +156,67 @@
 		{/if}
 	</section>
 
-	<!-- ── Molecule grid ── -->
+	<!-- ── Molecule grid / editor ── -->
 	<section class="playground__grid-section">
-		<div class="playground__grid">
-			{#each molecules as mol (mol.id)}
-				<MoleculeBox
-					smiles={mol.smiles}
-					name={mol.name}
-					{softspots}
-					onremove={() => removeMolecule(mol.id)}
-				/>
-			{/each}
+		<!-- Toolbar: set selector (edit mode only) + view toggle -->
+		<div class="playground__toolbar">
+			{#if viewMode === 'edit'}
+				<div class="playground__sets">
+					<span class="playground__sets-label">Start from:</span>
+					{#each Object.entries(SETS) as [key, set]}
+						<button class="playground__set-btn" onclick={() => loadSet(key)}>
+							{set.label}
+						</button>
+					{/each}
+				</div>
+			{:else}
+				<div></div>
+			{/if}
 
+			<div class="playground__view-toggle">
+				<button
+					class="playground__toggle-btn"
+					class:active={viewMode === 'grid'}
+					onclick={switchToGrid}
+				>
+					Grid
+				</button>
+				<button
+					class="playground__toggle-btn"
+					class:active={viewMode === 'edit'}
+					onclick={switchToEdit}
+				>
+					Edit
+				</button>
+			</div>
 		</div>
+
+		<!-- Grid view -->
+		{#if viewMode === 'grid'}
+			<div class="playground__grid">
+				{#each molecules as mol (mol.id)}
+					<MoleculeBox
+						smiles={mol.smiles}
+						name={mol.name}
+						{softspots}
+						onremove={() => removeMolecule(mol.id)}
+					/>
+				{/each}
+			</div>
+
+			<!-- Edit view -->
+		{:else}
+			<div class="playground__edit">
+				<p class="playground__edit-hint">One SMILES per line. Switch to Grid to apply.</p>
+				<textarea
+					class="playground__textarea"
+					bind:value={textareaValue}
+					spellcheck="false"
+					autocomplete="off"
+					rows={Math.max(8, textareaValue.split('\n').length + 2)}
+				></textarea>
+			</div>
+		{/if}
 	</section>
 </div>
 
@@ -176,8 +263,6 @@
 		outline: none;
 		color: var(--foreground);
 		box-sizing: border-box;
-
-		width: 100%;
 	}
 
 	.playground__smarts-input::placeholder {
@@ -191,114 +276,119 @@
 		color: var(--destructive, #dc2626);
 	}
 
-	.playground__hint {
-		margin: 0;
+	/* ── Grid section ── */
+	.playground__grid-section {
+		width: 100%;
+		display: flex;
+		flex-direction: column;
+		gap: 12px;
+	}
+
+	/* ── Toolbar ── */
+	.playground__toolbar {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 12px;
+		flex-wrap: wrap;
+	}
+
+	.playground__sets {
+		display: flex;
+		align-items: center;
+		gap: 6px;
+		flex-wrap: wrap;
+	}
+
+	.playground__sets-label {
 		font-size: 12px;
 		color: var(--muted-foreground, #94a3b8);
 	}
 
-	.playground__hint code {
-		font-family: ui-monospace, monospace;
+	.playground__set-btn {
+		padding: 3px 10px;
+		font-size: 12px;
+		border-radius: 9999px;
+		border: 1px solid var(--border, #e2e8f0);
+		background: var(--background);
+		color: var(--foreground);
+		cursor: pointer;
+		transition:
+			background 0.1s ease,
+			color 0.1s ease;
+	}
+
+	.playground__set-btn:hover {
 		background: var(--muted, #f1f5f9);
-		padding: 1px 5px;
-		border-radius: 3px;
-		font-size: 11px;
+	}
+
+	/* ── View toggle ── */
+	.playground__view-toggle {
+		display: flex;
+		border: 1px solid var(--border, #e2e8f0);
+		border-radius: 6px;
+		overflow: hidden;
+	}
+
+	.playground__toggle-btn {
+		padding: 4px 14px;
+		font-size: 12px;
+		border: none;
+		background: transparent;
+		color: var(--muted-foreground, #94a3b8);
+		cursor: pointer;
+		transition:
+			background 0.1s ease,
+			color 0.1s ease;
+	}
+
+	.playground__toggle-btn:not(:last-child) {
+		border-right: 1px solid var(--border, #e2e8f0);
+	}
+
+	.playground__toggle-btn.active {
+		background: var(--muted, #f1f5f9);
+		color: var(--foreground);
+		font-weight: 500;
 	}
 
 	/* ── Grid ── */
-	.playground__grid-section {
-		width: 100%;
-	}
-
 	.playground__grid {
 		display: grid;
 		grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
 		gap: 16px;
 	}
 
-	/* ── Add-molecule card ── */
-	.playground__add-card {
-		border: 2px dashed var(--border, #e2e8f0);
-		border-radius: 8px;
-		min-height: 260px;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-	}
-
-	.playground__add-btn {
+	/* ── Edit view ── */
+	.playground__edit {
 		display: flex;
 		flex-direction: column;
-		align-items: center;
 		gap: 8px;
-		padding: 24px;
-		background: none;
-		border: none;
-		cursor: pointer;
+	}
+
+	.playground__edit-hint {
+		margin: 0;
+		font-size: 12px;
 		color: var(--muted-foreground, #94a3b8);
-		font-size: 14px;
-		border-radius: 6px;
-		transition:
-			color 0.15s ease,
-			background 0.15s ease;
 	}
 
-	.playground__add-btn:hover {
-		color: var(--foreground);
-		background: var(--muted, #f1f5f9);
-	}
-
-	.playground__add-form {
-		display: flex;
-		flex-direction: column;
-		gap: 8px;
-		padding: 16px;
+	.playground__textarea {
 		width: 100%;
-	}
-
-	.playground__add-input {
-		padding: 8px 10px;
-		border: 1px solid var(--border, #e2e8f0);
-		border-radius: 6px;
-		font-size: 13px;
-		font-family: ui-monospace, monospace;
+		padding: 12px 14px;
+		font-size: 14px;
+		font-family: ui-monospace, 'Fira Code', monospace;
+		border: 2px solid var(--border, #e2e8f0);
+		border-radius: 8px;
 		background: var(--background);
 		color: var(--foreground);
 		outline: none;
-		width: 100%;
+		resize: vertical;
 		box-sizing: border-box;
+		line-height: 1.6;
+		transition: border-color 0.15s ease;
 	}
 
-	.playground__add-input:focus {
+	.playground__textarea:focus {
 		border-color: var(--ring, #6366f1);
-	}
-
-	.playground__add-actions {
-		display: flex;
-		gap: 8px;
-	}
-
-	.playground__btn {
-		padding: 6px 14px;
-		border-radius: 6px;
-		border: 1px solid var(--border, #e2e8f0);
-		background: var(--background);
-		color: var(--foreground);
-		cursor: pointer;
-		font-size: 13px;
-	}
-
-	.playground__btn:hover {
-		background: var(--muted, #f1f5f9);
-	}
-
-	.playground__btn--primary {
-		background: var(--primary, #6366f1);
-		color: var(--primary-foreground, #fff);
-		border-color: transparent;
-	}
-
-	.playground__btn--primary:hover {
-		opacity: 0.9;
 	}
 </style>
