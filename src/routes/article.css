@@ -1,0 +1,67 @@
+@layer components {
+	.article h1 {
+		@apply scroll-m-20 text-4xl font-extrabold tracking-tight lg:text-5xl;
+	}
+
+	.article h2 {
+		@apply mt-10 scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight transition-colors first:mt-0;
+	}
+
+	.article h3 {
+		@apply mt-8 scroll-m-20 text-2xl font-semibold tracking-tight;
+	}
+
+	.article h4 {
+		@apply scroll-m-20 text-xl font-semibold tracking-tight;
+	}
+
+	.article p {
+		@apply leading-7 [&:not(:first-child)]:mt-6;
+	}
+
+	.article a {
+		@apply font-medium text-primary underline underline-offset-4;
+	}
+
+	.article blockquote {
+		@apply mt-6 border-s-2 ps-6 italic;
+	}
+
+	.article ul {
+		@apply my-6 ms-6 list-disc [&>li]:mt-2;
+	}
+
+	.article ol {
+		@apply my-6 ms-6 list-decimal [&>li]:mt-2;
+	}
+
+	.article code {
+		@apply relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm font-semibold;
+	}
+
+	.article table {
+		@apply my-6 w-full overflow-y-auto;
+	}
+
+	.article thead tr,
+	.article tbody tr {
+		@apply m-0 border-t p-0 even:bg-muted;
+	}
+
+	.article th {
+		@apply border px-4 py-2 text-start font-bold;
+	}
+
+	.article td {
+		@apply border px-4 py-2 text-start;
+	}
+
+	/* utility variants */
+	.article-lead {
+		@apply text-xl leading-7 text-muted-foreground;
+	}
+
+	.article-muted {
+		@apply text-sm text-muted-foreground;
+	}
+}
