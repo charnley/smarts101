@@ -2,6 +2,8 @@
 	import StructureRenderer from '$lib/structure-renderer/StructureRenderer.svelte';
 	import { performSubstructureSearchAsync } from '$lib/structure-renderer/worker-manager.js';
 	import { mode } from 'mode-watcher';
+	import { Input } from '$lib/components/ui/input/index.js';
+	import { Button } from '$lib/components/ui/button/index.js';
 
 	/**
 	 * @type {{
@@ -22,9 +24,7 @@
 	let solutionRevealed = $state(false);
 
 	// ── Colors ───────────────────────────────────────────────────────────────
-	const COLOR_LIGHT = '#2563eb';
-	const COLOR_DARK = '#60a5fa';
-	let highlightColor = $derived(mode.current === 'dark' ? COLOR_DARK : COLOR_LIGHT);
+	let highlightColor = $derived(mode.current === 'dark' ? '#60a5fa' : '#2563eb');
 
 	// ── Live highlights ───────────────────────────────────────────────────────
 	let highlights = $derived(
@@ -113,10 +113,6 @@
 		if (a.length !== b.length) return false;
 		return a.every((v, i) => v === b[i]);
 	}
-
-	function revealSolution() {
-		solutionRevealed = true;
-	}
 </script>
 
 <div
@@ -124,46 +120,41 @@
 	class:is-correct={checkResult === 'correct'}
 	class:is-incorrect={checkResult === 'incorrect'}
 >
+	<!-- Header: question number + description -->
 	<div class="quiz-card__header">
 		<span class="quiz-card__index">Q{index}</span>
 		<p class="quiz-card__description">{description}</p>
 	</div>
 
+	<!-- Body: two-column -->
 	<div class="quiz-card__body">
-		<!-- Left: input + controls + feedback -->
+		<!-- Left: input row + feedback + solution -->
 		<div class="quiz-card__left">
-			<div class="quiz-card__input-wrap" class:invalid={!syntaxValid && userSmarts.trim()}>
-				<input
-					class="quiz-card__input"
+			<!-- Input + Check button on the same row -->
+			<div class="quiz-card__input-row">
+				<Input
 					type="text"
 					placeholder="Enter a SMARTS pattern…"
-					spellcheck="false"
+					spellcheck={false}
 					autocomplete="off"
 					value={userSmarts}
-					oninput={(e) => onInput(e.currentTarget.value)}
+					aria-invalid={!syntaxValid && userSmarts.trim() ? true : undefined}
+					class="flex-1 font-mono"
+					oninput={(/** @type {Event} */ e) =>
+						onInput(/** @type {HTMLInputElement} */ (e.currentTarget).value)}
 				/>
+				<Button
+					size="sm"
+					onclick={checkAnswer}
+					disabled={!userSmarts.trim() || !syntaxValid || checking}
+				>
+					{checking ? 'Checking…' : 'Check'}
+				</Button>
 			</div>
 
 			{#if !syntaxValid && userSmarts.trim()}
 				<p class="quiz-card__syntax-error">Invalid SMARTS syntax</p>
 			{/if}
-
-			<div class="quiz-card__actions">
-				<button
-					class="quiz-card__btn quiz-card__btn--primary"
-					onclick={checkAnswer}
-					disabled={!userSmarts.trim() || !syntaxValid || checking}
-				>
-					{checking ? 'Checking…' : 'Check'}
-				</button>
-				<button
-					class="quiz-card__btn quiz-card__btn--ghost"
-					onclick={revealSolution}
-					disabled={solutionRevealed}
-				>
-					Show solution
-				</button>
-			</div>
 
 			{#if checkResult === 'correct'}
 				<div class="quiz-card__feedback quiz-card__feedback--correct">Correct!</div>
@@ -176,6 +167,15 @@
 					<span class="quiz-card__solution-label">Solution:</span>
 					<code class="quiz-card__solution-code">{referenceSMARTS}</code>
 				</div>
+			{:else}
+				<Button
+					variant="ghost"
+					size="sm"
+					class="self-start"
+					onclick={() => (solutionRevealed = true)}
+				>
+					Show solution
+				</Button>
 			{/if}
 		</div>
 
@@ -210,12 +210,12 @@
 		gap: 0.75rem;
 		padding: 0.875rem 1.25rem;
 		border-bottom: 1px solid var(--border);
-		background: var(--muted);
+		/* background: var(--muted); */
 	}
 
 	.quiz-card__index {
 		flex-shrink: 0;
-		font-size: 0.75rem;
+		/* font-size: 0.75rem; */
 		font-weight: 600;
 		color: var(--muted-foreground);
 		text-transform: uppercase;
@@ -224,7 +224,7 @@
 
 	.quiz-card__description {
 		margin: 0;
-		font-size: 0.9375rem;
+		/* font-size: 0.9375rem; */
 		line-height: 1.5;
 		color: var(--foreground);
 	}
@@ -233,7 +233,6 @@
 	.quiz-card__body {
 		display: flex;
 		flex-direction: row;
-		gap: 0;
 	}
 
 	.quiz-card__left {
@@ -246,6 +245,13 @@
 		min-width: 0;
 	}
 
+	/* Input + Check button side by side */
+	.quiz-card__input-row {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
+
 	.quiz-card__right {
 		flex-shrink: 0;
 		display: flex;
@@ -254,98 +260,17 @@
 		padding: 0.75rem;
 	}
 
-	/* Input */
-	.quiz-card__input-wrap {
-		border: 1.5px solid var(--border);
-		border-radius: 6px;
-		transition:
-			border-color 0.15s ease,
-			box-shadow 0.15s ease;
-	}
-
-	.quiz-card__input-wrap:focus-within {
-		border-color: var(--ring);
-		box-shadow: 0 0 0 2px color-mix(in srgb, var(--ring) 25%, transparent);
-	}
-
-	.quiz-card__input-wrap.invalid {
-		border-color: var(--destructive);
-		box-shadow: 0 0 0 2px color-mix(in srgb, var(--destructive) 20%, transparent);
-	}
-
-	.quiz-card__input {
-		display: block;
-		width: 100%;
-		padding: 0.5rem 0.75rem;
-		font-family: ui-monospace, 'Fira Code', monospace;
-		font-size: 0.9rem;
-		background: transparent;
-		border: none;
-		outline: none;
-		color: var(--foreground);
-		box-sizing: border-box;
-	}
-
-	.quiz-card__input::placeholder {
-		color: var(--muted-foreground);
-	}
-
 	.quiz-card__syntax-error {
 		margin: 0;
-		font-size: 0.75rem;
+		/* font-size: 0.75rem; */
 		color: var(--destructive);
 	}
 
-	/* Actions */
-	.quiz-card__actions {
-		display: flex;
-		gap: 0.5rem;
-		flex-wrap: wrap;
-	}
-
-	.quiz-card__btn {
-		padding: 0.375rem 0.875rem;
-		font-size: 0.875rem;
-		font-weight: 500;
-		border-radius: 6px;
-		border: 1px solid transparent;
-		cursor: pointer;
-		transition:
-			background 0.15s ease,
-			opacity 0.15s ease;
-	}
-
-	.quiz-card__btn:disabled {
-		opacity: 0.45;
-		cursor: not-allowed;
-	}
-
-	.quiz-card__btn--primary {
-		background: var(--foreground);
-		color: var(--background);
-		border-color: var(--foreground);
-	}
-
-	.quiz-card__btn--primary:not(:disabled):hover {
-		opacity: 0.85;
-	}
-
-	.quiz-card__btn--ghost {
-		background: transparent;
-		color: var(--muted-foreground);
-		border-color: var(--border);
-	}
-
-	.quiz-card__btn--ghost:not(:disabled):hover {
-		background: var(--muted);
-		color: var(--foreground);
-	}
-
-	/* Feedback */
+	/* Feedback banners */
 	.quiz-card__feedback {
 		padding: 0.5rem 0.75rem;
 		border-radius: 6px;
-		font-size: 0.875rem;
+		/* font-size: 0.875rem; */
 		font-weight: 500;
 	}
 
@@ -374,14 +299,14 @@
 	}
 
 	.quiz-card__solution-label {
-		font-size: 0.75rem;
+		/* font-size: 0.75rem; */
 		color: var(--muted-foreground);
 		font-weight: 500;
 	}
 
 	.quiz-card__solution-code {
 		font-family: ui-monospace, 'Fira Code', monospace;
-		font-size: 0.875rem;
+		/* font-size: 0.875rem; */
 		color: var(--foreground);
 	}
 
@@ -394,10 +319,6 @@
 		.quiz-card__left {
 			border-right: none;
 			border-top: 1px solid var(--border);
-		}
-
-		.quiz-card__right {
-			justify-content: center;
 		}
 	}
 </style>
