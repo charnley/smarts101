@@ -61,9 +61,7 @@
 
 <div class="article">
 	<h1>Test your SMARTS skills</h1>
-	<p class="quiz-intro">
-		Write SMARTS for each pattern description.
-	</p>
+	<p class="quiz-intro">Write SMARTS for each pattern description.</p>
 </div>
 
 <div class="quiz">
