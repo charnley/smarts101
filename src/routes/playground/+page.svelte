@@ -2,7 +2,6 @@
 	import { performSubstructureSearch } from '$lib/structure-renderer/worker-manager.js';
 	import MoleculeBox from '$lib/components/MoleculeBox.svelte';
 	import PlusIcon from '@lucide/svelte/icons/plus';
-	import FlaskConicalIcon from '@lucide/svelte/icons/flask-conical';
 	import { mode } from 'mode-watcher';
 
 	// ── Default molecules ────────────────────────────────────────────────────
@@ -130,42 +129,6 @@
 				/>
 			{/each}
 
-			<!-- Add-molecule card ── -->
-			<div class="playground__add-card">
-				{#if showAddForm}
-					<div class="playground__add-form">
-						<input
-							class="playground__add-input"
-							type="text"
-							placeholder="SMILES string"
-							bind:value={newSmiles}
-							onkeydown={onAddKeydown}
-							autofocus
-							spellcheck="false"
-						/>
-						<input
-							class="playground__add-input"
-							type="text"
-							placeholder="Name (optional)"
-							bind:value={newName}
-							onkeydown={onAddKeydown}
-						/>
-						<div class="playground__add-actions">
-							<button class="playground__btn playground__btn--primary" onclick={addMolecule}>
-								Add
-							</button>
-							<button class="playground__btn" onclick={() => (showAddForm = false)}>
-								Cancel
-							</button>
-						</div>
-					</div>
-				{:else}
-					<button class="playground__add-btn" onclick={() => (showAddForm = true)}>
-						<PlusIcon size={20} />
-						<span>Add molecule</span>
-					</button>
-				{/if}
-			</div>
 		</div>
 	</section>
 </div>
@@ -187,19 +150,6 @@
 		gap: 8px;
 		margin: 0 auto;
 		width: 100%;
-	}
-
-	.playground__query-header {
-		display: flex;
-		align-items: center;
-		gap: 8px;
-		color: var(--foreground);
-	}
-
-	.playground__title {
-		font-size: 18px;
-		font-weight: 600;
-		margin: 0;
 	}
 
 	.playground__input-wrap {
