@@ -59,7 +59,7 @@
 				items: [],
 			},
 			{
-				title: 'about',
+				title: 'About',
 				url: '/about',
 				icon: InfoIcon,
 				isActive: true,
