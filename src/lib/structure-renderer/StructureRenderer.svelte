@@ -144,18 +144,16 @@
 	style:height="{height}px"
 	class:is-rendering={isRendering}
 >
-	<!-- TODO OVerlay -->
-	{#if isRendering}
-		<Spinner />
-		<!-- <div class="sr-overlay" role="status"> -->
-		<!-- 	<div class="sr-bar"><div class="sr-track"></div></div> -->
-		<!-- </div> -->
-	{/if}
-
 	<!-- generate-svg.js queries container.querySelector('.structure-shell') -->
 	<div class="sr-container" bind:this={container}>
 		<div class="structure-shell"></div>
 	</div>
+
+	{#if isRendering}
+		<div class="sr-overlay" role="status" aria-label="Rendering…">
+			<Spinner />
+		</div>
+	{/if}
 
 	{#if renderError}
 		<div class="sr-error" role="alert">{renderError}</div>
@@ -171,7 +169,6 @@
 	}
 
 	.sr-shell.is-rendering {
-		opacity: 0.6;
 		pointer-events: none;
 	}
 
@@ -191,34 +188,29 @@
 		height: 100%;
 	}
 
-	/* Indeterminate progress bar */
+	/* Centered spinner overlay */
 	.sr-overlay {
 		position: absolute;
-		inset: auto 0 0 0;
-		padding: 2px 0;
-		background: transparent;
+		inset: 0;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background: color-mix(in srgb, var(--background, white) 60%, transparent);
+		backdrop-filter: blur(1px);
 	}
 
-	.sr-bar {
-		height: 3px;
-		background: color-mix(in srgb, currentColor 15%, transparent);
-		overflow: hidden;
+	.sr-spinner {
+		width: 28px;
+		height: 28px;
+		border: 3px solid color-mix(in srgb, currentColor 20%, transparent);
+		border-top-color: currentColor;
+		border-radius: 50%;
+		animation: sr-spin 0.7s linear infinite;
 	}
 
-	.sr-track {
-		height: 100%;
-		width: 30%;
-		background: currentColor;
-		opacity: 0.6;
-		animation: sr-slide 1.4s ease-in-out infinite;
-	}
-
-	@keyframes sr-slide {
-		0% {
-			transform: translateX(-100%);
-		}
-		100% {
-			transform: translateX(430%);
+	@keyframes sr-spin {
+		to {
+			transform: rotate(360deg);
 		}
 	}
 

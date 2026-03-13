@@ -14,27 +14,11 @@
 </script>
 
 <div class="molecule-box">
-	<div class="molecule-box__header">
-		{#if name}
-			<span class="molecule-box__name">{name}</span>
-		{/if}
-		{#if onremove}
-			<button
-				class="molecule-box__remove"
-				onclick={onremove}
-				aria-label="Remove {name || 'molecule'}"
-				title="Remove"
-			>
-				<XIcon size={14} />
-			</button>
-		{/if}
-	</div>
 
 	<div class="molecule-box__renderer">
 		<StructureRenderer {smiles} {softspots} width={280} height={200} />
 	</div>
 
-	<div class="molecule-box__smiles" title={smiles}>{smiles}</div>
 </div>
 
 <style>
