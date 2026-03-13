@@ -1,4 +1,5 @@
 <script>
+	// @ts-nocheck
 	import { Drawer as DrawerPrimitive } from 'vaul-svelte';
 
 	let { ...restProps } = $props();

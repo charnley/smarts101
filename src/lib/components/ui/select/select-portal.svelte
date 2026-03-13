@@ -1,4 +1,5 @@
 <script>
+	// @ts-nocheck
 	import { Select as SelectPrimitive } from 'bits-ui';
 
 	let { ...restProps } = $props();

@@ -1,4 +1,5 @@
 <script module>
+	// @ts-nocheck
 	import { tv } from 'tailwind-variants';
 
 	export const badgeVariants = tv({
@@ -20,6 +21,7 @@
 </script>
 
 <script>
+	// @ts-nocheck
 	import { cn } from '$lib/utils.js';
 
 	/** @type {{

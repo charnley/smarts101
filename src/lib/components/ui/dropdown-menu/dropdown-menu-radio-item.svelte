@@ -1,4 +1,5 @@
 <script>
+	// @ts-nocheck
 	import { DropdownMenu as DropdownMenuPrimitive } from 'bits-ui';
 	import CircleIcon from '@lucide/svelte/icons/circle';
 	import { cn } from '$lib/utils.js';

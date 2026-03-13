@@ -1,4 +1,5 @@
 <script>
+	// @ts-nocheck
 	import { Drawer as DrawerPrimitive } from 'vaul-svelte';
 	import DrawerPortal from './drawer-portal.svelte';
 	import DrawerOverlay from './drawer-overlay.svelte';

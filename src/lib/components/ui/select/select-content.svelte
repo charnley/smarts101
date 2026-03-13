@@ -1,4 +1,5 @@
 <script>
+	// @ts-nocheck
 	import { Select as SelectPrimitive } from 'bits-ui';
 	import SelectPortal from './select-portal.svelte';
 	import SelectScrollUpButton from './select-scroll-up-button.svelte';

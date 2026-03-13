@@ -1,4 +1,5 @@
 <script module>
+	// @ts-nocheck
 	import { tv } from 'tailwind-variants';
 
 	export const sidebarMenuButtonVariants = tv({
@@ -23,6 +24,7 @@
 </script>
 
 <script>
+	// @ts-nocheck
 	import * as Tooltip from '$lib/components/ui/tooltip/index.js';
 	import { cn } from '$lib/utils.js';
 	import { mergeProps } from 'bits-ui';

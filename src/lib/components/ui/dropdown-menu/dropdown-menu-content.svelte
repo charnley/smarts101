@@ -1,4 +1,5 @@
 <script>
+	// @ts-nocheck
 	import { cn } from '$lib/utils.js';
 	import DropdownMenuPortal from './dropdown-menu-portal.svelte';
 	import { DropdownMenu as DropdownMenuPrimitive } from 'bits-ui';

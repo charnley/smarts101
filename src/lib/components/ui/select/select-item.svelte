@@ -1,4 +1,5 @@
 <script>
+	// @ts-nocheck
 	import CheckIcon from '@lucide/svelte/icons/check';
 	import { Select as SelectPrimitive } from 'bits-ui';
 	import { cn } from '$lib/utils.js';

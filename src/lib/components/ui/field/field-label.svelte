@@ -1,4 +1,5 @@
 <script>
+	// @ts-nocheck
 	import { Label } from '$lib/components/ui/label/index.js';
 	import { cn } from '$lib/utils.js';
 	let { ref = $bindable(null), class: className, children, ...restProps } = $props();

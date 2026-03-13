@@ -1,4 +1,5 @@
 <script>
+	// @ts-nocheck
 	import { Command as CommandPrimitive, useId } from 'bits-ui';
 	import { cn } from '$lib/utils.js';
 

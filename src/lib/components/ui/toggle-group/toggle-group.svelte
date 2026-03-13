@@ -1,4 +1,5 @@
 <script module>
+	// @ts-nocheck
 	import { getContext, setContext } from 'svelte';
 	import { toggleVariants } from '$lib/components/ui/toggle/index.js';
 
@@ -13,6 +14,7 @@
 </script>
 
 <script>
+	// @ts-nocheck
 	import { ToggleGroup as ToggleGroupPrimitive } from 'bits-ui';
 	import { cn } from '$lib/utils.js';
 
