@@ -6,19 +6,17 @@
 	 * @type {{
 	 *   smiles: string,
 	 *   name?: string,
-	 *   softspots?: { definitions?: any[], outline?: boolean, fill?: boolean },
+	 *   highlights?: { definitions?: any[], outline?: boolean, fill?: boolean },
 	 *   onremove?: () => void
 	 * }}
 	 */
-	let { smiles, name = '', softspots = { definitions: [] }, onremove } = $props();
+	let { smiles, name = '', highlights = { definitions: [] }, onremove } = $props();
 </script>
 
 <div class="molecule-box">
-
 	<div class="molecule-box__renderer">
-		<StructureRenderer {smiles} {softspots} width={280} height={200} />
+		<StructureRenderer {smiles} {highlights} width={280} height={200} />
 	</div>
-
 </div>
 
 <style>

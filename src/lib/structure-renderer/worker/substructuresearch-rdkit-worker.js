@@ -20,7 +20,6 @@ const initializeRDKit = async () => {
 			const rdkitLib = await initRDKitModule({ locateFile: () => wasmUrl });
 			RDKit = rdkitLib;
 			rdkitInitialized = true;
-			console.debug('[RDKit Worker] RDKit initialized');
 			return true;
 		} catch (error) {
 			console.error('[RDKit Worker] Failed to initialize RDKit:', error);
@@ -35,7 +34,7 @@ const initializeRDKit = async () => {
  * @param {string} smarts - SMARTS pattern
  * @param {string[]} smilesList - Array of SMILES strings
  * @param {boolean} includeAtomBondIndices - Whether to include atom/bond match data
- * @returns {{matches: boolean[], indices: number[], allSoftspotMatches?: any[], atomBondMatches?: Array<{atoms: number[], bonds: number[]}>}}
+ * @returns {{matches: boolean[], indices: number[], allAtomBondMatches?: any[], atomBondMatches?: Array<{atoms: number[], bonds: number[]}>}}
  */
 const performRDKitSearch = (smarts, smilesList, includeAtomBondIndices = false) => {
 	if (!RDKit || !rdkitInitialized) {
@@ -77,7 +76,7 @@ const performRDKitSearch = (smarts, smilesList, includeAtomBondIndices = false) 
 	const queryMol = getSmartsQueryMolecule(smarts);
 	const matches = new Array(smilesList.length);
 	const atomBondMatches = includeAtomBondIndices ? new Array(smilesList.length) : null;
-	const allSoftspotMatches = includeAtomBondIndices ? new Array(smilesList.length) : [];
+	const allAtomBondMatches = includeAtomBondIndices ? new Array(smilesList.length) : [];
 
 	for (let i = 0; i < smilesList.length; i++) {
 		const smi = smilesList[i];
@@ -99,9 +98,9 @@ const performRDKitSearch = (smarts, smilesList, includeAtomBondIndices = false) 
 			}
 
 			const jsonResult = targetMol.get_substruct_matches(queryMol, true) ?? '{}';
-			const softspotMatches = JSON.parse(jsonResult);
-			matches[i] = softspotMatches.length > 0;
-			for (let match of softspotMatches) {
+			const matchResults = JSON.parse(jsonResult);
+			matches[i] = matchResults.length > 0;
+			for (let match of matchResults) {
 				if (includeAtomBondIndices && atomBondMatches) {
 					const { atoms, bonds } = atomBondMatches[i] ?? { atoms: [], bonds: [] };
 					try {
@@ -111,7 +110,7 @@ const performRDKitSearch = (smarts, smilesList, includeAtomBondIndices = false) 
 							atoms: Array.from(new Set(atoms)),
 							bonds: Array.from(new Set(bonds))
 						};
-						allSoftspotMatches[i] = softspotMatches;
+						allAtomBondMatches[i] = matchResults;
 					} catch (parseError) {
 						atomBondMatches[i] = { atoms: [], bonds: [] };
 					}
@@ -130,10 +129,9 @@ const performRDKitSearch = (smarts, smilesList, includeAtomBondIndices = false) 
 
 	if (includeAtomBondIndices && atomBondMatches) {
 		result.atomBondMatches = atomBondMatches;
-		result.allSoftspotMatches = allSoftspotMatches;
+		result.allAtomBondMatches = allAtomBondMatches;
 	}
 
-	console.debug('[RDKit Worker] search result:', result);
 	return result;
 };
 
@@ -181,7 +179,7 @@ const performSubstructureSearch = async (smarts, smiles, includeAtomBondIndices 
 
 				if (includeAtomBondIndices && 'atomBondMatches' in searchResult) {
 					resultObject.atomBondMatches = searchResult.atomBondMatches;
-					resultObject.allSoftspotMatches = searchResult.allSoftspotMatches;
+					resultObject.allAtomBondMatches = searchResult.allAtomBondMatches;
 				}
 
 				results.push(resultObject);
@@ -261,5 +259,3 @@ self.onerror = function (error) {
 		data: null
 	});
 };
-
-console.debug('[RDKit Worker] RDKit substructure search worker loaded');

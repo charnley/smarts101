@@ -1,5 +1,5 @@
 /**
- * @fileoverview SMARTS-based softspot search for StructureRenderer.
+ * @fileoverview SMARTS-based substructure search for StructureRenderer.
  * Wraps the worker-backed substructure search and assembles per-match metadata.
  */
 
@@ -14,17 +14,17 @@ import { performSubstructureSearchAsync } from './worker-manager.js';
  */
 
 /**
- * @typedef {Object} SmartsMetaEntry
+ * @typedef {Object} HighlightMatch
  * @property {any} match - Raw atomBondMatch object from the search result
  * @property {string | number[]} color - Resolved color value
  * @property {string} id - Pattern identifier
  * @property {string} name - Pattern display name
  * @property {string[]} query - Resolved query strings
- * @property {any} softspots - Match softspot data
+ * @property {any} matches - Per-match atom/bond data
  */
 
 /**
- * @typedef {Object} DetectedSoftspot
+ * @typedef {Object} DetectedMatch
  * @property {string} id
  * @property {string} name
  * @property {string[]} query
@@ -35,8 +35,8 @@ import { performSubstructureSearchAsync } from './worker-manager.js';
 
 /**
  * @typedef {Object} SmartsSearchResult
- * @property {SmartsMetaEntry[]} smartsMetadata
- * @property {DetectedSoftspot[]} detectedSoftspots
+ * @property {HighlightMatch[]} highlightMatches
+ * @property {DetectedMatch[]} detectedMatches
  * @property {number[]} allAtomsMatches
  * @property {number[]} allBondsMatches
  */
@@ -44,20 +44,20 @@ import { performSubstructureSearchAsync } from './worker-manager.js';
 /**
  * Run SMARTS substructure searches against a molecule definition.
  *
- * @param {SmartsDefinition[]} smartsArray
+ * @param {SmartsDefinition[]} definitions
  * @param {string} definition - Molecule definition (SMILES, molblock, etc.)
  * @returns {Promise<SmartsSearchResult>}
  */
-export async function runSmartsSearch(smartsArray, definition) {
+export async function runSmartsSearch(definitions, definition) {
 	/** @type {number[]} */
 	const allAtomsMatches = [];
 	/** @type {number[]} */
 	const allBondsMatches = [];
-	/** @type {SmartsMetaEntry[]} */
-	const smartsMetadata = [];
+	/** @type {HighlightMatch[]} */
+	const highlightMatches = [];
 
-	for (let idx = 0; idx < smartsArray.length; idx++) {
-		const smartsObj = smartsArray[idx];
+	for (let idx = 0; idx < definitions.length; idx++) {
+		const smartsObj = definitions[idx];
 		try {
 			const smartsQuery = smartsObj.smarts;
 			const smartsColor = smartsObj.color || [30 / 255, 144 / 255, 255 / 255, 1.0];
@@ -65,7 +65,7 @@ export async function runSmartsSearch(smartsArray, definition) {
 			const smartsName = smartsObj.name || `Pattern ${idx + 1}`;
 			const queries = Array.isArray(smartsQuery) ? smartsQuery : [smartsQuery];
 
-			const wbSearchResults = await performSubstructureSearchAsync(
+			const searchResult = await performSubstructureSearchAsync(
 				[...queries],
 				definition,
 				'rdkit',
@@ -73,24 +73,24 @@ export async function runSmartsSearch(smartsArray, definition) {
 			);
 
 			// @ts-ignore
-			const { success, results } = wbSearchResults;
+			const { success, results } = searchResult;
 			if (success) {
 				for (const result of results) {
-					const { atomBondMatches = [], allSoftspotMatches = [], matches = [false] } = result;
+					const { atomBondMatches = [], allAtomBondMatches = [], matches = [false] } = result;
 					let mIdx = -1;
 					for (const match of atomBondMatches) {
 						mIdx++;
 						if (!(matches[mIdx] || false)) continue;
-						const softspotList = allSoftspotMatches[mIdx] || { atoms: [], bonds: [] };
+						const matchList = allAtomBondMatches[mIdx] || { atoms: [], bonds: [] };
 						allAtomsMatches.push(...(match.atoms || []));
 						allBondsMatches.push(...(match.bonds || []));
-						smartsMetadata.push({
+						highlightMatches.push({
 							match,
 							color: smartsColor,
 							id: smartsId,
 							name: smartsName,
 							query: queries,
-							softspots: softspotList
+							matches: matchList
 						});
 					}
 				}
@@ -100,22 +100,22 @@ export async function runSmartsSearch(smartsArray, definition) {
 		}
 	}
 
-	/** @type {DetectedSoftspot[]} */
-	const detectedSoftspots = smartsMetadata.flatMap((meta) => {
-		const spotsArr = Array.isArray(meta.softspots) ? meta.softspots : [meta.softspots];
-		return spotsArr.map((spot, j) => ({
+	/** @type {DetectedMatch[]} */
+	const detectedMatches = highlightMatches.flatMap((meta) => {
+		const matchInstances = Array.isArray(meta.matches) ? meta.matches : [meta.matches];
+		return matchInstances.map((instance, j) => ({
 			id: `${meta.id}-${j}`,
 			name: `${meta.name} ${j + 1}`,
 			query: meta.query,
 			color: meta.color,
-			atoms: [...(spot.atoms || [])],
-			bonds: [...(spot.bonds || [])]
+			atoms: [...(instance.atoms || [])],
+			bonds: [...(instance.bonds || [])]
 		}));
 	});
 
 	return {
-		smartsMetadata,
-		detectedSoftspots,
+		highlightMatches,
+		detectedMatches,
 		allAtomsMatches,
 		allBondsMatches
 	};

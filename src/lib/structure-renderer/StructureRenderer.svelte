@@ -1,6 +1,6 @@
 <script>
 	import { generateMoleculeSVG } from './generate-svg.js';
-	import { applySoftspots } from './apply-softspots.js';
+	import { applyHighlights } from './apply-highlights.js';
 	import { untrack } from 'svelte';
 	import { mode } from 'mode-watcher';
 	import { Spinner } from '$lib/components/ui/spinner/index.js';
@@ -9,7 +9,7 @@
 	 * Props
 	 * @type {{
 	 *   smiles: string,
-	 *   softspots?: { definitions?: any[], outline?: boolean, fill?: boolean },
+	 *   highlights?: { definitions?: any[], outline?: boolean, fill?: boolean },
 	 *   width?: number,
 	 *   height?: number,
 	 *   darkMode?: boolean | null,
@@ -19,13 +19,7 @@
 	let {
 		/** SMILES string for the molecule to render */
 		smiles,
-		/**
-		 * SMARTS softspot configuration.
-		 * definitions: array of { smarts, color, id?, name? }
-		 * outline: draw outline (default true)
-		 * fill:    fill the outline shape (default false)
-		 */
-		softspots = { definitions: [], outline: true, fill: false },
+		highlights = { definitions: [], outline: true, fill: false },
 		/** Width in pixels */
 		width = 300,
 		/** Height in pixels */
@@ -54,7 +48,7 @@
 	// unconditionally — && short-circuits on falsy values and drops tracking.
 	// @ts-ignore
 	$effect(async () => {
-		void [smiles, container, width, height, softspots, isDark, showAtomIndices];
+		void [smiles, container, width, height, highlights, isDark, showAtomIndices];
 
 		untrack(async () => {
 			if (!container || !smiles) return;
@@ -70,7 +64,7 @@
 				// Step 1: Generate molecule SVG via generate-svg.js pipeline
 				// Pass darkMode and showAtomIndices as userDrawingOptions so the worker
 				// receives them (generate-svg.js spreads userDrawingOptions into the payload).
-				const needsHighlights = (softspots?.definitions?.length ?? 0) > 0;
+				const hasHighlights = (highlights?.definitions?.length ?? 0) > 0;
 
 				const { svgRoot, svgViewBox } = await generateMoleculeSVG({
 					definition: smiles,
@@ -82,24 +76,19 @@
 						showAtomIndices
 					},
 					showBondIndices: false,
-					needsHighlights
+					needsHighlights: hasHighlights
 				});
 
 				if (!svgRoot) throw new Error('No SVG from RDKit');
 
-				// Step 1b: Replace hardcoded black fill/stroke values with currentColor.
-				// RDKit bakes colors as both inline styles (style="fill:#000000") and
-				// presentation attributes (fill="#000000"). Both must be replaced so that
-				// bonds, wedge bonds, and R/S stereochemistry labels follow --foreground
-				// in both light and dark themes.
+				// Replace hardcoded black with currentColor for dark-mode support
 				recolorBlackElements(svgRoot);
 
-				// Step 2: Apply SMARTS softspot outlines if patterns are defined
-				if (needsHighlights) {
-					await applySoftspots({
+				if (hasHighlights) {
+					await applyHighlights({
 						svgRoot,
 						svgViewBox,
-						softspots,
+						highlights,
 						definition: smiles
 					});
 				}

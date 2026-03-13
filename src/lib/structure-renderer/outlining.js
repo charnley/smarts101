@@ -260,42 +260,38 @@ export async function computeSurroundingOutline(svgElement, options = {}) {
 // ============================================================================
 
 /**
- * Creates an SVG group containing a surrounding outline for a softspot / annotation.
- *
- * Drop-in alternative to `createSoftspotOutline` for use cases where only the
- * outer surrounding boundary is needed (e.g. annotations). Uses the combined
- * cluster-aware + paper-outward-offset pipeline — no `paperjs-offset` dependency.
+ * Creates an SVG group containing a surrounding outline for a SMARTS match.
  *
  * @param {Object} opts
- * @param {{ atoms: (string|number)[], bonds: (string|number)[] }} opts.softspot
+ * @param {{ atoms: (string|number)[], bonds: (string|number)[] }} opts.match
  * @param {string|number[]} opts.color   Hex string or RGBA [r,g,b,a] (0-1 range)
  * @param {string} [opts.fill]           Fill colour override
  * @param {string} opts.id               Unique identifier
  * @param {string} opts.name             Display name
  * @param {SVGElement} opts.svgRoot      Root SVG element containing the molecular structure
  * @param {string} opts.viewBox          ViewBox string (e.g. "0 0 600 400")
- * @param {Map<string,number>} opts.processedAtoms  Overlap tracking map
- * @param {Map<string,number>} opts.processedBonds  Overlap tracking map
+ * @param {Map<string,number>} opts.atomOverlapCounts  Overlap tracking map
+ * @param {Map<string,number>} opts.bondOverlapCounts  Overlap tracking map
  * @param {number} [opts.strokeWidth=1]
  * @param {number} [opts.extraOffset=0]
  * @param {SurroundingOutlineOptions} [opts.outlineOptions]
  * @returns {Promise<SVGGElement>}
  */
 export async function createSurroundingOutline({
-	softspot,
+	match,
 	color,
 	fill,
 	id,
 	name,
 	svgRoot,
 	viewBox,
-	processedAtoms,
-	processedBonds,
+	atomOverlapCounts,
+	bondOverlapCounts,
 	strokeWidth = 1,
 	extraOffset = 0,
 	outlineOptions = {}
 }) {
-	const { atoms, bonds } = softspot;
+	const { atoms, bonds } = match;
 
 	// ---- Create output group ----
 	const contourGroup = /** @type {SVGGElement} */ (
@@ -358,11 +354,11 @@ export async function createSurroundingOutline({
 	const baseOffset = 2;
 	let maxOverlap = 0;
 	for (const a of atoms) {
-		const c = processedAtoms.get(String(a)) || 0;
+		const c = atomOverlapCounts.get(String(a)) || 0;
 		if (c > maxOverlap) maxOverlap = c;
 	}
 	for (const b of bonds) {
-		const c = processedBonds.get(String(b)) || 0;
+		const c = bondOverlapCounts.get(String(b)) || 0;
 		if (c > maxOverlap) maxOverlap = c;
 	}
 	const adaptiveOffset = Math.ceil(baseOffset + maxOverlap * (baseOffset / 0.5)) + extraOffset;
@@ -388,7 +384,7 @@ export async function createSurroundingOutline({
 		const results = await computeSurroundingOutline(tempSvg, defaultOutlineOptions);
 
 		if (results.length === 0) {
-			// Fallback: process individual shapes (same pattern as createSoftspotOutline)
+			// Fallback: process individual shapes
 			await processIndividualShapes(
 				allShapes,
 				contourGroup,
@@ -420,14 +416,16 @@ export async function createSurroundingOutline({
 	mergeGroupToSinglePath(contourGroup, strokeColor, strokeWidth, fill);
 
 	// ---- Update overlap tracking ----
-	for (const a of atoms) processedAtoms.set(String(a), (processedAtoms.get(String(a)) || 0) + 1);
-	for (const b of bonds) processedBonds.set(String(b), (processedBonds.get(String(b)) || 0) + 1);
+	for (const a of atoms)
+		atomOverlapCounts.set(String(a), (atomOverlapCounts.get(String(a)) || 0) + 1);
+	for (const b of bonds)
+		bondOverlapCounts.set(String(b), (bondOverlapCounts.get(String(b)) || 0) + 1);
 
 	return contourGroup;
 }
 
 // ============================================================================
-// Rendering helpers (aligned with createSoftspotOutline)
+// Rendering helpers
 // ============================================================================
 
 /**

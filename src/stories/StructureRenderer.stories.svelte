@@ -10,8 +10,8 @@
 	// Default SMARTS: benzene ring — always matches aspirin, clearly visible.
 	const DEFAULT_SMARTS = 'c1ccccc1';
 
-	/** Build a softspots object from a single SMARTS string and optional color. */
-	function makeSoftspots(smarts = DEFAULT_SMARTS, color = '#f97316') {
+	/** Build a highlights object from a single SMARTS string and optional color. */
+	function makeHighlights(smarts = DEFAULT_SMARTS, color = '#f97316') {
 		return smarts
 			? { definitions: [{ smarts, color, id: 'query', name: 'Query' }], outline: true, fill: false }
 			: { definitions: [] };
@@ -29,10 +29,10 @@
 				control: 'text',
 				description: 'SMILES string of the molecule to render'
 			},
-			softspots: {
+			highlights: {
 				control: 'object',
 				description:
-					'Softspot config: { definitions: [{ smarts, color, id?, name? }], outline?, fill? }'
+					'Highlight config: { definitions: [{ smarts, color, id?, name? }], outline?, fill? }'
 			},
 			width: {
 				control: { type: 'range', min: 100, max: 600, step: 10 },
@@ -53,7 +53,7 @@
 		},
 		args: {
 			smiles: DEFAULT_SMILES,
-			softspots: makeSoftspots(DEFAULT_SMARTS),
+			highlights: makeHighlights(DEFAULT_SMARTS),
 			width: 300,
 			height: 220,
 			// Pin to light mode by default so stories look consistent regardless of browser theme.
@@ -64,19 +64,19 @@
 </script>
 
 <!-- Plain render — confirms the molecule displays without any highlighting. -->
-<Story name="Default" args={{ softspots: { definitions: [] } }} />
+<Story name="Default" args={{ highlights: { definitions: [] } }} />
 
 <!-- Benzene ring SMARTS highlighted in orange (outline style). -->
 <Story name="With SMARTS highlight" />
 
 <!-- Hydroxyl group — narrower match, only the carboxylic OH. -->
-<Story name="Hydroxyl [OX2H]" args={{ softspots: makeSoftspots('[OX2H]') }} />
+<Story name="Hydroxyl [OX2H]" args={{ highlights: makeHighlights('[OX2H]') }} />
 
 <!-- Carbonyl group C=O -->
-<Story name="Carbonyl [CX3]=O" args={{ softspots: makeSoftspots('[CX3]=O') }} />
+<Story name="Carbonyl [CX3]=O" args={{ highlights: makeHighlights('[CX3]=O') }} />
 
 <!-- A SMARTS that doesn't match aspirin — nothing highlighted, no errors. -->
-<Story name="No match [NH2]" args={{ softspots: makeSoftspots('[NH2]') }} />
+<Story name="No match [NH2]" args={{ highlights: makeHighlights('[NH2]') }} />
 
 <!--
   Dark mode: force the dark atom palette + wrap in a dark surface so that
@@ -93,25 +93,25 @@
 <!-- Custom highlight color: magenta. -->
 <Story
 	name="Custom highlight color (magenta)"
-	args={{ softspots: makeSoftspots(DEFAULT_SMARTS, '#cc00cc') }}
+	args={{ highlights: makeHighlights(DEFAULT_SMARTS, '#cc00cc') }}
 />
 
 <!-- Atom indices visible — useful for authoring SMARTS by atom number. -->
-<Story name="Atom indices" args={{ showAtomIndices: true, softspots: { definitions: [] } }} />
+<Story name="Atom indices" args={{ showAtomIndices: true, highlights: { definitions: [] } }} />
 
 <!-- Atom indices + SMARTS highlight together. -->
 <Story name="Atom indices + highlight" args={{ showAtomIndices: true }} />
 
 <!-- Size variants. -->
 <Story name="Large" args={{ width: 500, height: 380 }} />
-<Story name="Small" args={{ width: 160, height: 120, softspots: { definitions: [] } }} />
+<Story name="Small" args={{ width: 160, height: 120, highlights: { definitions: [] } }} />
 
 <!-- A more complex molecule: Morphine — stereocenters, N, multiple fused rings. -->
 <Story
 	name="Morphine — no highlight"
 	args={{
 		smiles: 'OC1=CC=C2CC3N(C)CCC34C2=C1OC4',
-		softspots: { definitions: [] }
+		highlights: { definitions: [] }
 	}}
 />
 
@@ -120,7 +120,7 @@
 	name="Caffeine — highlight N"
 	args={{
 		smiles: 'Cn1cnc2c1c(=O)n(C)c(=O)n2C',
-		softspots: makeSoftspots('[#7]', '#3b82f6')
+		highlights: makeHighlights('[#7]', '#3b82f6')
 	}}
 />
 
@@ -133,7 +133,7 @@
 	name="Glucose — light"
 	args={{
 		smiles: 'OC[C@H]1OC(O)[C@H](O)[C@@H](O)[C@@H]1O',
-		softspots: { definitions: [] },
+		highlights: { definitions: [] },
 		darkMode: false
 	}}
 />
@@ -142,7 +142,7 @@
 	name="Glucose — dark"
 	args={{
 		smiles: 'OC[C@H]1OC(O)[C@H](O)[C@@H](O)[C@@H]1O',
-		softspots: { definitions: [] },
+		highlights: { definitions: [] },
 		darkMode: true
 	}}
 >
