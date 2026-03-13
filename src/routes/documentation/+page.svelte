@@ -74,7 +74,7 @@
 	</table>
 </div>
 
-<SmartsDemo smiles="CCCCO" smarts={['[CH2]', '[CH3]']} />
+<SmartsDemo smiles="CCCC=O" smarts={['[CH1]','[CH2]', '[CH3]']} />
 
 <div class="article">
 	<h2>Bond Primitives</h2>
