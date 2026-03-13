@@ -5,5 +5,5 @@ export {
 
 	//
 	Root as Button,
-	buttonVariants
+	buttonVariants,
 };

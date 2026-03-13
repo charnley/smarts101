@@ -109,7 +109,7 @@ const performRDKitSearch = (smarts, smilesList, includeAtomBondIndices = false) 
 						bonds.push(...(match.bonds || []));
 						atomBondMatches[i] = {
 							atoms: Array.from(new Set(atoms)),
-							bonds: Array.from(new Set(bonds))
+							bonds: Array.from(new Set(bonds)),
 						};
 						allAtomBondMatches[i] = matchResults;
 					} catch (parseError) {
@@ -177,7 +177,7 @@ const performSubstructureSearch = async (smarts, smiles, includeAtomBondIndices 
 					matchedIndices: searchResult.indices,
 					matchedSmiles: searchResult.indices.map((idx) => smilesArray[idx]),
 					success: true,
-					error: null
+					error: null,
 				};
 
 				if (includeAtomBondIndices && 'atomBondMatches' in searchResult) {
@@ -197,7 +197,7 @@ const performSubstructureSearch = async (smarts, smiles, includeAtomBondIndices 
 					matchedIndices: [],
 					matchedSmiles: [],
 					success: false,
-					error: error?.message || String(error)
+					error: error?.message || String(error),
 				});
 			}
 		}
@@ -211,15 +211,15 @@ const performSubstructureSearch = async (smarts, smiles, includeAtomBondIndices 
 				totalTargets: smilesArray.length,
 				successfulQueries: results.filter((r) => r.success).length,
 				failedQueries: results.filter((r) => !r.success).length,
-				totalMatches: results.reduce((sum, r) => sum + r.matchCount, 0)
-			}
+				totalMatches: results.reduce((sum, r) => sum + r.matchCount, 0),
+			},
 		};
 	} catch (/** @type {any} */ error) {
 		return {
 			success: false,
 			engine: 'rdkit',
 			error: error?.message || String(error),
-			results: []
+			results: [],
 		};
 	}
 };
@@ -242,7 +242,7 @@ self.onmessage = async function (event) {
 			id: event.data?.id || 'unknown',
 			type: 'error',
 			error: errorMessage,
-			data: null
+			data: null,
 		});
 	}
 };
@@ -259,6 +259,6 @@ self.onerror = function (error) {
 		id: 'worker-error',
 		type: 'error',
 		error: `RDKit worker error: ${errorMessage}`,
-		data: null
+		data: null,
 	});
 };

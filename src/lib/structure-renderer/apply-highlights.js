@@ -73,8 +73,8 @@ export async function applyHighlights({ svgRoot, svgViewBox, highlights, definit
 						extraOffset: 2,
 						outlineOptions: {
 							outerOnly: true,
-							mergeClusters: true
-						}
+							mergeClusters: true,
+						},
 					});
 
 					if (outlineGroup.children.length > 0) {
@@ -83,7 +83,7 @@ export async function applyHighlights({ svgRoot, svgViewBox, highlights, definit
 				} catch (error) {
 					console.error(
 						`[StructureRenderer] Error creating outline for match ${matchId}-${i}:`,
-						error
+						error,
 					);
 				}
 			}

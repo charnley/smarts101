@@ -44,7 +44,7 @@
 				} catch {
 					setValid(id, false);
 				}
-			}, 300)
+			}, 300),
 		);
 	}
 
@@ -75,10 +75,10 @@
 				smarts: e.value,
 				color,
 				id: String(e.id),
-				name: `Pattern ${i + 1}`
+				name: `Pattern ${i + 1}`,
 			})),
 		outline: true,
-		fill: false
+		fill: false,
 	});
 </script>
 

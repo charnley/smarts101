@@ -44,7 +44,7 @@ export async function generateMoleculeSVG({
 	height,
 	userDrawingOptions = {},
 	showBondIndices = false,
-	needsHighlights = false
+	needsHighlights = false,
 }) {
 	if (!container?.querySelector) {
 		throw new Error('Container element is required');
@@ -58,7 +58,7 @@ export async function generateMoleculeSVG({
 		width: dimensions.width || width,
 		height: dimensions.height || height,
 		showBondIndices: showBondIndices ?? false,
-		needsHighlights
+		needsHighlights,
 	});
 
 	if (!outcome?.svg) {
@@ -98,6 +98,6 @@ export async function generateMoleculeSVG({
 		mass,
 		formula,
 		smiles,
-		molblock
+		molblock,
 	};
 }

@@ -15,7 +15,7 @@
 		user: {
 			name: 'shadcn',
 			email: 'm@example.com',
-			avatar: '/avatars/shadcn.jpg'
+			avatar: '/avatars/shadcn.jpg',
 		},
 		navMain: [
 			{
@@ -23,7 +23,7 @@
 				url: '/',
 				icon: FlaskConicalIcon,
 				isActive: true,
-				items: []
+				items: [],
 			},
 			{
 				title: 'Documentation',
@@ -32,62 +32,62 @@
 				items: [
 					{
 						title: 'Introduction',
-						url: '/documentation'
+						url: '/documentation',
 					},
 					{
 						title: 'Bond Primitives',
-						url: '/documentation'
+						url: '/documentation',
 					},
 					{
 						title: 'Logical Operators',
-						url: '/documentation'
+						url: '/documentation',
 					},
 					{
 						title: 'Recursive SMARTS',
-						url: '/documentation'
+						url: '/documentation',
 					},
 					{
 						title: 'Component-level grouping of SMARTS',
-						url: '/documentation'
+						url: '/documentation',
 					},
 					{
 						title: 'Reaction Queries',
-						url: '/documentation'
-					}
-				]
+						url: '/documentation',
+					},
+				],
 			},
 			{
 				title: 'Quiz',
 				url: '/test',
 				icon: BookOpenCheckIcon,
 				isActive: true,
-				items: []
+				items: [],
 			},
 			{
 				title: 'about',
 				url: '/about',
 				icon: InfoIcon,
 				isActive: true,
-				items: []
-			}
+				items: [],
+			},
 		],
 		projects: [
 			{
 				name: 'Design Engineering',
 				url: '#',
-				icon: FrameIcon
+				icon: FrameIcon,
 			},
 			{
 				name: 'Sales & Marketing',
 				url: '#',
-				icon: ChartPieIcon
+				icon: ChartPieIcon,
 			},
 			{
 				name: 'Travel',
 				url: '#',
-				icon: MapIcon
-			}
-		]
+				icon: MapIcon,
+			},
+		],
 	};
 </script>
 

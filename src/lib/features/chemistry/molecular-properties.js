@@ -37,7 +37,7 @@ const getIsotopicMassDistribution = (formula) => {
 		table: distribution?.getTable() ?? [],
 		mostAbundantMass: getMostAbundantMonoisotopicMass(distrib),
 		monoisotopicMass: distrib[0] ?? { x: 0, y: 0 },
-		weightedMeanMass: getWeightedMeanMassFromIsotopicDistribution(distrib)
+		weightedMeanMass: getWeightedMeanMassFromIsotopicDistribution(distrib),
 	};
 };
 
@@ -59,7 +59,7 @@ const getWeightedMeanMassFromIsotopicDistribution = (distribution = []) => {
 const getMostAbundantMonoisotopicMass = (distribution = []) => {
 	const maxAboundance = distribution.reduce((max, data) => (max.y > data.y ? max : data), {
 		x: 0,
-		y: 0
+		y: 0,
 	});
 	return maxAboundance;
 };
@@ -73,7 +73,7 @@ export const getProperties = (SMILES) => {
 	try {
 		const oclMolecule = Molecule.fromSmiles(SMILES);
 		const cleanedMolecule = Molecule.fromSmiles(
-			oclMolecule.toIsomericSmiles({ kekulizedOutput: true })
+			oclMolecule.toIsomericSmiles({ kekulizedOutput: true }),
 		);
 		const gmf = getMF(cleanedMolecule);
 		// @ts-ignore
@@ -91,7 +91,7 @@ export const getProperties = (SMILES) => {
 		properties.masses = {
 			monoisotopic: distribution?.monoisotopicMass?.x ?? 0,
 			mostAbundantMonoisotopic: distribution?.mostAbundantMass?.x ?? 0,
-			weightedMean: distribution?.weightedMeanMass ?? 0
+			weightedMean: distribution?.weightedMeanMass ?? 0,
 		};
 	} catch (/** @type {any} */ error) {
 		properties.error = error?.message || String(error);

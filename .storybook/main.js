@@ -2,6 +2,6 @@
 const config = {
 	stories: ['../src/**/*.stories.@(js|ts|svelte)'],
 	addons: ['@storybook/addon-svelte-csf'],
-	framework: '@storybook/sveltekit'
+	framework: '@storybook/sveltekit',
 };
 export default config;

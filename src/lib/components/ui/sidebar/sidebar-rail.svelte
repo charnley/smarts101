@@ -23,7 +23,7 @@
 		'group-data-[collapsible=offcanvas]:translate-x-0 group-data-[collapsible=offcanvas]:after:start-full hover:group-data-[collapsible=offcanvas]:bg-sidebar',
 		'[[data-side=left][data-collapsible=offcanvas]_&]:-end-2',
 		'[[data-side=right][data-collapsible=offcanvas]_&]:-start-2',
-		className
+		className,
 	)}
 	{...restProps}
 >

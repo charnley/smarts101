@@ -63,7 +63,7 @@ function descriptorToPath(desc, scope) {
 		case 'ellipse': {
 			const e = new scope.Path.Ellipse({
 				center: new scope.Point(desc.cx, desc.cy),
-				radius: new scope.Size(desc.rx, desc.ry)
+				radius: new scope.Size(desc.rx, desc.ry),
 			});
 			if (desc.hasFill) e.fillColor = 'black';
 			if (desc.hasStroke) {
@@ -75,7 +75,7 @@ function descriptorToPath(desc, scope) {
 		case 'line': {
 			const l = new scope.Path.Line(
 				new scope.Point(desc.x1, desc.y1),
-				new scope.Point(desc.x2, desc.y2)
+				new scope.Point(desc.x2, desc.y2),
 			);
 			l.strokeColor = 'black';
 			l.strokeWidth = desc.strokeWidth || 2;
@@ -83,7 +83,7 @@ function descriptorToPath(desc, scope) {
 		}
 		case 'rect': {
 			const r = new scope.Path.Rectangle(
-				new scope.Rectangle(desc.x, desc.y, desc.width, desc.height)
+				new scope.Rectangle(desc.x, desc.y, desc.width, desc.height),
 			);
 			if (desc.hasFill) r.fillColor = 'black';
 			if (desc.hasStroke) {
@@ -121,7 +121,7 @@ function computeOutline(shapeDescriptors, viewBox, options = {}) {
 		outerOnly = true,
 		strokeExpand = 6,
 		mergeClusters = false,
-		mergeClustersAfterOffset = false
+		mergeClustersAfterOffset = false,
 	} = options;
 
 	const vbW = viewBox.w;
@@ -172,7 +172,7 @@ function computeOutline(shapeDescriptors, viewBox, options = {}) {
 				join: 'round',
 				cap: 'round',
 				limit: 4,
-				insert: false
+				insert: false,
 			});
 			if (strokeShape && Math.abs(strokeShape.area || 0) > 0) {
 				expandedBonds.push(strokeShape);
@@ -275,7 +275,7 @@ function computeOutline(shapeDescriptors, viewBox, options = {}) {
 				const expanded = PaperOffset.offset(items[i], offset, {
 					join,
 					limit: miterLimit,
-					insert: false
+					insert: false,
 				});
 				if (expanded && Math.abs(expanded.area || 0) > 0) {
 					expandedItems.push(expanded);

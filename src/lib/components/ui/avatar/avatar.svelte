@@ -12,7 +12,7 @@
 	let {
 		ref = $bindable(null),
 		loadingStatus = $bindable(
-			/** @type {import('bits-ui').AvatarImageLoadingStatus} */ ('loading')
+			/** @type {import('bits-ui').AvatarImageLoadingStatus} */ ('loading'),
 		),
 		class: className,
 		...restProps
