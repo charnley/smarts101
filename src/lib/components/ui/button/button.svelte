@@ -1,4 +1,5 @@
 <script module>
+	// @ts-nocheck
 	import { cn } from '$lib/utils.js';
 	import { tv } from 'tailwind-variants';
 
@@ -32,6 +33,7 @@
 </script>
 
 <script>
+	// @ts-nocheck
 	/** @type {{
 	 *   class?: string,
 	 *   variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link',

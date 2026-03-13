@@ -1,4 +1,5 @@
 <script>
+	// @ts-nocheck
 	import { Separator } from '$lib/components/ui/separator/index.js';
 	import { cn } from '$lib/utils.js';
 

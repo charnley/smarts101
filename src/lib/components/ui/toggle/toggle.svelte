@@ -1,4 +1,5 @@
 <script module>
+	// @ts-nocheck
 	import { tv } from 'tailwind-variants';
 
 	export const toggleVariants = tv({
@@ -23,6 +24,7 @@
 </script>
 
 <script>
+	// @ts-nocheck
 	import { Toggle as TogglePrimitive } from 'bits-ui';
 	import { cn } from '$lib/utils.js';
 

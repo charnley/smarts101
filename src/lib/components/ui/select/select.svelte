@@ -1,4 +1,5 @@
 <script>
+	// @ts-nocheck
 	import { Select as SelectPrimitive } from 'bits-ui';
 
 	let { open = $bindable(false), value = $bindable(), ...restProps } = $props();

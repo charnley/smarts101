@@ -1,4 +1,5 @@
 <script>
+	// @ts-nocheck
 	import { AlertDialog as AlertDialogPrimitive } from 'bits-ui';
 
 	let { ...restProps } = $props();

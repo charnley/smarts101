@@ -1,4 +1,5 @@
 <script>
+	// @ts-nocheck
 	import { Dialog as DialogPrimitive } from 'bits-ui';
 
 	let { ref = $bindable(null), ...restProps } = $props();

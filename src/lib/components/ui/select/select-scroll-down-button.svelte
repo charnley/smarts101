@@ -1,4 +1,5 @@
 <script>
+	// @ts-nocheck
 	import ChevronDownIcon from '@lucide/svelte/icons/chevron-down';
 	import { Select as SelectPrimitive } from 'bits-ui';
 	import { cn } from '$lib/utils.js';

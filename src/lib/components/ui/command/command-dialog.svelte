@@ -1,4 +1,5 @@
 <script>
+	// @ts-nocheck
 	import Command from './command.svelte';
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
 	let {

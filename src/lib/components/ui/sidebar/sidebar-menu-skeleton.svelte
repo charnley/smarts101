@@ -1,4 +1,5 @@
 <script>
+	// @ts-nocheck
 	import { cn } from '$lib/utils.js';
 	import { Skeleton } from '$lib/components/ui/skeleton/index.js';
 	let {

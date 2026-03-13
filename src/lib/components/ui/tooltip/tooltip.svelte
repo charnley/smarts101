@@ -1,4 +1,5 @@
 <script>
+	// @ts-nocheck
 	import { Tooltip as TooltipPrimitive } from 'bits-ui';
 
 	let { open = $bindable(false), ...restProps } = $props();

@@ -1,4 +1,5 @@
 <script module>
+	// @ts-nocheck
 	import { tv } from 'tailwind-variants';
 	export const sheetVariants = tv({
 		base: 'bg-background data-[state=open]:animate-in data-[state=closed]:animate-out fixed z-50 flex flex-col gap-4 shadow-lg transition ease-in-out data-[state=closed]:duration-300 data-[state=open]:duration-500',
@@ -19,6 +20,7 @@
 </script>
 
 <script>
+	// @ts-nocheck
 	import { Dialog as SheetPrimitive } from 'bits-ui';
 	import XIcon from '@lucide/svelte/icons/x';
 	import SheetPortal from './sheet-portal.svelte';

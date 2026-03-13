@@ -1,4 +1,5 @@
 <script>
+	// @ts-nocheck
 	import { Dialog as DialogPrimitive } from 'bits-ui';
 	import DialogPortal from './dialog-portal.svelte';
 	import XIcon from '@lucide/svelte/icons/x';

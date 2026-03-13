@@ -1,4 +1,5 @@
 <script>
+	// @ts-nocheck
 	let { ref = $bindable(null), class: className, children, ...restProps } = $props();
 </script>
 

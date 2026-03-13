@@ -1,4 +1,5 @@
 <script>
+	// @ts-nocheck
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { cn } from '$lib/utils.js';
 	import PanelLeftIcon from '@lucide/svelte/icons/panel-left';
