@@ -62,9 +62,7 @@
 <div class="article">
 	<h1>Test your SMARTS skills</h1>
 	<p class="quiz-intro">
-		Write a SMARTS pattern that matches the highlighted atoms on each molecule. Your answer is
-		checked by comparing the matched atoms against a reference pattern — so equivalent expressions
-		are accepted.
+		Write SMARTS for each pattern description.
 	</p>
 </div>
 
