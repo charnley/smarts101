@@ -70,7 +70,6 @@ const performRDKitSearch = (smarts, smilesList, includeAtomBondIndices = false) 
 			_moleculesCache.set(smiles, null);
 			return null;
 		}
-		mol.convert_to_kekule_form();
 		_moleculesCache.set(smiles, mol);
 		return mol;
 	};

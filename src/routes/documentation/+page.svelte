@@ -108,3 +108,5 @@
 		hydrogen.
 	</p>
 </div>
+
+<SmartsDemo smiles="c1ccccc1C(=O)O" smarts={['c1ccccc1', 'C(=O)O']} />
