@@ -29,6 +29,8 @@ import { highlightFillColor } from './color-utils.js';
  * @property {Array<{id: string, name: string, query: string[], color: string|number[], atoms: number[], bonds: number[]}>} detectedMatches
  */
 
+const OUTLINE_WIDTH = 2.5;
+
 /**
  * Search SMARTS patterns, render outlines for every match, and return detected matches.
  *
@@ -67,7 +69,7 @@ export async function applyHighlights({ svgRoot, svgViewBox, highlights, definit
 						viewBox: svgViewBox,
 						atomOverlapCounts,
 						bondOverlapCounts,
-						strokeWidth: shouldOutline ? 1.5 : 0,
+						strokeWidth: shouldOutline ? OUTLINE_WIDTH : 0,
 						extraOffset: 2,
 						outlineOptions: {
 							outerOnly: true,
