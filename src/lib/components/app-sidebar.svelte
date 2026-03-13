@@ -17,76 +17,56 @@
 		},
 		navMain: [
 			{
-				title: 'Playground',
-				url: '/playground',
+				title: 'SMARTS Query',
+				url: '/',
 				icon: FlaskConicalIcon,
 				isActive: true,
 				items: []
 			},
 			{
-				title: 'Models',
-				url: '#',
-				icon: BotIcon,
-				items: [
-					{
-						title: 'Genesis',
-						url: '#'
-					},
-					{
-						title: 'Explorer',
-						url: '#'
-					},
-					{
-						title: 'Quantum',
-						url: '#'
-					}
-				]
-			},
-			{
 				title: 'Documentation',
-				url: '#',
+				url: '/documentation',
 				icon: BookOpenIcon,
 				items: [
 					{
 						title: 'Introduction',
-						url: '#'
+						url: '/documentation'
 					},
 					{
-						title: 'Get Started',
-						url: '#'
+						title: 'Bond Primitives',
+						url: '/documentation'
 					},
 					{
-						title: 'Tutorials',
-						url: '#'
+						title: 'Logical Operators',
+						url: '/documentation'
 					},
 					{
-						title: 'Changelog',
-						url: '#'
+						title: 'Recursive SMARTS',
+						url: '/documentation'
+					},
+					{
+						title: 'Component-level grouping of SMARTS',
+						url: '/documentation'
+					},
+					{
+						title: 'Reaction Queries',
+						url: '/documentation'
 					}
 				]
 			},
 			{
-				title: 'Settings',
-				url: '#',
-				icon: Settings2Icon,
-				items: [
-					{
-						title: 'General',
-						url: '#'
-					},
-					{
-						title: 'Team',
-						url: '#'
-					},
-					{
-						title: 'Billing',
-						url: '#'
-					},
-					{
-						title: 'Limits',
-						url: '#'
-					}
-				]
+				title: 'Test',
+				url: '/test',
+				icon: FlaskConicalIcon,
+				isActive: true,
+				items: []
+			},
+			{
+				title: 'about',
+				url: '/about',
+				icon: FlaskConicalIcon,
+				isActive: true,
+				items: []
 			}
 		],
 		projects: [

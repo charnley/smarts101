@@ -4,7 +4,6 @@
 
 	import AppSidebar from '$lib/components/app-sidebar.svelte';
 	import { ModeWatcher } from 'mode-watcher';
-	import * as Breadcrumb from '$lib/components/ui/breadcrumb/index.js';
 	import { Separator } from '$lib/components/ui/separator/index.js';
 	import * as Sidebar from '$lib/components/ui/sidebar/index.js';
 
@@ -23,17 +22,6 @@
 				<Sidebar.Trigger class="-ms-1" onclick={() => {}} />
 				<Separator orientation="vertical" class="me-2 data-[orientation=vertical]:h-4" />
 				<div class="headline">SMARTS 101 - A Language for Describing Molecular Patterns</div>
-				<!-- <Breadcrumb.Root> -->
-				<!-- 	<Breadcrumb.List> -->
-				<!-- 		<Breadcrumb.Item class="hidden md:block"> -->
-				<!-- 			<Breadcrumb.Link href="##">Building Your Application</Breadcrumb.Link> -->
-				<!-- 		</Breadcrumb.Item> -->
-				<!-- 		<Breadcrumb.Separator class="hidden md:block" /> -->
-				<!-- 		<Breadcrumb.Item> -->
-				<!-- 			<Breadcrumb.Page>Data Fetching</Breadcrumb.Page> -->
-				<!-- 		</Breadcrumb.Item> -->
-				<!-- 	</Breadcrumb.List> -->
-				<!-- </Breadcrumb.Root> -->
 			</div>
 		</header>
 		<div class="gap-4 p-4 pt-0">
