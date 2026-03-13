@@ -61,8 +61,7 @@
 	/** Blue that reads well on both light and dark backgrounds */
 	let activeSmartsColor = $derived(mode.current === 'dark' ? '#60a5fa' : '#2563eb');
 
-	/** Softspots object built from the active SMARTS pattern */
-	let softspots = $derived(
+	let highlights = $derived(
 		activeSmarts
 			? {
 					definitions: [
@@ -198,7 +197,7 @@
 					<MoleculeBox
 						smiles={mol.smiles}
 						name={mol.name}
-						{softspots}
+						{highlights}
 						onremove={() => removeMolecule(mol.id)}
 					/>
 				{/each}

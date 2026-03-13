@@ -46,7 +46,7 @@ export function monomerColorToRgba(monomerColor, alpha = 0.6) {
 }
 
 /**
- * Derive a CSS fill color for a softspot outline.
+ * Derive a CSS fill color for a highlight outline.
  * Returns `'none'` when filling is disabled or when the color is not an RGBA array.
  *
  * @param {string | number[]} color - Hex string or RGBA array [r, g, b, a] (0–1)
@@ -54,7 +54,7 @@ export function monomerColorToRgba(monomerColor, alpha = 0.6) {
  * @param {number} [alphaFactor=0.3] - Multiplier applied to the original alpha component
  * @returns {string} CSS color string or `'none'`
  */
-export function softspotFillColor(color, shouldFill, alphaFactor = 0.3) {
+export function highlightFillColor(color, shouldFill, alphaFactor = 0.3) {
 	if (!shouldFill || !Array.isArray(color)) return 'none';
 	return `rgba(${Math.round(color[0] * 255)}, ${Math.round(color[1] * 255)}, ${Math.round(color[2] * 255)}, ${(color[3] || 0.6) * alphaFactor})`;
 }

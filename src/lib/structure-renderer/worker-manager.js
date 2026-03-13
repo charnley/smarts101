@@ -192,7 +192,7 @@ export const rdkitWorker = {
 
 /**
  * Perform a SMARTS substructure search via the RDKit search pool.
- * Named to match the reference project's API consumed by softspot-search.js.
+ * Named to match the reference project's API consumed by smarts-search.js.
  * @param {string|string[]} smarts
  * @param {string|string[]} smiles
  * @param {'rdkit'} [_engine]  kept for API compat — only rdkit pool available
