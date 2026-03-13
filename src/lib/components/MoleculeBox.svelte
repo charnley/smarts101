@@ -41,5 +41,4 @@
 		padding: 4px;
 		background: var(--card);
 	}
-
 </style>
