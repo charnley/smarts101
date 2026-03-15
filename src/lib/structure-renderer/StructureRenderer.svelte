@@ -4,6 +4,7 @@
 	import { untrack } from 'svelte';
 	import { mode } from 'mode-watcher';
 	import { Spinner } from '$lib/components/ui/spinner/index.js';
+	import CircleXIcon from '@lucide/svelte/icons/circle-x';
 
 	/**
 	 * Props
@@ -145,7 +146,9 @@
 	{/if}
 
 	{#if renderError}
-		<div class="sr-error" role="alert">{renderError}</div>
+		<div class="sr-error" role="alert" title={renderError}>
+			<CircleXIcon size={32} />
+		</div>
 	{/if}
 </div>
 
@@ -196,11 +199,10 @@
 
 	.sr-error {
 		position: absolute;
-		inset: auto 0 0 0;
-		padding: 4px 8px;
-		font-size: 11px;
-		background: color-mix(in srgb, red 10%, var(--background, white));
+		inset: 0;
+		display: flex;
+		align-items: center;
+		justify-content: center;
 		color: color-mix(in srgb, red 70%, currentColor);
-		border-top: 1px solid color-mix(in srgb, red 30%, transparent);
 	}
 </style>
