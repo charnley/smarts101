@@ -106,7 +106,6 @@
 		molecules = list;
 		nextId = list.length + 1;
 		textareaValue = toTextarea(list);
-		viewMode = 'grid';
 	}
 
 	// ── Debounced SMARTS validation ──────────────────────────────────────────
@@ -192,14 +191,14 @@
 					class:active={viewMode === 'grid'}
 					onclick={switchToGrid}
 				>
-					Grid
+					View
 				</button>
 				<button
 					class="playground__toggle-btn"
 					class:active={viewMode === 'edit'}
 					onclick={switchToEdit}
 				>
-					Edit
+					Edit SMILES
 				</button>
 			</div>
 		</div>
