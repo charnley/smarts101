@@ -74,11 +74,6 @@
 	import NavMain from './nav-main.svelte';
 	import NavProjects from './nav-projects.svelte';
 	import * as Sidebar from '$lib/components/ui/sidebar/index.js';
-	import { Button } from '$lib/components/ui/button';
-	import CommandIcon from '@lucide/svelte/icons/command';
-	import Sun from '@lucide/svelte/icons/sun';
-	import Moon from '@lucide/svelte/icons/moon';
-	import { toggleMode, mode } from 'mode-watcher';
 	let { ref = $bindable(null), ...restProps } = $props();
 </script>
 
@@ -108,13 +103,4 @@
 		<NavMain items={data.navMain} />
 		<!-- <NavProjects projects={data.projects} /> -->
 	</Sidebar.Content>
-	<Sidebar.Footer>
-		<Button variant="ghost" size="icon" onclick={toggleMode} aria-label="Toggle theme">
-			{#if mode.current === 'dark'}
-				<Sun class="size-5" />
-			{:else}
-				<Moon class="size-5" />
-			{/if}
-		</Button>
-	</Sidebar.Footer>
 </Sidebar.Root>
