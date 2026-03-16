@@ -161,28 +161,29 @@
 			{:else if checkResult === 'incorrect'}
 				<div class="quiz-card__feedback quiz-card__feedback--incorrect">Not quite — try again.</div>
 			{/if}
-
-			{#if solutionRevealed}
-				<div class="quiz-card__solution">
-					<span class="quiz-card__solution-label">Solution:</span>
-					<code class="quiz-card__solution-code">{referenceSMARTS}</code>
-				</div>
-			{:else}
-				<Button
-					variant="ghost"
-					size="sm"
-					class="self-start"
-					onclick={() => (solutionRevealed = true)}
-				>
-					Show solution
-				</Button>
-			{/if}
 		</div>
 
 		<!-- Right: molecule renderer -->
 		<div class="quiz-card__right">
 			<StructureRenderer {smiles} {highlights} width={280} height={200} />
 		</div>
+	</div>
+	<div class="quiz-card__footer">
+		{#if solutionRevealed}
+			<div class="quiz-card__solution">
+				<span class="quiz-card__solution-label">Solution:</span>
+				<code class="quiz-card__solution-code">{referenceSMARTS}</code>
+			</div>
+		{:else}
+			<Button
+				variant="ghost"
+				size="sm"
+				class="self-start"
+				onclick={() => (solutionRevealed = true)}
+			>
+				Show solution
+			</Button>
+		{/if}
 	</div>
 </div>
 
@@ -210,6 +211,15 @@
 		gap: 0.75rem;
 		padding: 0.875rem 1.25rem;
 		border-bottom: 1px solid var(--border);
+		/* background: var(--muted); */
+	}
+
+	.quiz-card__footer {
+		/* display: flex; */
+		/* align-items: baseline; */
+		/* gap: 0.75rem; */
+		padding: 0.5rem 0.5rem;
+		border-top: 1px solid var(--border);
 		/* background: var(--muted); */
 	}
 

@@ -147,7 +147,6 @@
 </script>
 
 <div class="playground">
-	<!-- ── SMARTS input ── -->
 	<section class="playground__query">
 		<div class="playground__input-wrap" class:has-error={!!smartsError}>
 			<input
@@ -165,9 +164,7 @@
 		{/if}
 	</section>
 
-	<!-- ── Molecule grid / editor ── -->
 	<section class="playground__grid-section">
-		<!-- Toolbar: set selector (edit mode only) + view toggle -->
 		<div class="playground__toolbar">
 			{#if viewMode === 'edit'}
 				<div class="playground__sets">
@@ -198,12 +195,11 @@
 					class:active={viewMode === 'edit'}
 					onclick={switchToEdit}
 				>
-					Edit SMILES
+					Edit
 				</button>
 			</div>
 		</div>
 
-		<!-- Grid view -->
 		{#if viewMode === 'grid'}
 			<div class="playground__grid">
 				{#each molecules as mol (mol.id)}
@@ -215,11 +211,8 @@
 					/>
 				{/each}
 			</div>
-
-			<!-- Edit view -->
 		{:else}
 			<div class="playground__edit">
-				<p class="playground__edit-hint">One SMILES per line. Switch to Grid to apply.</p>
 				<textarea
 					class="playground__textarea"
 					bind:value={textareaValue}
@@ -227,6 +220,9 @@
 					autocomplete="off"
 					rows={Math.max(8, textareaValue.split('\n').length + 2)}
 				></textarea>
+				<p class="playground__edit-hint">
+					<strong>Format:</strong> SMILES per line or multi-SDF input.
+				</p>
 			</div>
 		{/if}
 	</section>
@@ -313,13 +309,13 @@
 	}
 
 	.playground__sets-label {
-		font-size: 12px;
+		/* font-size: 12px; */
 		color: var(--muted-foreground, #94a3b8);
 	}
 
 	.playground__set-btn {
 		padding: 3px 10px;
-		font-size: 12px;
+		/* font-size: 12px; */
 		border-radius: 9999px;
 		border: 1px solid var(--border, #e2e8f0);
 		background: var(--background);
@@ -344,7 +340,7 @@
 
 	.playground__toggle-btn {
 		padding: 4px 14px;
-		font-size: 12px;
+		/* font-size: 14px; */
 		border: none;
 		background: transparent;
 		color: var(--muted-foreground, #94a3b8);
@@ -380,7 +376,7 @@
 
 	.playground__edit-hint {
 		margin: 0;
-		font-size: 12px;
+		/* font-size: 12px; */
 		color: var(--muted-foreground, #94a3b8);
 	}
 

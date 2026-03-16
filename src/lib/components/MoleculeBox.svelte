@@ -1,16 +1,14 @@
 <script>
 	import StructureRenderer from '$lib/structure-renderer/StructureRenderer.svelte';
-	import XIcon from '@lucide/svelte/icons/x';
 
 	/**
 	 * @type {{
 	 *   smiles: string,
 	 *   name?: string,
 	 *   highlights?: { definitions?: any[], outline?: boolean, fill?: boolean },
-	 *   onremove?: () => void
 	 * }}
 	 */
-	let { smiles, name = '', highlights = { definitions: [] }, onremove } = $props();
+	let { smiles, highlights = { definitions: [] } } = $props();
 </script>
 
 <div class="molecule-box">
@@ -28,10 +26,6 @@
 		overflow: hidden;
 		background: var(--card, #fff);
 		transition: box-shadow 0.15s ease;
-	}
-
-	.molecule-box:hover {
-		box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
 	}
 
 	.molecule-box__renderer {
