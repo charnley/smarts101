@@ -40,7 +40,7 @@
 				</Button>
 				<Button
 					variant="ghost"
-					size="icon"
+					size="icon" target="_new"
 					href="https://github.com/charnley/smarts101"
 					aria-label="GitHub"
 				>
