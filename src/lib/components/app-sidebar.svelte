@@ -22,32 +22,32 @@
 			},
 			{
 				title: 'Learn',
-				url: '/documentation',
+				url: '/how-to-smarts',
 				icon: BookOpenIcon,
 				items: [
 					{
 						title: 'Introduction',
-						url: '/documentation',
+						url: '/how-to-smarts#',
 					},
 					{
 						title: 'Bond Primitives',
-						url: '/documentation',
+						url: '/how-to-smarts#',
 					},
 					{
 						title: 'Logical Operators',
-						url: '/documentation',
+						url: '/how-to-smarts#',
 					},
 					{
 						title: 'Recursive SMARTS',
-						url: '/documentation',
+						url: '/how-to-smarts#',
 					},
 					{
 						title: 'Component-level grouping of SMARTS',
-						url: '/documentation',
+						url: '/how-to-smarts#',
 					},
 					{
 						title: 'Reaction Queries',
-						url: '/documentation',
+						url: '/how-to-smarts#',
 					},
 				],
 			},
