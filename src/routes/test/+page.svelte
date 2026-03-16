@@ -61,7 +61,13 @@
 
 <div class="article">
 	<h1>Test your SMARTS skills</h1>
-	<p class="quiz-intro">Write SMARTS for each pattern description.</p>
+
+	<p>
+		Quiz heavily inspired by <a
+			href="https://www.daylight.com/dayhtml_tutorials/languages/smarts/smarts_practice.html"
+			>Daylight SMARTS tutorial</a
+		>. Write SMARTS for each pattern description. Don't give up.
+	</p>
 </div>
 
 <div class="quiz">
@@ -76,14 +82,6 @@
 </div>
 
 <style>
-	.quiz-intro {
-		color: var(--muted-foreground);
-		font-size: 0.9375rem;
-		line-height: 1.6;
-		margin-top: 0.5rem;
-		margin-bottom: 0;
-	}
-
 	.quiz {
 		display: flex;
 		flex-direction: column;

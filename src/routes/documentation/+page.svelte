@@ -7,7 +7,11 @@
 
 	<p>
 		Standing on the shoulders of giants, SMARTS was developed by Daylight Chemical Information
-		Systems, the same company that introduced SMILES.
+		Systems, the same company that introduced SMILES. And hence the documentation here is heavily
+		"inspired" by the original
+		<a href="https://www.daylight.com/dayhtml/doc/theory/theory.smarts.html"
+			>https://www.daylight.com/dayhtml/doc/theory/theory.smarts.html</a
+		>.
 	</p>
 
 	<h2>What is SMARTS?</h2>
@@ -19,7 +23,11 @@
 		patterns.
 	</p>
 
-	<h2>General syntax</h2>
+	<p>
+		In the SMILES language we have <strong>atoms</strong> and <strong>bonds</strong>. The same is
+		true in SMARTS, which is further extended with <strong>property filters</strong> and
+		<strong>logical operators</strong>.
+	</p>
 
 	<h2>Atom Primitives</h2>
 
@@ -55,28 +63,32 @@
 			<tr>
 				<td><code>H&lt;n&gt;</code></td>
 				<td>exactly n hydrogens</td>
-				<td><code>[CH3]</code></td>
+				<td><code>[CH3]</code> or <code>[H3]</code></td>
 			</tr>
 			<tr>
 				<td><code>+&lt;n&gt;</code></td>
 				<td>positive charge of n</td>
-				<td><code>[N+]</code></td>
+				<td><code>[N+]</code> or <code>[N+3]</code> or <code>[+1]</code></td>
 			</tr>
 			<tr>
 				<td><code>-&lt;n&gt;</code></td>
 				<td>negative charge of n</td>
-				<td><code>[O-]</code></td>
+				<td><code>[O-]</code> or <code>[O-2]</code></td>
 			</tr>
 			<tr>
 				<td><code>R&lt;n&gt;</code></td>
 				<td>in n rings</td>
-				<td><code>[R2]</code></td>
+				<td><code>[R2]</code> or <code>[cR2]</code></td>
 			</tr>
 		</tbody>
 	</table>
 </div>
 
-<SmartsDemo smiles="CCCC=O" smarts={['[CH1]', '[CH2]', '[CH3]']} />
+<SmartsDemo smiles="CCCC=O" smarts={['[*H0]', '[*H1]', '[*H2]', '[*H3]']} />
+
+<SmartsDemo smiles="CCC(N)CC([NH-])CC([NH3+])CC" smarts={['[#7+1]', '[#7-1]', '[#7+0]']} />
+
+<SmartsDemo smiles="c1ccc2c(c1)cc1ccc3cccc4ccc2c1c34" smarts={['[R1]', '[R2]', '[R3]']} />
 
 <div class="article">
 	<h2>Bond Primitives</h2>

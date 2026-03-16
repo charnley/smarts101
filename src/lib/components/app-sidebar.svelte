@@ -14,14 +14,14 @@
 	const data = {
 		navMain: [
 			{
-				title: 'SMARTS',
+				title: 'Query',
 				url: '/',
 				icon: FlaskConicalIcon,
 				isActive: true,
 				items: [],
 			},
 			{
-				title: 'Documentation',
+				title: 'Learn',
 				url: '/documentation',
 				icon: BookOpenIcon,
 				items: [
