@@ -203,6 +203,6 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		color: color-mix(in srgb, red 70%, currentColor);
+		color: color-mix(in srgb, white 50%, currentColor);
 	}
 </style>

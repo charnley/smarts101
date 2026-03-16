@@ -19,6 +19,8 @@
 		patterns.
 	</p>
 
+	<h2>General syntax</h2>
+
 	<h2>Atom Primitives</h2>
 
 	<p>
