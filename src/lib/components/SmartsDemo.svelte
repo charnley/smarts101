@@ -102,7 +102,8 @@
 					spellcheck={false}
 					aria-label="SMARTS pattern {i + 1}"
 					aria-invalid={!entry.valid || undefined}
-					oninput={(e) => onInput(entry.id, e.currentTarget.value)}
+					oninput={(/** @type {Event} */ e) =>
+						onInput(entry.id, /** @type {HTMLInputElement} */ (e.currentTarget).value)}
 				/>
 			</div>
 		{/each}

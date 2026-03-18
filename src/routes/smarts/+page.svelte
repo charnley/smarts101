@@ -2,6 +2,9 @@
 	import { performSubstructureSearch } from '$lib/structure-renderer/worker-manager.js';
 	import MoleculeBox from '$lib/components/MoleculeBox.svelte';
 	import { mode } from 'mode-watcher';
+	import { Input } from '$lib/components/ui/input/index.js';
+	import { Button } from '$lib/components/ui/button/index.js';
+	import * as ToggleGroup from '$lib/components/ui/toggle-group/index.js';
 	import {
 		RNA_BASES,
 		DNA_BASES,
@@ -56,7 +59,6 @@
 
 	// ── State ────────────────────────────────────────────────────────────────
 	let molecules = $state(withIds(DEFAULT_MOLECULES));
-	let nextId = $state(DEFAULT_MOLECULES.length + 1);
 
 	/** 'grid' shows the molecule cards; 'edit' shows the textarea editor */
 	let viewMode = $state(/** @type {'grid' | 'edit'} */ ('grid'));
@@ -94,9 +96,14 @@
 		const parsed = fromTextarea(textareaValue);
 		if (parsed.length > 0) {
 			molecules = parsed;
-			nextId = parsed.length + 1;
 		}
 		viewMode = 'grid';
+	}
+
+	/** @param {string} v */
+	function onViewModeChange(v) {
+		if (v === 'edit') switchToEdit();
+		else if (v === 'grid') switchToGrid();
 	}
 
 	// ── Load a named molecule set ─────────────────────────────────────────────
@@ -104,7 +111,6 @@
 	function loadSet(setKey) {
 		const list = withIds(SETS[setKey].molecules);
 		molecules = list;
-		nextId = list.length + 1;
 		textareaValue = toTextarea(list);
 	}
 
@@ -140,252 +146,74 @@
 	}
 </script>
 
-<div class="playground">
-	<section class="playground__query">
-		<div class="playground__input-wrap" class:has-error={!!smartsError}>
-			<input
-				class="playground__smarts-input"
-				type="text"
-				placeholder="Enter a SMARTS pattern, e.g. [OX2H] for hydroxyl…"
-				bind:value={rawSmarts}
-				oninput={onSmartsInput}
-				spellcheck="false"
-				autocomplete="off"
-			/>
-		</div>
+<div class="mx-auto flex max-w-[1200px] flex-col gap-6 py-2">
+	<!-- Query input -->
+	<section class="flex w-full flex-col gap-2">
+		<Input
+			class="font-mono text-base"
+			type="text"
+			placeholder="Enter a SMARTS pattern, e.g. [OX2H] for hydroxyl…"
+			bind:value={rawSmarts}
+			oninput={onSmartsInput}
+			spellcheck={false}
+			autocomplete="off"
+			aria-invalid={!!smartsError || undefined}
+		/>
 		{#if smartsError}
-			<p class="playground__error" role="alert">{smartsError}</p>
+			<p class="m-0 text-xs text-destructive" role="alert">{smartsError}</p>
 		{/if}
 	</section>
 
-	<section class="playground__grid-section">
-		<div class="playground__toolbar">
+	<!-- Grid / Edit section -->
+	<section class="flex w-full flex-col gap-3">
+		<!-- Toolbar -->
+		<div class="flex flex-wrap items-center justify-between gap-3">
 			{#if viewMode === 'edit'}
-				<div class="playground__sets">
-					<span class="playground__sets-label">Start from:</span>
+				<div class="flex flex-wrap items-center gap-1.5">
+					<span class="text-sm text-muted-foreground">Start from:</span>
 					{#each Object.entries(SETS) as [key, set]}
-						<button
-							class="playground__set-btn"
+						<Button
+							variant="outline"
+							size="sm"
+							class="rounded-full"
 							onclick={() => loadSet(/** @type {keyof typeof SETS} */ (key))}
 						>
 							{set.label}
-						</button>
+						</Button>
 					{/each}
 				</div>
 			{:else}
 				<div></div>
 			{/if}
 
-			<div class="playground__view-toggle">
-				<button
-					class="playground__toggle-btn"
-					class:active={viewMode === 'grid'}
-					onclick={switchToGrid}
-				>
-					View
-				</button>
-				<button
-					class="playground__toggle-btn"
-					class:active={viewMode === 'edit'}
-					onclick={switchToEdit}
-				>
-					Edit
-				</button>
-			</div>
+			<ToggleGroup.Root type="single" value={viewMode} onValueChange={onViewModeChange}>
+				<ToggleGroup.Item value="grid" variant="outline" size="sm" class="">View</ToggleGroup.Item>
+				<ToggleGroup.Item value="edit" variant="outline" size="sm" class="">Edit</ToggleGroup.Item>
+			</ToggleGroup.Root>
 		</div>
 
+		<!-- Grid view -->
 		{#if viewMode === 'grid'}
-			<div class="playground__grid">
+			<div class="grid grid-cols-[repeat(auto-fill,minmax(290px,1fr))] gap-4">
 				{#each molecules as mol (mol.id)}
 					<MoleculeBox smiles={mol.smiles} {highlights} />
 				{/each}
 			</div>
+
+			<!-- Edit view -->
 		{:else}
-			<div class="playground__edit">
+			<div class="flex flex-col gap-2">
 				<textarea
-					class="playground__textarea"
+					class="box-border w-full resize-y rounded-lg border-2 border-border bg-background px-3.5 py-3 font-mono text-sm leading-relaxed text-foreground transition-colors outline-none focus:border-ring"
 					bind:value={textareaValue}
-					spellcheck="false"
+					spellcheck={false}
 					autocomplete="off"
 					rows={Math.max(8, textareaValue.split('\n').length + 2)}
 				></textarea>
-				<p class="playground__edit-hint">
+				<p class="m-0 text-sm text-muted-foreground">
 					<strong>Format:</strong> SMILES per line or multi-SDF input.
 				</p>
 			</div>
 		{/if}
 	</section>
 </div>
-
-<style>
-	.playground {
-		display: flex;
-		flex-direction: column;
-		gap: 24px;
-		max-width: 1200px;
-		margin: 0 auto;
-		padding: 8px 0;
-	}
-
-	/* ── Query section ── */
-	.playground__query {
-		display: flex;
-		flex-direction: column;
-		gap: 8px;
-		margin: 0 auto;
-		width: 100%;
-	}
-
-	.playground__input-wrap {
-		border: 2px solid var(--border, #e2e8f0);
-		border-radius: 8px;
-		transition: border-color 0.15s ease;
-	}
-
-	.playground__input-wrap:focus-within {
-		border-color: var(--ring, #6366f1);
-	}
-
-	.playground__input-wrap.has-error {
-		border-color: var(--destructive, #dc2626);
-	}
-
-	.playground__smarts-input {
-		width: 100%;
-		padding: 14px 16px;
-		font-size: 16px;
-		font-family: ui-monospace, 'Fira Code', monospace;
-		background: transparent;
-		border: none;
-		outline: none;
-		color: var(--foreground);
-		box-sizing: border-box;
-	}
-
-	.playground__smarts-input::placeholder {
-		color: var(--muted-foreground, #94a3b8);
-		font-family: inherit;
-	}
-
-	.playground__error {
-		margin: 0;
-		font-size: 12px;
-		color: var(--destructive, #dc2626);
-	}
-
-	/* ── Grid section ── */
-	.playground__grid-section {
-		width: 100%;
-		display: flex;
-		flex-direction: column;
-		gap: 12px;
-	}
-
-	/* ── Toolbar ── */
-	.playground__toolbar {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		gap: 12px;
-		flex-wrap: wrap;
-	}
-
-	.playground__sets {
-		display: flex;
-		align-items: center;
-		gap: 6px;
-		flex-wrap: wrap;
-	}
-
-	.playground__sets-label {
-		/* font-size: 12px; */
-		color: var(--muted-foreground, #94a3b8);
-	}
-
-	.playground__set-btn {
-		padding: 3px 10px;
-		/* font-size: 12px; */
-		border-radius: 9999px;
-		border: 1px solid var(--border, #e2e8f0);
-		background: var(--background);
-		color: var(--foreground);
-		cursor: pointer;
-		transition:
-			background 0.1s ease,
-			color 0.1s ease;
-	}
-
-	.playground__set-btn:hover {
-		background: var(--muted, #f1f5f9);
-	}
-
-	/* ── View toggle ── */
-	.playground__view-toggle {
-		display: flex;
-		border: 1px solid var(--border, #e2e8f0);
-		border-radius: 6px;
-		overflow: hidden;
-	}
-
-	.playground__toggle-btn {
-		padding: 4px 14px;
-		/* font-size: 14px; */
-		border: none;
-		background: transparent;
-		color: var(--muted-foreground, #94a3b8);
-		cursor: pointer;
-		transition:
-			background 0.1s ease,
-			color 0.1s ease;
-	}
-
-	.playground__toggle-btn:not(:last-child) {
-		border-right: 1px solid var(--border, #e2e8f0);
-	}
-
-	.playground__toggle-btn.active {
-		background: var(--muted, #f1f5f9);
-		color: var(--foreground);
-		font-weight: 500;
-	}
-
-	/* ── Grid ── */
-	.playground__grid {
-		display: grid;
-		grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
-		gap: 16px;
-	}
-
-	/* ── Edit view ── */
-	.playground__edit {
-		display: flex;
-		flex-direction: column;
-		gap: 8px;
-	}
-
-	.playground__edit-hint {
-		margin: 0;
-		/* font-size: 12px; */
-		color: var(--muted-foreground, #94a3b8);
-	}
-
-	.playground__textarea {
-		width: 100%;
-		padding: 12px 14px;
-		font-size: 14px;
-		font-family: ui-monospace, 'Fira Code', monospace;
-		border: 2px solid var(--border, #e2e8f0);
-		border-radius: 8px;
-		background: var(--background);
-		color: var(--foreground);
-		outline: none;
-		resize: vertical;
-		box-sizing: border-box;
-		line-height: 1.6;
-		transition: border-color 0.15s ease;
-	}
-
-	.playground__textarea:focus {
-		border-color: var(--ring, #6366f1);
-	}
-</style>
