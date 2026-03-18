@@ -9,7 +9,7 @@
 		navMain: [
 			{
 				title: 'Query',
-				url: '/',
+				url: '/smarts',
 				icon: FlaskConicalIcon,
 				isActive: true,
 				items: [],
@@ -18,32 +18,7 @@
 				title: 'Learn',
 				url: '/how-to-smarts',
 				icon: BookOpenIcon,
-				items: [
-					{
-						title: 'Introduction',
-						url: '/how-to-smarts#',
-					},
-					{
-						title: 'Bond Primitives',
-						url: '/how-to-smarts#',
-					},
-					{
-						title: 'Logical Operators',
-						url: '/how-to-smarts#',
-					},
-					{
-						title: 'Recursive SMARTS',
-						url: '/how-to-smarts#',
-					},
-					{
-						title: 'Component-level grouping of SMARTS',
-						url: '/how-to-smarts#',
-					},
-					{
-						title: 'Reaction Queries',
-						url: '/how-to-smarts#',
-					},
-				],
+				items: [],
 			},
 			{
 				title: 'Quiz',
