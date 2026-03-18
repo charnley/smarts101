@@ -116,22 +116,26 @@
 </script>
 
 <div
-	class="quiz-card"
+	class="overflow-hidden rounded-[10px] border border-border bg-card transition-colors duration-200"
 	class:is-correct={checkResult === 'correct'}
 	class:is-incorrect={checkResult === 'incorrect'}
 >
 	<!-- Header: question number + description -->
-	<div class="quiz-card__header">
-		<span class="quiz-card__index">Q{index}</span>
-		<p class="quiz-card__description">{description}</p>
+	<div class="flex items-baseline gap-3 border-b border-border px-5 py-3.5">
+		<span class="shrink-0 font-semibold tracking-wider text-muted-foreground uppercase"
+			>Q{index}</span
+		>
+		<p class="m-0 leading-relaxed text-foreground">{description}</p>
 	</div>
 
 	<!-- Body: two-column -->
-	<div class="quiz-card__body">
+	<div class="flex flex-row max-sm:flex-col-reverse">
 		<!-- Left: input row + feedback + solution -->
-		<div class="quiz-card__left">
+		<div
+			class="flex min-w-0 flex-1 flex-col gap-2.5 border-r border-border p-4 px-5 max-sm:border-t max-sm:border-r-0 max-sm:border-border"
+		>
 			<!-- Input + Check button on the same row -->
-			<div class="quiz-card__input-row">
+			<div class="flex items-center gap-2">
 				<Input
 					type="text"
 					placeholder="Enter a SMARTS pattern…"
@@ -153,26 +157,37 @@
 			</div>
 
 			{#if !syntaxValid && userSmarts.trim()}
-				<p class="quiz-card__syntax-error">Invalid SMARTS syntax</p>
+				<p class="m-0 text-destructive">Invalid SMARTS syntax</p>
 			{/if}
 
 			{#if checkResult === 'correct'}
-				<div class="quiz-card__feedback quiz-card__feedback--correct">Correct!</div>
+				<div
+					class="rounded-md border border-green-600/30 bg-green-600/10 px-3 py-2 font-medium text-green-600"
+				>
+					Correct!
+				</div>
 			{:else if checkResult === 'incorrect'}
-				<div class="quiz-card__feedback quiz-card__feedback--incorrect">Not quite — try again.</div>
+				<div
+					class="rounded-md border border-destructive/25 bg-destructive/10 px-3 py-2 font-medium text-destructive"
+				>
+					Not quite — try again.
+				</div>
 			{/if}
 		</div>
 
 		<!-- Right: molecule renderer -->
-		<div class="quiz-card__right">
+		<div class="flex shrink-0 items-center justify-center p-3">
 			<StructureRenderer {smiles} {highlights} width={280} height={200} />
 		</div>
 	</div>
-	<div class="quiz-card__footer">
+
+	<div class="border-t border-border p-2">
 		{#if solutionRevealed}
-			<div class="quiz-card__solution">
-				<span class="quiz-card__solution-label">Solution:</span>
-				<code class="quiz-card__solution-code">{referenceSMARTS}</code>
+			<div
+				class="flex flex-wrap items-center gap-2 rounded-md border border-border bg-muted px-3 py-2"
+			>
+				<span class="font-medium text-muted-foreground">Solution:</span>
+				<code class="font-mono text-foreground">{referenceSMARTS}</code>
 			</div>
 		{:else}
 			<Button
@@ -188,147 +203,11 @@
 </div>
 
 <style>
-	.quiz-card {
-		border: 1px solid var(--border);
-		border-radius: 10px;
-		overflow: hidden;
-		background: var(--card);
-		transition: border-color 0.2s ease;
-	}
-
-	.quiz-card.is-correct {
+	.is-correct {
 		border-color: color-mix(in srgb, #16a34a 50%, var(--border));
 	}
 
-	.quiz-card.is-incorrect {
+	.is-incorrect {
 		border-color: color-mix(in srgb, var(--destructive) 50%, var(--border));
-	}
-
-	/* Header */
-	.quiz-card__header {
-		display: flex;
-		align-items: baseline;
-		gap: 0.75rem;
-		padding: 0.875rem 1.25rem;
-		border-bottom: 1px solid var(--border);
-		/* background: var(--muted); */
-	}
-
-	.quiz-card__footer {
-		/* display: flex; */
-		/* align-items: baseline; */
-		/* gap: 0.75rem; */
-		padding: 0.5rem 0.5rem;
-		border-top: 1px solid var(--border);
-		/* background: var(--muted); */
-	}
-
-	.quiz-card__index {
-		flex-shrink: 0;
-		/* font-size: 0.75rem; */
-		font-weight: 600;
-		color: var(--muted-foreground);
-		text-transform: uppercase;
-		letter-spacing: 0.05em;
-	}
-
-	.quiz-card__description {
-		margin: 0;
-		/* font-size: 0.9375rem; */
-		line-height: 1.5;
-		color: var(--foreground);
-	}
-
-	/* Body: two-column layout */
-	.quiz-card__body {
-		display: flex;
-		flex-direction: row;
-	}
-
-	.quiz-card__left {
-		flex: 1;
-		display: flex;
-		flex-direction: column;
-		gap: 0.625rem;
-		padding: 1rem 1.25rem;
-		border-right: 1px solid var(--border);
-		min-width: 0;
-	}
-
-	/* Input + Check button side by side */
-	.quiz-card__input-row {
-		display: flex;
-		align-items: center;
-		gap: 0.5rem;
-	}
-
-	.quiz-card__right {
-		flex-shrink: 0;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		padding: 0.75rem;
-	}
-
-	.quiz-card__syntax-error {
-		margin: 0;
-		/* font-size: 0.75rem; */
-		color: var(--destructive);
-	}
-
-	/* Feedback banners */
-	.quiz-card__feedback {
-		padding: 0.5rem 0.75rem;
-		border-radius: 6px;
-		/* font-size: 0.875rem; */
-		font-weight: 500;
-	}
-
-	.quiz-card__feedback--correct {
-		background: color-mix(in srgb, #16a34a 12%, transparent);
-		color: #16a34a;
-		border: 1px solid color-mix(in srgb, #16a34a 30%, transparent);
-	}
-
-	.quiz-card__feedback--incorrect {
-		background: color-mix(in srgb, var(--destructive) 10%, transparent);
-		color: var(--destructive);
-		border: 1px solid color-mix(in srgb, var(--destructive) 25%, transparent);
-	}
-
-	/* Solution reveal */
-	.quiz-card__solution {
-		display: flex;
-		align-items: center;
-		gap: 0.5rem;
-		padding: 0.5rem 0.75rem;
-		border-radius: 6px;
-		background: var(--muted);
-		border: 1px solid var(--border);
-		flex-wrap: wrap;
-	}
-
-	.quiz-card__solution-label {
-		/* font-size: 0.75rem; */
-		color: var(--muted-foreground);
-		font-weight: 500;
-	}
-
-	.quiz-card__solution-code {
-		font-family: ui-monospace, 'Fira Code', monospace;
-		/* font-size: 0.875rem; */
-		color: var(--foreground);
-	}
-
-	/* Responsive: stack on narrow screens */
-	@media (max-width: 560px) {
-		.quiz-card__body {
-			flex-direction: column-reverse;
-		}
-
-		.quiz-card__left {
-			border-right: none;
-			border-top: 1px solid var(--border);
-		}
 	}
 </style>
