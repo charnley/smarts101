@@ -1,8 +1,11 @@
+.PHONY: build format dev
+
+all: node_modules
 
 node_modules:
 	pnpm i
 
-build: node_modules
+build:
 	pnpm run build
 
 format:

@@ -52,7 +52,7 @@
 			>
 		</li>
 		<li>
-			<a href="#rdkit">rdkit</a>
+			<a href="https://www.rdkit.org">rdkit</a>
 		</li>
 	</ul>
 </div>
