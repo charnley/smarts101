@@ -175,8 +175,10 @@ const searchPool = new WorkerPool('RDKit-Search', RDKitSearchWorker, SEARCH_POOL
 	format: 'flat',
 });
 
-// Eagerly warm up the render pool
-renderPool.init().catch((e) => console.error('[WorkerManager] Render pool init failed:', e));
+// Eagerly warm up the render pool (browser only — Workers are not available in SSR/Node)
+if (typeof window !== 'undefined') {
+	renderPool.init().catch((e) => console.error('[WorkerManager] Render pool init failed:', e));
+}
 
 // ── Public API ───────────────────────────────────────────────────────────────
 
