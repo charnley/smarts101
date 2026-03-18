@@ -4,35 +4,16 @@
 	/**
 	 * @type {{
 	 *   smiles: string,
-	 *   name?: string,
 	 *   highlights?: { definitions?: any[], outline?: boolean, fill?: boolean },
 	 * }}
 	 */
 	let { smiles, highlights = { definitions: [] } } = $props();
 </script>
 
-<div class="molecule-box">
-	<div class="molecule-box__renderer">
+<div
+	class="flex flex-col overflow-hidden rounded-lg border border-border bg-card transition-shadow duration-150"
+>
+	<div class="flex items-center justify-center bg-card p-1">
 		<StructureRenderer {smiles} {highlights} width={280} height={200} />
 	</div>
 </div>
-
-<style>
-	.molecule-box {
-		display: flex;
-		flex-direction: column;
-		border: 1px solid var(--border, #e2e8f0);
-		border-radius: 8px;
-		overflow: hidden;
-		background: var(--card, #fff);
-		transition: box-shadow 0.15s ease;
-	}
-
-	.molecule-box__renderer {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		padding: 4px;
-		background: var(--card);
-	}
-</style>

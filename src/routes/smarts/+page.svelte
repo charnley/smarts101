@@ -138,12 +138,6 @@
 			activeSmarts = '';
 		}
 	}
-
-	// ── Remove molecule ───────────────────────────────────────────────────────
-	/** @param {number} id */
-	function removeMolecule(id) {
-		molecules = molecules.filter((m) => m.id !== id);
-	}
 </script>
 
 <div class="playground">
@@ -203,12 +197,7 @@
 		{#if viewMode === 'grid'}
 			<div class="playground__grid">
 				{#each molecules as mol (mol.id)}
-					<MoleculeBox
-						smiles={mol.smiles}
-						name={mol.name}
-						{highlights}
-						onremove={() => removeMolecule(mol.id)}
-					/>
+					<MoleculeBox smiles={mol.smiles} {highlights} />
 				{/each}
 			</div>
 		{:else}
