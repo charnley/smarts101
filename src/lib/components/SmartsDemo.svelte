@@ -2,6 +2,7 @@
 	import StructureRenderer from '$lib/structure-renderer/StructureRenderer.svelte';
 	import { performSubstructureSearchAsync } from '$lib/structure-renderer/worker-manager.js';
 	import { mode } from 'mode-watcher';
+	import { Input } from '$lib/components/ui/input/index.js';
 
 	/**
 	 * @type {{
@@ -82,104 +83,31 @@
 	});
 </script>
 
-<div class="smarts-demo">
-	<div class="smarts-demo__inputs">
+<div
+	class="mx-auto my-5 flex max-w-[600px] flex-row overflow-hidden rounded-[var(--radius)] border border-border bg-card"
+>
+	<div class="flex min-w-[200px] flex-1 flex-col justify-center gap-2 border-r border-border p-4">
 		{#each entries as entry, i (entry.id)}
 			{@const color = palette[i % palette.length]}
-			<div class="smarts-demo__row">
+			<div class="flex items-center gap-2">
 				<span
-					class="smarts-demo__dot"
+					class="h-2.5 w-2.5 shrink-0 rounded-full border-[1.5px] transition-colors duration-150"
 					style:background-color={entry.valid && entry.value.trim() ? color : 'transparent'}
 					style:border-color={color}
 				></span>
-				<input
-					class="smarts-demo__input"
-					class:smarts-demo__input--invalid={!entry.valid}
+				<Input
+					class="font-mono"
 					type="text"
 					value={entry.value}
-					spellcheck="false"
+					spellcheck={false}
 					aria-label="SMARTS pattern {i + 1}"
+					aria-invalid={!entry.valid || undefined}
 					oninput={(e) => onInput(entry.id, e.currentTarget.value)}
 				/>
 			</div>
 		{/each}
 	</div>
-	<div class="smarts-demo__renderer">
+	<div class="flex shrink-0 items-center justify-center p-2">
 		<StructureRenderer {smiles} {highlights} width={300} height={220} />
 	</div>
 </div>
-
-<style>
-	.smarts-demo {
-		display: flex;
-		flex-direction: row;
-		border: 1px solid var(--border);
-		border-radius: var(--radius);
-		overflow: hidden;
-		background: var(--card);
-		margin-block: 1.5rem;
-
-		max-width: 600px;
-		margin: 20px auto;
-	}
-
-	.smarts-demo__inputs {
-		display: flex;
-		flex-direction: column;
-		justify-content: center;
-		gap: 0.5rem;
-		padding: 1rem;
-		border-right: 1px solid var(--border);
-		min-width: 200px;
-		flex: 1;
-	}
-
-	.smarts-demo__row {
-		display: flex;
-		align-items: center;
-		gap: 0.5rem;
-	}
-
-	.smarts-demo__dot {
-		flex-shrink: 0;
-		width: 0.625rem;
-		height: 0.625rem;
-		border-radius: 50%;
-		border: 1.5px solid;
-		transition: background-color 0.15s ease;
-	}
-
-	.smarts-demo__input {
-		flex: 1;
-		min-width: 0;
-		padding: 0.375rem 0.625rem;
-		font-family: var(--font-mono, ui-monospace, monospace);
-		font-size: 0.875rem;
-		border: 1px solid var(--border);
-		border-radius: calc(var(--radius) - 2px);
-		background: var(--background);
-		color: var(--foreground);
-		outline: none;
-		transition:
-			border-color 0.15s ease,
-			box-shadow 0.15s ease;
-	}
-
-	.smarts-demo__input:focus {
-		border-color: var(--ring);
-		box-shadow: 0 0 0 2px color-mix(in srgb, var(--ring) 30%, transparent);
-	}
-
-	.smarts-demo__input--invalid {
-		border-color: var(--destructive);
-		box-shadow: 0 0 0 2px color-mix(in srgb, var(--destructive) 20%, transparent);
-	}
-
-	.smarts-demo__renderer {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		padding: 0.5rem;
-		flex-shrink: 0;
-	}
-</style>
