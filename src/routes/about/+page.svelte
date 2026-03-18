@@ -2,9 +2,9 @@
 	<h1>About Learn SMARTS</h1>
 
 	<p>
-		Who wrote this and why? Weekend project by <a href="https://github.com/charnley">Jimmy</a> and Denis,
-		because we needed something to visualize SMARTS reactions on various molecules at the same time. Hope
-		it is useful for you too.
+		Who wrote this and why? Weekend project by <a href="https://github.com/charnley">Jimmy</a> and
+		<a href="https://github.com/leftStone">Denis</a>, because we needed something to visualize
+		SMARTS reactions on various molecules at the same time. Hope it is useful for you too.
 	</p>
 
 	<p>

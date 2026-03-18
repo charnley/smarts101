@@ -7,11 +7,13 @@
 
 	<p>
 		Standing on the shoulders of giants, SMARTS was developed by Daylight Chemical Information
-		Systems, the same company that introduced SMILES. And hence the documentation here is heavily
-		"inspired" by the original
+		Systems, the same company that introduced SMILES. The documentation here is heavily inspired by
+		the original
 		<a href="https://www.daylight.com/dayhtml/doc/theory/theory.smarts.html"
-			>https://www.daylight.com/dayhtml/doc/theory/theory.smarts.html</a
-		>.
+			>Daylight SMARTS theory</a
+		>. In this documentation we are following the implementation by
+		<a href="https://www.rdkit.org/docs/RDKit_Book.html">RDKit</a>, which also includes syntax
+		extensions by <a href="https://docs.chemaxon.com/display/docs/smarts.md">ChemAxon</a>.
 	</p>
 
 	<h2>What is SMARTS?</h2>
