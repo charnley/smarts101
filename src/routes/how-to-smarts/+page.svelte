@@ -1,9 +1,10 @@
 <script>
 	import SmartsDemo from '$lib/components/SmartsDemo.svelte';
+	import HeadingAnchor from '$lib/components/HeadingAnchor.svelte';
 </script>
 
 <div class="article">
-	<h1>Introduction to SMARTS</h1>
+	<HeadingAnchor id="introduction-to-smarts" level="h1">Introduction to SMARTS</HeadingAnchor>
 
 	<p>
 		Standing on the shoulders of giants, SMARTS was developed by Daylight Chemical Information
@@ -16,7 +17,7 @@
 		extensions by <a href="https://docs.chemaxon.com/display/docs/smarts.md">ChemAxon</a>.
 	</p>
 
-	<h2>What is SMARTS?</h2>
+	<HeadingAnchor id="what-is-smarts">What is SMARTS?</HeadingAnchor>
 
 	<p>
 		SMARTS (SMiles ARbitrary Target Specification) is a language for describing molecular patterns
@@ -31,14 +32,14 @@
 		<strong>logical operators</strong>.
 	</p>
 
-	<h2>Atom Primitives</h2>
+	<HeadingAnchor id="atom-primitives">Atom Primitives</HeadingAnchor>
 
 	<p>
 		The simplest SMARTS patterns match individual atoms. Atoms are specified inside square brackets
 		and can carry multiple constraints joined by logical operators.
 	</p>
 
-	<h3>Basic Atom Symbols</h3>
+	<HeadingAnchor id="basic-atom-symbols" level="h3">Basic Atom Symbols</HeadingAnchor>
 
 	<ul>
 		<li><code>[C]</code> — any aliphatic carbon atom</li>
@@ -49,7 +50,7 @@
 
 	<SmartsDemo smiles="c1ccccc1C(=O)O" smarts={['[c]', '[C]', '[#6]', '[*]']} />
 
-	<h3>Atom Properties</h3>
+	<HeadingAnchor id="atom-properties" level="h3">Atom Properties</HeadingAnchor>
 
 	<p>Atom primitives can encode charge, hydrogen count, ring membership, and more:</p>
 
@@ -93,7 +94,7 @@
 <SmartsDemo smiles="c1ccc2c(c1)cc1ccc3cccc4ccc2c1c34" smarts={['[R1]', '[R2]', '[R3]']} />
 
 <div class="article">
-	<h2>Bond Primitives</h2>
+	<HeadingAnchor id="bond-primitives">Bond Primitives</HeadingAnchor>
 
 	<p>
 		Bonds between atoms can also be constrained. By default, a bond in a SMARTS pattern matches any
@@ -108,7 +109,7 @@
 		<li><code>~</code> — any bond (wildcard)</li>
 	</ol>
 
-	<h2>Logical Operators</h2>
+	<HeadingAnchor id="logical-operators">Logical Operators</HeadingAnchor>
 
 	<p>Atom and bond primitives can be combined using logical operators to build complex queries:</p>
 
@@ -124,7 +125,7 @@
 		hydrogen.
 	</p>
 
-	<h2>Recursive SMARTS</h2>
+	<HeadingAnchor id="recursive-smarts">Recursive SMARTS</HeadingAnchor>
 
 	<p>
 		Any SMARTS expression can be used to define an atomic environment by anchoring it on the atom of
@@ -161,7 +162,7 @@
 
 	<SmartsDemo smiles="c1cc(O)c(C)cc1N" smarts={['[$(*C)]', '[$(*CC)]', '[$(*C);$(*CC)]']} />
 
-	<h2>Component-level Grouping</h2>
+	<HeadingAnchor id="component-level-grouping">Component-level Grouping</HeadingAnchor>
 
 	<p>
 		Zero-level parentheses group disconnected fragments and constrain which component of the target
@@ -206,7 +207,7 @@
 		</tbody>
 	</table>
 
-	<h2>Hybridization Queries</h2>
+	<HeadingAnchor id="hybridization-queries">Hybridization Queries</HeadingAnchor>
 
 	<div class="article-infobox">RDKit extension — not part of the Daylight SMARTS standard.</div>
 
@@ -233,7 +234,7 @@
 
 	<SmartsDemo smiles="CC=CF" smarts={['[^3]', '[^2]']} />
 
-	<h2>Heteroatom Neighbor Queries</h2>
+	<HeadingAnchor id="heteroatom-neighbor-queries">Heteroatom Neighbor Queries</HeadingAnchor>
 
 	<div class="article-infobox">RDKit extension — not part of the Daylight SMARTS standard.</div>
 
@@ -262,7 +263,7 @@
 
 	<SmartsDemo smiles="O=C(O)c1nc(O)ccn1" smarts={['[z2]', '[Z2]', '[Z1]']} />
 
-	<h2>Range Queries</h2>
+	<HeadingAnchor id="range-queries">Range Queries</HeadingAnchor>
 
 	<div class="article-infobox">RDKit extension — not part of the Daylight SMARTS standard.</div>
 
@@ -297,7 +298,7 @@
 
 	<SmartsDemo smiles="CC(=O)OC" smarts={['[D{2-3}]', '[z{1-}]']} />
 
-	<h2>Dative Bonds</h2>
+	<HeadingAnchor id="dative-bonds">Dative Bonds</HeadingAnchor>
 
 	<div class="article-infobox">RDKit extension — not part of the Daylight SMARTS standard.</div>
 
@@ -333,7 +334,7 @@
 
 	<SmartsDemo smiles="CN(C)(C)->[Pt]" smarts={['[#7]->*', '*<-[#7]']} />
 
-	<h2>Examples &amp; Efficiency Tips</h2>
+	<HeadingAnchor id="examples-efficiency-tips">Examples &amp; Efficiency Tips</HeadingAnchor>
 
 	<p>A selection of useful SMARTS patterns:</p>
 
