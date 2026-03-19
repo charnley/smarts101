@@ -52,39 +52,115 @@
 
 	<HeadingAnchor id="atom-properties" level="h3">Atom Properties</HeadingAnchor>
 
-	<p>Atom primitives can encode charge, hydrogen count, ring membership, and more:</p>
+	<p>
+		Atom primitives can encode aromaticity, charge, hydrogen count, degree, valence, ring
+		membership, and more. All primitives can be combined inside <code>[...]</code> using logical operators.
+	</p>
 
 	<table>
 		<thead>
 			<tr>
 				<th>Primitive</th>
 				<th>Meaning</th>
+				<th>Default</th>
 				<th>Example</th>
 			</tr>
 		</thead>
 		<tbody>
 			<tr>
+				<td><code>a</code></td>
+				<td>aromatic atom</td>
+				<td>—</td>
+				<td><code>[a]</code></td>
+			</tr>
+			<tr>
+				<td><code>A</code></td>
+				<td>aliphatic atom</td>
+				<td>—</td>
+				<td><code>[A]</code></td>
+			</tr>
+			<tr>
 				<td><code>H&lt;n&gt;</code></td>
-				<td>exactly n hydrogens</td>
-				<td><code>[CH3]</code> or <code>[H3]</code></td>
+				<td>total hydrogen count</td>
+				<td>exactly 1</td>
+				<td><code>[CH3]</code></td>
 			</tr>
 			<tr>
-				<td><code>+&lt;n&gt;</code></td>
-				<td>positive charge of n</td>
-				<td><code>[N+]</code> or <code>[N+3]</code> or <code>[+1]</code></td>
+				<td><code>h&lt;n&gt;</code></td>
+				<td>implicit hydrogen count</td>
+				<td>at least 1</td>
+				<td><code>[Ch2]</code></td>
 			</tr>
 			<tr>
-				<td><code>-&lt;n&gt;</code></td>
-				<td>negative charge of n</td>
-				<td><code>[O-]</code> or <code>[O-2]</code></td>
+				<td><code>D&lt;n&gt;</code></td>
+				<td>explicit degree (connections, not counting implicit H)</td>
+				<td>exactly 1</td>
+				<td><code>[D3]</code></td>
+			</tr>
+			<tr>
+				<td><code>d&lt;n&gt;</code></td>
+				<td>non-hydrogen degree</td>
+				<td>exactly 1</td>
+				<td><code>[d2]</code></td>
+			</tr>
+			<tr>
+				<td><code>X&lt;n&gt;</code></td>
+				<td>total connectivity (including implicit H)</td>
+				<td>exactly 1</td>
+				<td><code>[X4]</code></td>
+			</tr>
+			<tr>
+				<td><code>v&lt;n&gt;</code></td>
+				<td>total valence (sum of bond orders)</td>
+				<td>exactly 1</td>
+				<td><code>[v4]</code></td>
 			</tr>
 			<tr>
 				<td><code>R&lt;n&gt;</code></td>
-				<td>in n rings</td>
-				<td><code>[R2]</code> or <code>[cR2]</code></td>
+				<td>number of SSSR rings atom is in</td>
+				<td>any ring atom</td>
+				<td><code>[R2]</code></td>
+			</tr>
+			<tr>
+				<td><code>r&lt;n&gt;</code></td>
+				<td>size of smallest SSSR ring</td>
+				<td>any ring atom</td>
+				<td><code>[r5]</code></td>
+			</tr>
+			<tr>
+				<td><code>x&lt;n&gt;</code></td>
+				<td>number of ring bonds</td>
+				<td>at least 1</td>
+				<td><code>[x2]</code></td>
+			</tr>
+			<tr>
+				<td><code>+&lt;n&gt;</code></td>
+				<td>positive formal charge</td>
+				<td>+1</td>
+				<td><code>[N+]</code>, <code>[+2]</code></td>
+			</tr>
+			<tr>
+				<td><code>-&lt;n&gt;</code></td>
+				<td>negative formal charge</td>
+				<td>-1</td>
+				<td><code>[O-]</code>, <code>[O-2]</code></td>
+			</tr>
+			<tr>
+				<td><code>#&lt;n&gt;</code></td>
+				<td>atomic number</td>
+				<td>—</td>
+				<td><code>[#6]</code>, <code>[#7]</code></td>
+			</tr>
+			<tr>
+				<td><code>&lt;n&gt;</code></td>
+				<td>atomic mass (isotope)</td>
+				<td>unspecified</td>
+				<td><code>[13C]</code>, <code>[35Cl]</code></td>
 			</tr>
 		</tbody>
 	</table>
+
+	<SmartsDemo smiles="CC(=O)Oc1ccccc1C(=O)O" smarts={['[D1]', '[D2]', '[D3]', '[R]', '[r6]']} />
 </div>
 
 <SmartsDemo smiles="CCCC=O" smarts={['[*H0]', '[*H1]', '[*H2]', '[*H3]']} />
@@ -97,17 +173,65 @@
 	<HeadingAnchor id="bond-primitives">Bond Primitives</HeadingAnchor>
 
 	<p>
-		Bonds between atoms can also be constrained. By default, a bond in a SMARTS pattern matches any
-		bond unless specified explicitly.
+		Bonds between atoms can also be constrained. An unspecified bond in a SMARTS pattern matches
+		either a single or aromatic bond.
 	</p>
 
-	<ol>
-		<li><code>-</code> — single bond</li>
-		<li><code>=</code> — double bond</li>
-		<li><code>#</code> — triple bond</li>
-		<li><code>:</code> — aromatic bond</li>
-		<li><code>~</code> — any bond (wildcard)</li>
-	</ol>
+	<table>
+		<thead>
+			<tr>
+				<th>Symbol</th>
+				<th>Meaning</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr>
+				<td><code>-</code></td>
+				<td>single bond</td>
+			</tr>
+			<tr>
+				<td><code>=</code></td>
+				<td>double bond</td>
+			</tr>
+			<tr>
+				<td><code>#</code></td>
+				<td>triple bond</td>
+			</tr>
+			<tr>
+				<td><code>:</code></td>
+				<td>aromatic bond</td>
+			</tr>
+			<tr>
+				<td><code>~</code></td>
+				<td>any bond (wildcard)</td>
+			</tr>
+			<tr>
+				<td><code>@</code></td>
+				<td>any ring bond</td>
+			</tr>
+			<tr>
+				<td><code>/</code></td>
+				<td>directional bond "up" (for E/Z stereo)</td>
+			</tr>
+			<tr>
+				<td><code>\</code></td>
+				<td>directional bond "down" (for E/Z stereo)</td>
+			</tr>
+			<tr>
+				<td><code>/?</code></td>
+				<td>directional "up" or unspecified</td>
+			</tr>
+			<tr>
+				<td><code>\?</code></td>
+				<td>directional "down" or unspecified</td>
+			</tr>
+		</tbody>
+	</table>
+
+	<p class="article-muted">
+		Example: <code>*!@*</code> matches two atoms connected by a non-ring bond. <code>F/C=C/F</code>
+		matches trans-difluoroethylene.
+	</p>
 
 	<HeadingAnchor id="logical-operators">Logical Operators</HeadingAnchor>
 
@@ -123,6 +247,51 @@
 	<p class="article-muted">
 		Example: <code>[n,N;!H0]</code> matches any nitrogen (aromatic or aliphatic) that has at least one
 		hydrogen.
+	</p>
+
+	<HeadingAnchor id="chirality">Chirality</HeadingAnchor>
+
+	<p>
+		Tetrahedral chirality can be specified using <code>@</code> (anticlockwise) and <code>@@</code>
+		(clockwise), following the same convention as SMILES. When included in a SMARTS pattern, chirality
+		is used as a matching constraint — unspecified chirality in the query matches both enantiomers.
+	</p>
+
+	<table>
+		<thead>
+			<tr>
+				<th>Primitive</th>
+				<th>Meaning</th>
+				<th>Example</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr>
+				<td><code>@</code></td>
+				<td>anticlockwise (looking from first neighbour)</td>
+				<td><code>[C@H]</code></td>
+			</tr>
+			<tr>
+				<td><code>@@</code></td>
+				<td>clockwise (looking from first neighbour)</td>
+				<td><code>[C@@H]</code></td>
+			</tr>
+			<tr>
+				<td><code>@?</code></td>
+				<td>anticlockwise or chirality unspecified</td>
+				<td><code>[C@?H]</code></td>
+			</tr>
+			<tr>
+				<td><code>@@?</code></td>
+				<td>clockwise or chirality unspecified</td>
+				<td><code>[C@@?H]</code></td>
+			</tr>
+		</tbody>
+	</table>
+
+	<p class="article-muted">
+		Example: <code>C[C@H](F)Cl</code> matches only one enantiomer of chlorofluoromethylmethane.
+		Using <code>C[CH](F)Cl</code> (no chirality) matches both.
 	</p>
 
 	<HeadingAnchor id="recursive-smarts">Recursive SMARTS</HeadingAnchor>
@@ -329,10 +498,10 @@
 	<p>
 		In the example below, the nitrogen in trimethylamine donates a dative bond to platinum.
 		<code>[#7]-&gt;*</code> matches the nitrogen as donor, while <code>*&lt;-[#7]</code> matches the platinum
-		as acceptor.
+as acceptor. For example for <code>[Fe]->CC1=O.CN(C1)(C)->[Pt]</code>.
 	</p>
 
-	<SmartsDemo smiles="CN(C)(C)->[Pt]" smarts={['[#7]->*', '*<-[#7]']} />
+	<SmartsDemo smiles="[Fe]->CC1=O.CN(C1)(C)->[Pt]" smarts={['[#7]->[*]', '[*]->[#6]']} />
 
 	<HeadingAnchor id="examples-efficiency-tips">Examples &amp; Efficiency Tips</HeadingAnchor>
 
