@@ -117,7 +117,7 @@
 			</tr>
 			<tr>
 				<td><code>R&lt;n&gt;</code></td>
-				<td>number of SSSR rings atom is in</td>
+				<td>number of SSSR (Smallest Set of Smallest Rings) rings atom is in</td>
 				<td>any ring atom</td>
 				<td><code>[R2]</code></td>
 			</tr>
@@ -497,8 +497,8 @@
 
 	<p>
 		In the example below, the nitrogen in trimethylamine donates a dative bond to platinum.
-		<code>[#7]-&gt;*</code> matches the nitrogen as donor, while <code>*&lt;-[#7]</code> matches the platinum
-as acceptor. For example for <code>[Fe]->CC1=O.CN(C1)(C)->[Pt]</code>.
+		<code>[#7]-&gt;*</code> matches the nitrogen as donor, while <code>*&lt;-[#7]</code> matches the
+		platinum as acceptor. For example for <code>[Fe]->CC1=O.CN(C1)(C)->[Pt]</code>.
 	</p>
 
 	<SmartsDemo smiles="[Fe]->CC1=O.CN(C1)(C)->[Pt]" smarts={['[#7]->[*]', '[*]->[#6]']} />
