@@ -3,6 +3,7 @@
 	import MoleculeBox from '$lib/components/MoleculeBox.svelte';
 	import { mode } from 'mode-watcher';
 	import { Input } from '$lib/components/ui/input/index.js';
+	import { Textarea } from '$lib/components/ui/textarea/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import * as ToggleGroup from '$lib/components/ui/toggle-group/index.js';
 	import {
@@ -203,13 +204,13 @@
 			<!-- Edit view -->
 		{:else}
 			<div class="flex flex-col gap-2">
-				<textarea
-					class="box-border w-full resize-y rounded-lg border-2 border-border bg-background px-3.5 py-3 font-mono text-sm leading-relaxed text-foreground transition-colors outline-none focus:border-ring"
+				<Textarea
+					class="resize-y font-mono text-sm leading-relaxed"
 					bind:value={textareaValue}
 					spellcheck={false}
 					autocomplete="off"
 					rows={Math.max(8, textareaValue.split('\n').length + 2)}
-				></textarea>
+				/>
 				<p class="m-0 text-sm text-muted-foreground">
 					<strong>Format:</strong> SMILES per line or multi-SDF input.
 				</p>
