@@ -329,7 +329,7 @@
 		</tbody>
 	</table>
 
-	<SmartsDemo smiles="c1cc(O)c(C)cc1N" smarts={['[$(*C)]', '[$(*CC)]', '[$(*C);$(*CC)]']} />
+	<SmartsDemo smiles="c1cc(O)c(C)cc1N" smarts={['[$(*C)]', '[$(*cN)]']} />
 
 	<HeadingAnchor id="component-level-grouping">Component-level Grouping</HeadingAnchor>
 
