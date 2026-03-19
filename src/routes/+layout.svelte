@@ -1,6 +1,7 @@
 <script>
 	import './layout.css';
 	import favicon from '$lib/assets/favicon.svg';
+	import { PUBLIC_UMAMI_WEBSITE_ID } from '$env/static/public';
 
 	import AppSidebar from '$lib/components/app-sidebar.svelte';
 	import { ModeWatcher, toggleMode, mode } from 'mode-watcher';
@@ -17,6 +18,13 @@
 <svelte:head>
 	<title>SMARTS101</title>
 	<link rel="icon" href={favicon} />
+	{#if PUBLIC_UMAMI_WEBSITE_ID}
+		<script
+			defer
+			src="https://cloud.umami.is/script.js"
+			data-website-id={PUBLIC_UMAMI_WEBSITE_ID}
+		></script>
+	{/if}
 </svelte:head>
 
 <ModeWatcher />
