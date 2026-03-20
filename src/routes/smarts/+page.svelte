@@ -7,23 +7,25 @@
 	import { Button } from '$lib/components/ui/button/index.js';
 	import * as ToggleGroup from '$lib/components/ui/toggle-group/index.js';
 	import {
-		RNA_BASES,
-		DNA_BASES,
-		DRUGLIKE_MOLECULES,
+		RNA,
+		DNA,
+		DRUGLIKE,
 		AMINO_ACIDS,
 		PEPTIDES,
 		CHEMBL,
+		MACROCYCLES,
 		DEFAULT_MOLECULES,
 	} from '$lib/molecules.js';
 
 	// ── Molecule sets ────────────────────────────────────────────────────────
 	const SETS = {
-		druglike: { label: 'Druglike', molecules: DRUGLIKE_MOLECULES },
+		druglike: { label: 'Druglike', molecules: DRUGLIKE},
 		aminoacids: { label: 'Amino Acids', molecules: AMINO_ACIDS },
 		peptides: { label: 'Peptides', molecules: PEPTIDES },
-		rna: { label: 'RNA Bases', molecules: RNA_BASES },
-		dna: { label: 'DNA Bases', molecules: DNA_BASES },
+		rna: { label: 'RNA Bases', molecules: RNA},
+		dna: { label: 'DNA Bases', molecules: DNA},
 		chembl: { label: 'ChEMBL', molecules: CHEMBL },
+		macrocycles: { label: 'Macrocycles', molecules: MACROCYCLES },
 	};
 
 	/**

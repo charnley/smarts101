@@ -16,7 +16,7 @@
 </script>
 
 <svelte:head>
-	<title>SMARTS101</title>
+	<title>SMARTS101: build, test and debug SMARTS queries</title>
 	<link rel="icon" href={favicon} />
 	{#if PUBLIC_UMAMI_WEBSITE_ID}
 		<script
@@ -36,7 +36,7 @@
 			<div class="flex flex-1 items-center gap-2 px-4">
 				<Sidebar.Trigger class="-ms-1" onclick={() => {}} />
 				<Separator orientation="vertical" class="me-2 data-[orientation=vertical]:h-4" />
-				<div class="font-bold">SMARTS101</div>
+				<div class="font-bold">SMARTS 101</div>
 			</div>
 			<div class="flex items-center gap-1 px-4">
 				<Button variant="ghost" size="icon" onclick={toggleMode} aria-label="Toggle theme">
