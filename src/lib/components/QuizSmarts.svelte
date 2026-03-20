@@ -177,7 +177,7 @@
 
 		<!-- Right: molecule renderer -->
 		<div class="flex shrink-0 items-center justify-center p-3">
-			<StructureRenderer {smiles} {highlights} width={280} height={200} />
+			<StructureRenderer structureDefinition={smiles} {highlights} width={280} height={200} />
 		</div>
 	</div>
 
