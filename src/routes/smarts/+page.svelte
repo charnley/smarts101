@@ -6,6 +6,11 @@
 	import { Textarea } from '$lib/components/ui/textarea/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import * as ToggleGroup from '$lib/components/ui/toggle-group/index.js';
+	import * as Dialog from '$lib/components/ui/dialog/index.js';
+	import { Checkbox } from '$lib/components/ui/checkbox/index.js';
+	import { Label } from '$lib/components/ui/label/index.js';
+	import SettingsIcon from '@lucide/svelte/icons/settings';
+	import { settings } from '$lib/settings.svelte.js';
 	import {
 		RNA,
 		DNA,
@@ -19,49 +24,98 @@
 
 	// ── Molecule sets ────────────────────────────────────────────────────────
 	const SETS = {
-		druglike: { label: 'Druglike', molecules: DRUGLIKE},
+		druglike: { label: 'Druglike', molecules: DRUGLIKE },
 		aminoacids: { label: 'Amino Acids', molecules: AMINO_ACIDS },
 		peptides: { label: 'Peptides', molecules: PEPTIDES },
-		rna: { label: 'RNA Bases', molecules: RNA},
-		dna: { label: 'DNA Bases', molecules: DNA},
+		rna: { label: 'RNA Bases', molecules: RNA },
+		dna: { label: 'DNA Bases', molecules: DNA },
 		chembl: { label: 'ChEMBL', molecules: CHEMBL },
 		macrocycles: { label: 'Macrocycles', molecules: MACROCYCLES },
 	};
 
 	/**
 	 * Assign sequential IDs to a molecule list.
-	 * @param {{ smiles: string, name: string }[]} list
-	 * @returns {{ id: number, smiles: string, name: string }[]}
+	 * @param {{ structureDefinition: string }[]} list
+	 * @returns {{ id: number, structureDefinition: string }[]}
 	 */
 	function withIds(list) {
 		return list.map((m, i) => ({ ...m, id: i + 1 }));
 	}
 
 	/**
-	 * Serialize molecules to textarea text (one SMILES per line).
-	 * @param {{ smiles: string }[]} list
+	 * Returns true when the text looks like an SDF/molblock input
+	 * (contains the standard SDF record terminator).
+	 * @param {string} text
+	 */
+	function isSDF(text) {
+		return text.includes('$$$$');
+	}
+
+	/**
+	 * Serialize molecules back to textarea text.
+	 * Molblock definitions are joined with the SDF record terminator;
+	 * SMILES definitions are written one per line.
+	 * @param {{ structureDefinition: string }[]} list
 	 */
 	function toTextarea(list) {
-		return list.map((m) => m.smiles).join('\n');
+		if (list.length === 0) return '';
+		// If any definition looks like a molblock, output as SDF
+		if (list.some((m) => m.structureDefinition.includes('\n'))) {
+			return list.map((m) => m.structureDefinition).join('\n$$$$\n') + '\n$$$$\n';
+		}
+		return list.map((m) => m.structureDefinition).join('\n');
 	}
 
 	/**
 	 * Parse textarea text into a molecule list.
+	 * Accepts either:
+	 *   - SDF input  (text contains "$$$$") — splits on "$$$$", each segment is a molblock
+	 *   - SMILES input — one SMILES per non-empty line
 	 * @param {string} text
-	 * @returns {{ id: number, smiles: string, name: string }[]}
+	 * @returns {{ id: number, structureDefinition: string }[]}
 	 */
 	function fromTextarea(text) {
+		if (isSDF(text)) {
+			const molblocks = text
+				.split('$$$$')
+				.map((block) => block.trim())
+				.filter((block) => block.length > 0)
+				.map((block) => ({ structureDefinition: block }));
+			return withIds(molblocks);
+		}
 		return withIds(
 			text
 				.split('\n')
 				.map((line) => line.trim())
 				.filter((line) => line.length > 0)
-				.map((smiles) => ({ smiles, name: smiles })),
+				.map((structureDefinition) => ({ structureDefinition })),
 		);
 	}
 
+	// ── Settings dialog ──────────────────────────────────────────────────────
+	let settingsOpen = $state(false);
+
+	// ── Grid layout derived from settings ────────────────────────────────────
+	const COLS_CLASS = {
+		1: 'grid-cols-1',
+		2: 'grid-cols-1 sm:grid-cols-2',
+		3: 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3',
+	};
+	const MOL_SIZE = {
+		1: { width: 560, height: 380 },
+		2: { width: 400, height: 280 },
+		3: { width: 280, height: 200 },
+	};
+
+	let gridClass = $derived(
+		COLS_CLASS[/** @type {1|2|3} */ (settings.columnsPerRow)] ?? COLS_CLASS[3],
+	);
+	let molSize = $derived(MOL_SIZE[/** @type {1|2|3} */ (settings.columnsPerRow)] ?? MOL_SIZE[3]);
+
 	// ── State ────────────────────────────────────────────────────────────────
-	let molecules = $state(withIds(DEFAULT_MOLECULES));
+	let molecules = $state(
+		withIds(DEFAULT_MOLECULES.map((m) => ({ structureDefinition: m.smiles }))),
+	);
 
 	/** 'grid' shows the molecule cards; 'edit' shows the textarea editor */
 	let viewMode = $state(/** @type {'grid' | 'edit'} */ ('grid'));
@@ -112,7 +166,7 @@
 	// ── Load a named molecule set ─────────────────────────────────────────────
 	/** @param {keyof typeof SETS} setKey */
 	function loadSet(setKey) {
-		const list = withIds(SETS[setKey].molecules);
+		const list = withIds(SETS[setKey].molecules.map((m) => ({ structureDefinition: m.smiles })));
 		molecules = list;
 		textareaValue = toTextarea(list);
 	}
@@ -189,17 +243,36 @@
 				<div></div>
 			{/if}
 
-			<ToggleGroup.Root type="single" value={viewMode} onValueChange={onViewModeChange}>
-				<ToggleGroup.Item value="grid" variant="outline" size="sm" class="">View</ToggleGroup.Item>
-				<ToggleGroup.Item value="edit" variant="outline" size="sm" class="">Edit</ToggleGroup.Item>
-			</ToggleGroup.Root>
+			<div class="flex items-center gap-2">
+				<ToggleGroup.Root type="single" value={viewMode} onValueChange={onViewModeChange}>
+					<ToggleGroup.Item value="grid" variant="outline" size="sm" class="">View</ToggleGroup.Item
+					>
+					<ToggleGroup.Item value="edit" variant="outline" size="sm" class="">Edit</ToggleGroup.Item
+					>
+				</ToggleGroup.Root>
+				<Button
+					variant="outline"
+					size="icon-sm"
+					aria-label="Settings"
+					onclick={() => (settingsOpen = true)}
+				>
+					<SettingsIcon size={16} />
+				</Button>
+			</div>
 		</div>
 
 		<!-- Grid view -->
 		{#if viewMode === 'grid'}
-			<div class="grid grid-cols-[repeat(auto-fill,minmax(290px,1fr))] gap-4">
+			<div class="grid gap-4 {gridClass}">
 				{#each molecules as mol (mol.id)}
-					<MoleculeBox smiles={mol.smiles} {highlights} />
+					<MoleculeBox
+						structureDefinition={mol.structureDefinition}
+						{highlights}
+						width={molSize.width}
+						height={molSize.height}
+						preferCoorDGen={settings.preferCoorDGen}
+						explicitHydrogens={settings.explicitHydrogens}
+					/>
 				{/each}
 			</div>
 
@@ -207,7 +280,7 @@
 		{:else}
 			<div class="flex flex-col gap-2">
 				<Textarea
-					class="resize-y font-mono text-sm leading-relaxed"
+					class="max-h-[70vh] w-full resize-y overflow-auto font-mono text-sm leading-relaxed whitespace-pre"
 					bind:value={textareaValue}
 					spellcheck={false}
 					autocomplete="off"
@@ -220,3 +293,51 @@
 		{/if}
 	</section>
 </div>
+
+<!-- Settings dialog -->
+<Dialog.Root bind:open={settingsOpen}>
+	<Dialog.Content class="sm:max-w-md" portalProps={{}}>
+		<Dialog.Header class="">
+			<Dialog.Title class="">Settings</Dialog.Title>
+		</Dialog.Header>
+
+		<div class="flex flex-col gap-6 py-2">
+			<!-- Molecules per row -->
+			<div class="flex flex-col gap-2">
+				<Label class="text-sm font-medium">Molecules per row</Label>
+				<ToggleGroup.Root
+					type="single"
+					value={String(settings.columnsPerRow)}
+					onValueChange={(/** @type {string} */ v) => {
+						if (v) settings.columnsPerRow = /** @type {1|2|3} */ (Number(v));
+					}}
+					class="justify-start"
+				>
+					<ToggleGroup.Item value="1" variant="outline" size="sm" class="w-10">1</ToggleGroup.Item>
+					<ToggleGroup.Item value="2" variant="outline" size="sm" class="w-10">2</ToggleGroup.Item>
+					<ToggleGroup.Item value="3" variant="outline" size="sm" class="w-10">3</ToggleGroup.Item>
+				</ToggleGroup.Root>
+			</div>
+
+			<!-- Explicit hydrogens -->
+			<div class="flex items-center gap-3">
+				<Checkbox class="" id="explicit-h" bind:checked={settings.explicitHydrogens} />
+				<div class="flex flex-col gap-0.5">
+					<Label class="" for="explicit-h">Keep explicit hydrogens</Label>
+					<p class="text-xs text-muted-foreground">Relevant for SDF input with embedded H atoms.</p>
+				</div>
+			</div>
+
+			<!-- prefer_coordgen -->
+			<div class="flex items-center gap-3">
+				<Checkbox class="" id="coordgen" bind:checked={settings.preferCoorDGen} />
+				<div class="flex flex-col gap-0.5">
+					<Label class="" for="coordgen">Use CoordGen layout engine</Label>
+					<p class="text-xs text-muted-foreground">
+						Calls <code class="font-mono">prefer_coordgen()</code> before each render.
+					</p>
+				</div>
+			</div>
+		</div>
+	</Dialog.Content>
+</Dialog.Root>

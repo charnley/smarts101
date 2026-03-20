@@ -25,9 +25,9 @@
 			layout: 'centered',
 		},
 		argTypes: {
-			smiles: {
+			structureDefinition: {
 				control: 'text',
-				description: 'SMILES string of the molecule to render',
+				description: 'Structure definition — SMILES string or molblock/SDF record',
 			},
 			highlights: {
 				control: 'object',
@@ -52,7 +52,7 @@
 			},
 		},
 		args: {
-			smiles: DEFAULT_SMILES,
+			structureDefinition: DEFAULT_SMILES,
 			highlights: makeHighlights(DEFAULT_SMARTS),
 			width: 300,
 			height: 220,
@@ -110,7 +110,7 @@
 <Story
 	name="Morphine — no highlight"
 	args={{
-		smiles: 'OC1=CC=C2CC3N(C)CCC34C2=C1OC4',
+		structureDefinition: 'OC1=CC=C2CC3N(C)CCC34C2=C1OC4',
 		highlights: { definitions: [] },
 	}}
 />
@@ -119,7 +119,7 @@
 <Story
 	name="Caffeine — highlight N"
 	args={{
-		smiles: 'Cn1cnc2c1c(=O)n(C)c(=O)n2C',
+		structureDefinition: 'Cn1cnc2c1c(=O)n(C)c(=O)n2C',
 		highlights: makeHighlights('[#7]', '#3b82f6'),
 	}}
 />
@@ -132,7 +132,7 @@
 <Story
 	name="Glucose — light"
 	args={{
-		smiles: 'OC[C@H]1OC(O)[C@H](O)[C@@H](O)[C@@H]1O',
+		structureDefinition: 'OC[C@H]1OC(O)[C@H](O)[C@@H](O)[C@@H]1O',
 		highlights: { definitions: [] },
 		darkMode: false,
 	}}
@@ -141,7 +141,7 @@
 <Story
 	name="Glucose — dark"
 	args={{
-		smiles: 'OC[C@H]1OC(O)[C@H](O)[C@@H](O)[C@@H]1O',
+		structureDefinition: 'OC[C@H]1OC(O)[C@H](O)[C@@H](O)[C@@H]1O',
 		highlights: { definitions: [] },
 		darkMode: true,
 	}}

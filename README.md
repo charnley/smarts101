@@ -10,4 +10,3 @@ An interactive browser-based app for interacting with SMARTS, a cheminformatics 
 | `paper`                            | Paper.js — vector graphics for highlight outline               |
 | `sveltekit` + `svelte` v5          | Web framework                                                  |
 | `tailwindcss` v4 + `shadcn-svelte` | Styling and headless UI primitives                             |
-

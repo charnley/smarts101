@@ -9,17 +9,19 @@
 	/**
 	 * Props
 	 * @type {{
-	 *   smiles: string,
+	 *   structureDefinition: string,
 	 *   highlights?: { definitions?: any[], outline?: boolean, fill?: boolean },
 	 *   width?: number,
 	 *   height?: number,
 	 *   darkMode?: boolean | null,
-	 *   showAtomIndices?: boolean
+	 *   showAtomIndices?: boolean,
+	 *   preferCoorDGen?: boolean,
+	 *   explicitHydrogens?: boolean,
 	 * }}
 	 */
 	let {
-		/** SMILES string for the molecule to render */
-		smiles,
+		/** Structure definition — either a SMILES string or a molblock/SDF record */
+		structureDefinition,
 		highlights = { definitions: [], outline: true, fill: false },
 		/** Width in pixels */
 		width = 300,
@@ -32,6 +34,10 @@
 		darkMode = null,
 		/** Show atom index numbers on the molecule. Default false. */
 		showAtomIndices = false,
+		/** Use CoordGen layout engine in RDKit. Default false. */
+		preferCoorDGen = false,
+		/** Keep explicit hydrogens when rendering (relevant for SDF input). Default false. */
+		explicitHydrogens = false,
 	} = $props();
 
 	// Resolve dark mode: prop override takes priority, otherwise follow the app theme.
@@ -49,10 +55,20 @@
 	// unconditionally — && short-circuits on falsy values and drops tracking.
 	// @ts-ignore
 	$effect(async () => {
-		void [smiles, container, width, height, highlights, isDark, showAtomIndices];
+		void [
+			structureDefinition,
+			container,
+			width,
+			height,
+			highlights,
+			isDark,
+			showAtomIndices,
+			preferCoorDGen,
+			explicitHydrogens,
+		];
 
 		untrack(async () => {
-			if (!container || !smiles) return;
+			if (!container || !structureDefinition) return;
 
 			isRendering = true;
 			renderError = null;
@@ -68,13 +84,15 @@
 				const hasHighlights = (highlights?.definitions?.length ?? 0) > 0;
 
 				const { svgRoot, svgViewBox } = await generateMoleculeSVG({
-					definition: smiles,
+					definition: structureDefinition,
 					container,
 					width,
 					height,
 					userDrawingOptions: {
 						darkMode: isDark,
 						showAtomIndices,
+						preferCoorDGen,
+						explicitHydrogens,
 					},
 					showBondIndices: false,
 					needsHighlights: hasHighlights,
@@ -90,7 +108,7 @@
 						svgRoot,
 						svgViewBox,
 						highlights,
-						definition: smiles,
+						definition: structureDefinition,
 					});
 				}
 			} catch (/** @type {any} */ err) {

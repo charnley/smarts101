@@ -109,6 +109,6 @@
 		{/each}
 	</div>
 	<div class="flex shrink-0 items-center justify-center p-2">
-		<StructureRenderer {smiles} {highlights} width={300} height={220} />
+		<StructureRenderer structureDefinition={smiles} {highlights} width={300} height={220} />
 	</div>
 </div>
