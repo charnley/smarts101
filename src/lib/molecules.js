@@ -150,6 +150,8 @@ export const MACROCYCLES = [
 // 7 DNA, 5’ cap
 // 8 DNA, 3’ cap
 // 9 DNA, both caps
+//
+// Chem.MolToSMILES(Chem.MolFromFASTA(seq, flavor=))
 
 // Flavor = 5
 export const RNA = [
