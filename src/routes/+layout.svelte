@@ -3,16 +3,27 @@
 	import favicon from '$lib/assets/favicon.svg';
 	import { PUBLIC_UMAMI_WEBSITE_ID } from '$env/static/public';
 
-	import AppSidebar from '$lib/components/app-sidebar.svelte';
 	import { ModeWatcher, toggleMode, mode } from 'mode-watcher';
-	import { Separator } from '$lib/components/ui/separator/index.js';
-	import * as Sidebar from '$lib/components/ui/sidebar/index.js';
 	import { Button } from '$lib/components/ui/button';
 	import Sun from '@lucide/svelte/icons/sun';
 	import Moon from '@lucide/svelte/icons/moon';
 	import GithubIcon from '@lucide/svelte/icons/github';
+	import MenuIcon from '@lucide/svelte/icons/menu';
+	import BookOpenIcon from '@lucide/svelte/icons/book-open';
+	import BookOpenCheckIcon from '@lucide/svelte/icons/book-open-check';
+	import InfoIcon from '@lucide/svelte/icons/info';
+	import FlaskConicalIcon from '@lucide/svelte/icons/flask-conical';
 
 	let { children } = $props();
+
+	let menuOpen = $state(false);
+
+	const navItems = [
+		{ title: 'Query', url: '/smarts', icon: FlaskConicalIcon },
+		{ title: 'Learn', url: '/how-to-smarts', icon: BookOpenIcon },
+		{ title: 'Quiz', url: '/test', icon: BookOpenCheckIcon },
+		{ title: 'About', url: '/about', icon: InfoIcon },
+	];
 </script>
 
 <svelte:head>
@@ -29,39 +40,74 @@
 
 <ModeWatcher />
 
-<Sidebar.Provider class="" style="">
-	<AppSidebar />
-	<Sidebar.Inset class="">
-		<header class="sticky top-0 z-10 flex h-16 shrink-0 items-center gap-2 bg-background">
-			<div class="flex flex-1 items-center gap-2 px-4">
-				<Sidebar.Trigger class="-ms-1" onclick={() => {}} />
-				<Separator orientation="vertical" class="me-2 data-[orientation=vertical]:h-4" />
-				<div class="font-bold">SMARTS 101</div>
-			</div>
-			<div class="flex items-center gap-1 px-4">
-				<Button variant="ghost" size="icon" onclick={toggleMode} aria-label="Toggle theme">
-					{#if mode.current === 'dark'}
-						<Sun class="size-5" />
-					{:else}
-						<Moon class="size-5" />
-					{/if}
-				</Button>
-				<Button
-					variant="ghost"
-					size="icon"
-					target="_new"
-					href="https://github.com/charnley/smarts101"
-					aria-label="GitHub"
-				>
-					<GithubIcon class="size-5" />
-				</Button>
-			</div>
-		</header>
-		<div class="gap-4 p-4 pt-0">
-			{@render children()}
+<div class="layout-root">
+	<header class="sticky top-0 z-10 flex h-16 shrink-0 items-center bg-background">
+		<!-- Left: hamburger (mobile) + title -->
+		<div class="flex items-center gap-2 px-4">
+			<Button
+				class="-ms-1 md:hidden"
+				variant="ghost"
+				size="icon"
+				aria-label="Toggle menu"
+				onclick={() => (menuOpen = !menuOpen)}
+			>
+				<MenuIcon class="size-5" />
+			</Button>
+			<span class="font-bold">SMARTS 101</span>
 		</div>
-	</Sidebar.Inset>
-</Sidebar.Provider>
+
+		<!-- Center: nav links (desktop only) -->
+		<nav class="hidden flex-1 justify-center gap-1 md:flex">
+			{#each navItems as item}
+				<Button variant="ghost" href={item.url}>
+					<item.icon class="size-4" />
+					{item.title}
+				</Button>
+			{/each}
+		</nav>
+
+		<!-- Right: actions -->
+		<div class="ms-auto flex items-center gap-1 px-4 md:ms-0">
+			<Button variant="ghost" size="icon" onclick={toggleMode} aria-label="Toggle theme">
+				{#if mode.current === 'dark'}
+					<Sun class="size-5" />
+				{:else}
+					<Moon class="size-5" />
+				{/if}
+			</Button>
+			<Button
+				variant="ghost"
+				size="icon"
+				target="_new"
+				href="https://github.com/charnley/smarts101"
+				aria-label="GitHub"
+			>
+				<GithubIcon class="size-5" />
+			</Button>
+		</div>
+	</header>
+
+	<!-- Mobile dropdown menu -->
+	{#if menuOpen}
+		<div class="mobile-menu md:hidden">
+			{#each navItems as item}
+				<Button
+					variant="secondary"
+					href={item.url}
+					class="w-full justify-start"
+					onclick={() => (menuOpen = false)}
+				>
+					<item.icon class="size-4" />
+					{item.title}
+				</Button>
+			{/each}
+		</div>
+	{/if}
+
+	<main class="gap-4 p-4">
+		{@render children()}
+	</main>
+</div>
 
 <style>
 	header {
@@ -77,5 +123,20 @@
 		to {
 			border-bottom: 1px solid var(--border);
 		}
+	}
+
+	.mobile-menu {
+		position: fixed;
+		top: 4rem; /* h-16 = 64px = 4rem */
+		left: 0;
+		right: 0;
+		z-index: 20;
+		background: var(--background);
+		border-bottom: 1px solid var(--border);
+		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+		padding: 0.75rem 1rem;
 	}
 </style>
