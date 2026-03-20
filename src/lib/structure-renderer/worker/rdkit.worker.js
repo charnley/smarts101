@@ -83,9 +83,17 @@ async function generateStructureSVG({
 	needsHighlights = true,
 	darkMode = false,
 	showAtomIndices = false,
+	preferCoorDGen = false,
+	explicitHydrogens = false,
 	userDrawingOptions = {},
 }) {
+	rdkit.prefer_coordgen(preferCoorDGen);
+
 	const mol = getMolecule(moleculeInput);
+	// Only strip explicit H atoms for molblock/SDF input — SMILES rarely has
+	// explicit H and stripping on a SMILES-derived mol can drop atoms.
+	const isMolblock = moleculeInput.includes('\n');
+	if (isMolblock && !explicitHydrogens) mol.remove_hs_in_place();
 
 	const baseOptions = {
 		centreMoleculesBeforeDrawing: true,

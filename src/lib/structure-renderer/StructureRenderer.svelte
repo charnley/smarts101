@@ -14,7 +14,9 @@
 	 *   width?: number,
 	 *   height?: number,
 	 *   darkMode?: boolean | null,
-	 *   showAtomIndices?: boolean
+	 *   showAtomIndices?: boolean,
+	 *   preferCoorDGen?: boolean,
+	 *   explicitHydrogens?: boolean,
 	 * }}
 	 */
 	let {
@@ -32,6 +34,10 @@
 		darkMode = null,
 		/** Show atom index numbers on the molecule. Default false. */
 		showAtomIndices = false,
+		/** Use CoordGen layout engine in RDKit. Default false. */
+		preferCoorDGen = false,
+		/** Keep explicit hydrogens when rendering (relevant for SDF input). Default false. */
+		explicitHydrogens = false,
 	} = $props();
 
 	// Resolve dark mode: prop override takes priority, otherwise follow the app theme.
@@ -49,7 +55,17 @@
 	// unconditionally — && short-circuits on falsy values and drops tracking.
 	// @ts-ignore
 	$effect(async () => {
-		void [structureDefinition, container, width, height, highlights, isDark, showAtomIndices];
+		void [
+			structureDefinition,
+			container,
+			width,
+			height,
+			highlights,
+			isDark,
+			showAtomIndices,
+			preferCoorDGen,
+			explicitHydrogens,
+		];
 
 		untrack(async () => {
 			if (!container || !structureDefinition) return;
@@ -75,6 +91,8 @@
 					userDrawingOptions: {
 						darkMode: isDark,
 						showAtomIndices,
+						preferCoorDGen,
+						explicitHydrogens,
 					},
 					showBondIndices: false,
 					needsHighlights: hasHighlights,
