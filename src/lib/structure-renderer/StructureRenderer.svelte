@@ -9,7 +9,7 @@
 	/**
 	 * Props
 	 * @type {{
-	 *   smiles: string,
+	 *   structureDefinition: string,
 	 *   highlights?: { definitions?: any[], outline?: boolean, fill?: boolean },
 	 *   width?: number,
 	 *   height?: number,
@@ -18,8 +18,8 @@
 	 * }}
 	 */
 	let {
-		/** SMILES string for the molecule to render */
-		smiles,
+		/** Structure definition — either a SMILES string or a molblock/SDF record */
+		structureDefinition,
 		highlights = { definitions: [], outline: true, fill: false },
 		/** Width in pixels */
 		width = 300,
@@ -49,10 +49,10 @@
 	// unconditionally — && short-circuits on falsy values and drops tracking.
 	// @ts-ignore
 	$effect(async () => {
-		void [smiles, container, width, height, highlights, isDark, showAtomIndices];
+		void [structureDefinition, container, width, height, highlights, isDark, showAtomIndices];
 
 		untrack(async () => {
-			if (!container || !smiles) return;
+			if (!container || !structureDefinition) return;
 
 			isRendering = true;
 			renderError = null;
@@ -68,7 +68,7 @@
 				const hasHighlights = (highlights?.definitions?.length ?? 0) > 0;
 
 				const { svgRoot, svgViewBox } = await generateMoleculeSVG({
-					definition: smiles,
+					definition: structureDefinition,
 					container,
 					width,
 					height,
@@ -90,7 +90,7 @@
 						svgRoot,
 						svgViewBox,
 						highlights,
-						definition: smiles,
+						definition: structureDefinition,
 					});
 				}
 			} catch (/** @type {any} */ err) {
