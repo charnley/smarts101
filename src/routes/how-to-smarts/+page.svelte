@@ -82,7 +82,7 @@
 			</tr>
 			<tr>
 				<td><code>H&lt;n&gt;</code></td>
-				<td>total hydrogen count</td>
+				<td>total hydrogen count (implicit + explicit)</td>
 				<td>exactly 1</td>
 				<td><code>[CH3]</code></td>
 			</tr>
@@ -94,7 +94,7 @@
 			</tr>
 			<tr>
 				<td><code>D&lt;n&gt;</code></td>
-				<td>explicit degree (connections, not counting implicit H)</td>
+				<td>explicit degree, not counting implicit H</td>
 				<td>exactly 1</td>
 				<td><code>[D3]</code></td>
 			</tr>
@@ -160,17 +160,15 @@
 			</tr>
 		</tbody>
 	</table>
-</div>
 
-<SmartsDemo smiles="CCCC=O" smarts={['[*H0]', '[*H1]', '[*H2]', '[*H3]']} />
+	<SmartsDemo smiles="CCCC=O" smarts={['[*H0]', '[*H1]', '[*H2]', '[*H3]']} />
 
-<SmartsDemo smiles="CCC(N)CC([NH-])CC([NH3+])CC[13CH3]" smarts={['[#7+1]', '[#7-1]', '[13C]']} />
+	<SmartsDemo smiles="CCC(N)CC([NH-])CC([NH3+])CC[13CH3]" smarts={['[#7+1]', '[#7-1]', '[13C]']} />
 
-<SmartsDemo smiles="CC(=O)Oc1ccccc1C(=O)O" smarts={['[D1]', '[r6]']} />
+	<SmartsDemo smiles="CC(=O)Oc1ccccc1C(=O)O" smarts={['[D1]', '[r6]']} />
 
-<SmartsDemo smiles="c1ccc2c(c1)cc1ccc3cccc4ccc2c1c34" smarts={['[R1]', '[R2]', '[R3]']} />
+	<SmartsDemo smiles="c1ccc2c(c1)cc1ccc3cccc4ccc2c1c34" smarts={['[R1]', '[R2]', '[R3]']} />
 
-<div class="article">
 	<HeadingAnchor id="logical-operators">Logical Operators</HeadingAnchor>
 
 	<p>Atom and bond primitives can be combined using logical operators to build complex queries:</p>
@@ -260,7 +258,7 @@
 
 	<ul>
 		<li><code>[$(*C)]</code> - atom connected to a methyl (or methylene) carbon</li>
-		<li><code>[$(*C);$(*CC)]</code> - atom connected to both methyl and ethyl sidegroups</li>
+		<li><code>[$(*[CH3]);$(*C[CH3])]</code> - atom connected to both methyl and ethyl sidegroups</li>
 	</ul>
 
 	<SmartsDemo smiles="c1cc(O)c(C)cc1N" smarts={['[$(*cN),$(*C)]']} />
@@ -294,17 +292,6 @@
 		href="https://www.rdkit.org/docs/source/rdkit.Chem.rdmolops.html#rdkit.Chem.rdmolops.GetMolFrags"
 		><code>Chem.GetMolFrags</code></a
 	>) and match each fragment separately or post-filter the results.
-
-	<!-- <p class="article-muted"> -->
-	<!-- 	To search within individual fragments, split the molecule first using -->
-	<!-- 	<code>Chem.GetMolFrags(mol, asMols=True)</code> and run the query on each fragment separately. -->
-	<!-- </p> -->
-
-	<!-- <p class="article-muted"> -->
-	<!-- 	Note: the Daylight SMARTS standard defines a component-level grouping syntax using zero-level -->
-	<!-- 	parentheses - e.g. <code>(C).(C)</code> to require matches in two separate components. RDKit -->
-	<!-- 	does not support this syntax; <code>(C).(C)</code> is a parse error. -->
-	<!-- </p> -->
 
 	<HeadingAnchor id="hybridization-queries">Hybridization Queries</HeadingAnchor>
 
