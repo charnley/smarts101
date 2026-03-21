@@ -7,7 +7,7 @@
 	 *   highlights?: { definitions?: any[], outline?: boolean, fill?: boolean },
 	 *   width?: number,
 	 *   height?: number,
-	 *   preferCoorDGen?: boolean,
+	 *   useCoordgen?: boolean,
 	 *   explicitHydrogens?: boolean,
 	 * }}
 	 */
@@ -16,7 +16,7 @@
 		highlights = { definitions: [] },
 		width = 280,
 		height = 200,
-		preferCoorDGen = false,
+		useCoordgen = false,
 		explicitHydrogens = false,
 	} = $props();
 </script>
@@ -30,7 +30,7 @@
 			{highlights}
 			{width}
 			{height}
-			{preferCoorDGen}
+			{useCoordgen}
 			{explicitHydrogens}
 		/>
 	</div>

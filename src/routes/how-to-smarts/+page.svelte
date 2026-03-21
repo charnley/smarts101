@@ -249,7 +249,7 @@
 	<!-- not supported: Non-tetrahedral chiral classes -->
 	<!-- not supported: the @? operator -->
 
-	<SmartsDemo smiles="C[C@H](F)Cl" smarts={['[C@@H]']} />
+	<SmartsDemo smiles="C[C@H](F)Cl" smarts={['C[C@@H](F)Cl']} />
 
 	<HeadingAnchor id="recursive-smarts">Recursive SMARTS</HeadingAnchor>
 
@@ -269,61 +269,36 @@
 	<HeadingAnchor id="component-level-grouping">Component-level Grouping</HeadingAnchor>
 
 	<p>
-		Zero-level parentheses group disconnected fragments and constrain which component of the target
-		they must match within. Without grouping, dot-separated fragments can match anywhere across the
-		target.
+		A dot (<code>.</code>) in a SMARTS pattern separates disconnected fragments.
+		Each fragment can match anywhere in the target — there is no constraint on which component it belongs to.
 	</p>
 
-	<table>
-		<thead>
-			<tr>
-				<th>SMARTS</th>
-				<th>Target</th>
-				<th>Match?</th>
-				<th>Reason</th>
-			</tr>
-		</thead>
-		<tbody>
-			<tr>
-				<td><code>C.C</code></td>
-				<td><code>CCCC</code></td>
-				<td>Yes</td>
-				<td>no grouping — both carbons match anywhere</td>
-			</tr>
-			<tr>
-				<td><code>(C.C)</code></td>
-				<td><code>CCCC</code></td>
-				<td>Yes</td>
-				<td>both carbons must be in the same component</td>
-			</tr>
-			<tr>
-				<td><code>(C).(C)</code></td>
-				<td><code>CCCC</code></td>
-				<td>No</td>
-				<td>query requires two different components</td>
-			</tr>
-			<tr>
-				<td><code>(C).(C)</code></td>
-				<td><code>CCCC.CCCC</code></td>
-				<td>Yes</td>
-				<td>two separate components available in target</td>
-			</tr>
-		</tbody>
-	</table>
+	<ul>
+		<li>
+			<code>C.O</code> carbon and oxygen found in the SMILES. Will match atoms in <code>CCO</code> and <code>CC.OO</code>
+		</li>
+		<li><code>C.O</code> does not match <code>CCC</code>, because there is no oxygen present</li>
+	</ul>
 
-	<!-- component level grouping requiring matches in different components, i.e. (C).(C) -->
-	<!-- In RDKit, parentheses like (C) do NOT create a “component-level grouping constraint” the way your table suggests. They’re basically just branching syntax, not logical grouping. -->
-	<!-- (C.C) C.C ❌ No SMARTS requires same component, but SMILES has two separate ones -->
-	<!-- mol = Chem.MolFromSmiles("CC.CO") -->
-	<!-- frags = Chem.GetMolFrags(mol) -->
-	<!-- (C) → no special meaning beyond syntax -->
-	<!-- (C.C) → behaves exactly like C.C -->
-	<!-- (C).(C) → behaves exactly like C.C -->
-	<!-- RDKit cannot enforce “same vs different component” via parentheses -->
+	<SmartsDemo smiles="NCCO" smarts={['N.O']} />
 
-	<SmartsDemo smiles="CC(=O)O" smarts={['(O=C.O)']} />
-	<SmartsDemo smiles="CCO" smarts={['C.O']} />
+	<SmartsDemo smiles="CO.CO.CN" smarts={['O.O.N']} useCoordgen={true} />
 
+	Note: The Daylight SMARTS syntax defines component-level grouping using zero-level parentheses (e.g. <code>(C).(C)</code> to require matches in separate components), but this is not supported in RDKit.
+	In RDKit, parentheses are only used for branching, and <code>(C).(C)</code> is a parse error.
+	Additionally, <code>.</code> does not enforce matching across different disconnected fragments, so <code>C.C</code> can match within a single molecule.
+	To correctly handle fragment-level constraints, split the molecule first (e.g. with <a href="https://www.rdkit.org/docs/source/rdkit.Chem.rdmolops.html#rdkit.Chem.rdmolops.GetMolFrags"><code>Chem.GetMolFrags</code></a>) and match each fragment separately or post-filter the results.
+
+	<!-- <p class="article-muted"> -->
+	<!-- 	To search within individual fragments, split the molecule first using -->
+	<!-- 	<code>Chem.GetMolFrags(mol, asMols=True)</code> and run the query on each fragment separately. -->
+	<!-- </p> -->
+
+	<!-- <p class="article-muted"> -->
+	<!-- 	Note: the Daylight SMARTS standard defines a component-level grouping syntax using zero-level -->
+	<!-- 	parentheses — e.g. <code>(C).(C)</code> to require matches in two separate components. RDKit -->
+	<!-- 	does not support this syntax; <code>(C).(C)</code> is a parse error. -->
+	<!-- </p> -->
 
 	<HeadingAnchor id="hybridization-queries">Hybridization Queries</HeadingAnchor>
 

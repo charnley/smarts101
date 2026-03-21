@@ -15,7 +15,7 @@ test-format:
 	npx prettier --check .
 
 dev:
-	pnpm run dev --open
+	pnpm run dev
 
 start-storybook:
 	npx storybook dev -p 6006

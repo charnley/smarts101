@@ -270,7 +270,7 @@
 						{highlights}
 						width={molSize.width}
 						height={molSize.height}
-						preferCoorDGen={settings.preferCoorDGen}
+						useCoordgen={settings.useCoordgen}
 						explicitHydrogens={settings.explicitHydrogens}
 					/>
 				{/each}
@@ -330,7 +330,7 @@
 
 			<!-- prefer_coordgen -->
 			<div class="flex items-center gap-3">
-				<Checkbox class="" id="coordgen" bind:checked={settings.preferCoorDGen} />
+				<Checkbox class="" id="coordgen" bind:checked={settings.useCoordgen} />
 				<div class="flex flex-col gap-0.5">
 					<Label class="" for="coordgen">Use CoordGen layout engine</Label>
 					<p class="text-xs text-muted-foreground">
