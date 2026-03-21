@@ -1,5 +1,5 @@
 <div class="article">
-	<h1>About Learn SMARTS</h1>
+	<h1>About...</h1>
 
 	<p>
 		Who wrote this and why? Weekend project by <a href="https://github.com/charnley">Jimmy</a> and
@@ -52,16 +52,7 @@
 			>
 		</li>
 		<li>
-			<a href="https://www.rdkit.org">rdkit</a>
+			<a href="https://www.rdkit.org/docs/RDKit_Book.html">https://www.rdkit.org/docs/RDKit_Book.html</a>
 		</li>
 	</ul>
 </div>
-
-<!-- - https://smarts.plus: -->
-<!--     - https://pmc.ncbi.nlm.nih.gov/articles/PMC7757167 -->
-<!-- - smarts editor: -->
-<!--     - https://www.zbh.uni-hamburg.de/en/forschung/amd/software/smartseditor.html -->
-<!--     - https://www.zbh.uni-hamburg.de/forschung/amd/software/smartseditor/smartseditor-doku.html -->
-<!-- - JavaGrins (deprecated): -->
-<!--     - https://www.daylight.com/meetings/emug99/Bharadwaj/SMARTS/ -->
-<!--     - This has a very cool way to describe the SMARTS structure -->

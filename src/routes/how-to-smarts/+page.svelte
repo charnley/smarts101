@@ -44,10 +44,10 @@
 	<HeadingAnchor id="basic-atom-symbols" level="h3">Basic Atom Symbols</HeadingAnchor>
 
 	<ul>
-		<li><code>[C]</code> — any aliphatic carbon atom</li>
-		<li><code>[c]</code> — any aromatic carbon atom</li>
-		<li><code>[#6]</code> — carbon by atomic number (aliphatic or aromatic)</li>
-		<li><code>[*]</code> — any atom (wildcard)</li>
+		<li><code>[C]</code> - any aliphatic carbon atom</li>
+		<li><code>[c]</code> - any aromatic carbon atom</li>
+		<li><code>[#6]</code> - carbon by atomic number (aliphatic or aromatic)</li>
+		<li><code>[*]</code> - any atom (wildcard)</li>
 	</ul>
 
 	<SmartsDemo smiles="c1ccccc1C(=O)O" smarts={['[c]', '[C]', '[#6]', '[*]']} />
@@ -72,13 +72,13 @@
 			<tr>
 				<td><code>a</code></td>
 				<td>aromatic atom</td>
-				<td>—</td>
+				<td>-</td>
 				<td><code>[a]</code></td>
 			</tr>
 			<tr>
 				<td><code>A</code></td>
 				<td>aliphatic atom</td>
-				<td>—</td>
+				<td>-</td>
 				<td><code>[A]</code></td>
 			</tr>
 			<tr>
@@ -150,7 +150,7 @@
 			<tr>
 				<td><code>#&lt;n&gt;</code></td>
 				<td>atomic number</td>
-				<td>—</td>
+				<td>-</td>
 				<td><code>[#6]</code>, <code>[#7]</code></td>
 			</tr>
 			<tr>
@@ -177,10 +177,10 @@
 	<p>Atom and bond primitives can be combined using logical operators to build complex queries:</p>
 
 	<ul>
-		<li><code>&amp;</code> — high-precedence AND (implicit between primitives)</li>
-		<li><code>,</code> — OR</li>
-		<li><code>;</code> — low-precedence AND</li>
-		<li><code>!</code> — NOT</li>
+		<li><code>&amp;</code> - high-precedence AND (implicit between primitives)</li>
+		<li><code>,</code> - OR</li>
+		<li><code>;</code> - low-precedence AND</li>
+		<li><code>!</code> - NOT</li>
 	</ul>
 
 	<SmartsDemo smiles="CN(C)CCN" smarts={['[n,N;!H0]']} />
@@ -193,16 +193,16 @@
 	</p>
 
 	<ul>
-		<li><code>-</code> — single bond</li>
-		<li><code>=</code> — double bond</li>
-		<li><code>#</code> — triple bond</li>
-		<li><code>:</code> — aromatic bond</li>
-		<li><code>~</code> — any bond (wildcard)</li>
-		<li><code>@</code> — any ring bond</li>
-		<li><code>/</code> — directional bond "up" (for E/Z stereo)</li>
-		<li><code>\</code> — directional bond "down" (for E/Z stereo)</li>
-		<li><code>/?</code> — directional "up" or unspecified</li>
-		<li><code>\?</code> — directional "down" or unspecified</li>
+		<li><code>-</code> - single bond</li>
+		<li><code>=</code> - double bond</li>
+		<li><code>#</code> - triple bond</li>
+		<li><code>:</code> - aromatic bond</li>
+		<li><code>~</code> - any bond (wildcard)</li>
+		<li><code>@</code> - any ring bond</li>
+		<li><code>/</code> - directional bond "up" (for E/Z stereo)</li>
+		<li><code>\</code> - directional bond "down" (for E/Z stereo)</li>
+		<li><code>/?</code> - directional "up" or unspecified</li>
+		<li><code>\?</code> - directional "down" or unspecified</li>
 	</ul>
 
 	<SmartsDemo smiles="FC1=CC(N)=CC=C1" smarts={['*!@*']} />
@@ -211,8 +211,9 @@
 
 	<p>
 		Tetrahedral chirality can be specified using <code>@</code> (anticlockwise) and <code>@@</code>
-		(clockwise), looking from first neighbour, following the same convention as SMILES. When included in a SMARTS pattern, chirality
-		is used as a matching constraint — unspecified chirality in the query matches both enantiomers.
+		(clockwise), looking from first neighbour, following the same convention as SMILES. When included
+		in a SMARTS pattern, chirality is used as a matching constraint - unspecified chirality in the query
+		matches both enantiomers.
 	</p>
 
 	<!-- https://greglandrum.github.io/rdkit-blog/posts/2025-12-21-Chiral-atoms.html -->
@@ -257,7 +258,10 @@
 	<!-- TODO note about rdkit.js substructure match -->
 
 	<SmartsDemo smiles="C[C@H](F)Cl" smarts={['Cl[C@@H](F)C', 'C[C@H](F)Cl']} />
-	<SmartsDemo smiles="Br[C@H](F)CCC[C@@H](Br)F" smarts={['Br[#6](C)F', 'Br[#6@H](C)F', 'Br[#6@@H](C)F']} />
+	<SmartsDemo
+		smiles="Br[C@H](F)CCC[C@@H](Br)F"
+		smarts={['Br[#6](C)F', 'Br[#6@H](C)F', 'Br[#6@@H](C)F']}
+	/>
 
 	<HeadingAnchor id="recursive-smarts">Recursive SMARTS</HeadingAnchor>
 
@@ -268,8 +272,8 @@
 	</p>
 
 	<ul>
-		<li><code>[$(*C)]</code> — atom connected to a methyl (or methylene) carbon</li>
-		<li><code>[$(*C);$(*CC)]</code> — atom connected to both methyl and ethyl sidegroups</li>
+		<li><code>[$(*C)]</code> - atom connected to a methyl (or methylene) carbon</li>
+		<li><code>[$(*C);$(*CC)]</code> - atom connected to both methyl and ethyl sidegroups</li>
 	</ul>
 
 	<SmartsDemo smiles="c1cc(O)c(C)cc1N" smarts={['[$(*cN),$(*C)]']} />
@@ -277,13 +281,14 @@
 	<HeadingAnchor id="component-level-grouping">Component-level Grouping</HeadingAnchor>
 
 	<p>
-		A dot (<code>.</code>) in a SMARTS pattern separates disconnected fragments.
-		Each fragment can match anywhere in the target — there is no constraint on which component it belongs to.
+		A dot (<code>.</code>) in a SMARTS pattern separates disconnected fragments. Each fragment can
+		match anywhere in the target - there is no constraint on which component it belongs to.
 	</p>
 
 	<ul>
 		<li>
-			<code>C.O</code> carbon and oxygen found in the SMILES. Will match atoms in <code>CCO</code> and <code>CC.OO</code>
+			<code>C.O</code> carbon and oxygen found in the SMILES. Will match atoms in <code>CCO</code>
+			and <code>CC.OO</code>
 		</li>
 		<li><code>C.O</code> does not match <code>CCC</code>, because there is no oxygen present</li>
 	</ul>
@@ -292,10 +297,16 @@
 
 	<SmartsDemo smiles="CO.CO.CN" smarts={['O.O.N']} useCoordgen={true} />
 
-	Note: The Daylight SMARTS syntax defines component-level grouping using zero-level parentheses (e.g. <code>(C).(C)</code> to require matches in separate components), but this is not supported in RDKit.
-	In RDKit, parentheses are only used for branching, and <code>(C).(C)</code> is a parse error.
-	Additionally, <code>.</code> does not enforce matching across different disconnected fragments, so <code>C.C</code> can match within a single molecule.
-	To correctly handle fragment-level constraints, split the molecule first (e.g. with <a href="https://www.rdkit.org/docs/source/rdkit.Chem.rdmolops.html#rdkit.Chem.rdmolops.GetMolFrags"><code>Chem.GetMolFrags</code></a>) and match each fragment separately or post-filter the results.
+	Note: The Daylight SMARTS syntax defines component-level grouping using zero-level parentheses
+	(e.g. <code>(C).(C)</code> to require matches in separate components), but this is not supported
+	in RDKit. In RDKit, parentheses are only used for branching, and <code>(C).(C)</code> is a parse
+	error. Additionally, <code>.</code> does not enforce matching across different disconnected
+	fragments, so <code>C.C</code> can match within a single molecule. To correctly handle
+	fragment-level constraints, split the molecule first (e.g. with
+	<a
+		href="https://www.rdkit.org/docs/source/rdkit.Chem.rdmolops.html#rdkit.Chem.rdmolops.GetMolFrags"
+		><code>Chem.GetMolFrags</code></a
+	>) and match each fragment separately or post-filter the results.
 
 	<!-- <p class="article-muted"> -->
 	<!-- 	To search within individual fragments, split the molecule first using -->
@@ -304,7 +315,7 @@
 
 	<!-- <p class="article-muted"> -->
 	<!-- 	Note: the Daylight SMARTS standard defines a component-level grouping syntax using zero-level -->
-	<!-- 	parentheses — e.g. <code>(C).(C)</code> to require matches in two separate components. RDKit -->
+	<!-- 	parentheses - e.g. <code>(C).(C)</code> to require matches in two separate components. RDKit -->
 	<!-- 	does not support this syntax; <code>(C).(C)</code> is a parse error. -->
 	<!-- </p> -->
 
@@ -314,22 +325,14 @@
 		Atoms can be matched by hybridization state using the <code>^</code> primitive followed by a number.
 	</p>
 
-	<table>
-		<thead>
-			<tr>
-				<th>Primitive</th>
-				<th>Hybridization</th>
-			</tr>
-		</thead>
-		<tbody>
-			<tr><td><code>^0</code></td><td>S</td></tr>
-			<tr><td><code>^1</code></td><td>SP</td></tr>
-			<tr><td><code>^2</code></td><td>SP2</td></tr>
-			<tr><td><code>^3</code></td><td>SP3</td></tr>
-			<tr><td><code>^4</code></td><td>SP3D</td></tr>
-			<tr><td><code>^5</code></td><td>SP3D2</td></tr>
-		</tbody>
-	</table>
+	<ul>
+		<li><code>^0</code> - S</li>
+		<li><code>^1</code> - SP</li>
+		<li><code>^2</code> - SP2</li>
+		<li><code>^3</code> - SP3</li>
+		<li><code>^4</code> - SP3D</li>
+		<li><code>^5</code> - SP3D2</li>
+	</ul>
 
 	<SmartsDemo smiles="CC=CF" smarts={['[^3]', '[^2]']} />
 
@@ -339,24 +342,12 @@
 		Two primitives match atoms based on the number of heteroatom neighbors (non-C, non-H) they have:
 	</p>
 
-	<table>
-		<thead>
-			<tr>
-				<th>Primitive</th>
-				<th>Meaning</th>
-			</tr>
-		</thead>
-		<tbody>
-			<tr>
-				<td><code>z&lt;n&gt;</code></td>
-				<td>exactly <em>n</em> heteroatom neighbors (aromatic or aliphatic)</td>
-			</tr>
-			<tr>
-				<td><code>Z&lt;n&gt;</code></td>
-				<td>exactly <em>n</em> aliphatic heteroatom neighbors</td>
-			</tr>
-		</tbody>
-	</table>
+	<ul>
+		<li>
+			<code>z&lt;n&gt;</code> - exactly <em>n</em> heteroatom neighbors (aromatic or aliphatic)
+		</li>
+		<li><code>Z&lt;n&gt;</code> - exactly <em>n</em> aliphatic heteroatom neighbors</li>
+	</ul>
 
 	<SmartsDemo smiles="O=C(O)c1nc(O)ccn1" smarts={['[z2]', '[Z2]', '[Z1]']} />
 
@@ -368,66 +359,45 @@
 		<code>x</code>, <code>X</code>, <code>z</code>, <code>Z</code>, <code>+</code>, <code>-</code>.
 	</p>
 
-	<table>
-		<thead>
-			<tr>
-				<th>Syntax</th>
-				<th>Meaning</th>
-			</tr>
-		</thead>
-		<tbody>
-			<tr>
-				<td><code>D&#123;2-4&#125;</code></td>
-				<td>between 2 and 4 explicit connections (inclusive)</td>
-			</tr>
-			<tr>
-				<td><code>D&#123;-3&#125;</code></td>
-				<td>at most 3 explicit connections</td>
-			</tr>
-			<tr>
-				<td><code>D&#123;2-&#125;</code></td>
-				<td>at least 2 explicit connections</td>
-			</tr>
-		</tbody>
-	</table>
+	<ul>
+		<li><code>D&#123;2-4&#125;</code> - between 2 and 4 explicit connections (inclusive)</li>
+		<li><code>D&#123;-3&#125;</code> - at most 3 explicit connections</li>
+		<li><code>D&#123;2-&#125;</code> - at least 2 explicit connections</li>
+	</ul>
 
 	<SmartsDemo smiles="CC(=O)OC" smarts={['[D{2-3}]', '[z{1-}]']} />
 
 	<HeadingAnchor id="dative-bonds">Dative Bonds</HeadingAnchor>
 
 	<p>
-		Dative bonds can be matched directionally. Direction matters — swapping <code>-&gt;</code> and
-		<code>&lt;-</code> will not match the same atoms.
+		Dative bonds <code>&lt;-</code> and <code>-&gt;</code>, are covalent bonds in which both electrons in the shared pair come from the same atom, so the bond is directional.
 	</p>
 
-	<table>
-		<thead>
-			<tr>
-				<th>Symbol</th>
-				<th>Meaning</th>
-			</tr>
-		</thead>
-		<tbody>
-			<tr>
-				<td><code>-&gt;</code></td>
-				<td>dative bond pointing right (donor → acceptor)</td>
-			</tr>
-			<tr>
-				<td><code>&lt;-</code></td>
-				<td>dative bond pointing left (acceptor ← donor)</td>
-			</tr>
-		</tbody>
-	</table>
+	<ul>
+		<li><code>-&gt;</code> - dative bond pointing right (donor → acceptor)</li>
+		<li><code>&lt;-</code> - dative bond pointing left (acceptor ← donor)</li>
+	</ul>
 
 	<p>
+		Above bonds will not match the same atoms.
 		In the example below, the nitrogen in trimethylamine donates a dative bond to platinum.
 		<code>[#7]-&gt;*</code> matches the nitrogen as donor, while <code>*&lt;-[#7]</code> matches the
-		platinum as acceptor. For example for <code>[Fe]->CC1=O.CN(C1)(C)->[Pt]</code>.
+		platinum as acceptor. With SMILES <code>[Fe]->CC1=O.CN(C1)(C)->[Pt]</code>.
 	</p>
 
 	<SmartsDemo smiles="[Fe]->CC1=O.CN(C1)(C)->[Pt]" smarts={['[#7]->[*]', '[*]->[#6]']} />
 
-	<HeadingAnchor id="examples-efficiency-tips">Examples &amp; Efficiency Tips</HeadingAnchor>
+	<HeadingAnchor id="efficiency">Efficiency Tips</HeadingAnchor>
+
+	<p>Tips for writing efficient SMARTS (patterns are evaluated left to right):</p>
+
+	<ul>
+		<li>Place uncommon atoms or bond arrangements early in the pattern.</li>
+		<li>In an AND expression, put the less common specification first.</li>
+		<li>In an OR expression, put the less common specification last.</li>
+	</ul>
+
+	<HeadingAnchor id="examples">Examples</HeadingAnchor>
 
 	<p>A selection of useful SMARTS patterns:</p>
 
@@ -460,11 +430,4 @@
 		</tbody>
 	</table>
 
-	<p>Tips for writing efficient SMARTS (patterns are evaluated left to right):</p>
-
-	<ul>
-		<li>Place uncommon atoms or bond arrangements early in the pattern.</li>
-		<li>In an AND expression, put the less common specification first.</li>
-		<li>In an OR expression, put the less common specification last.</li>
-	</ul>
 </div>
