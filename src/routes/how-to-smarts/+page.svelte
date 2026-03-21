@@ -17,6 +17,8 @@
 		extensions by <a href="https://docs.chemaxon.com/display/docs/smarts.md">ChemAxon</a>.
 	</p>
 
+	<p>Hybridization, Heteroatom Neighbor, Range Queries, Dative Bonds</p>
+
 	<HeadingAnchor id="what-is-smarts">What is SMARTS?</HeadingAnchor>
 
 	<p>
@@ -209,9 +211,11 @@
 
 	<p>
 		Tetrahedral chirality can be specified using <code>@</code> (anticlockwise) and <code>@@</code>
-		(clockwise), following the same convention as SMILES. When included in a SMARTS pattern, chirality
+		(clockwise), looking from first neighbour, following the same convention as SMILES. When included in a SMARTS pattern, chirality
 		is used as a matching constraint — unspecified chirality in the query matches both enantiomers.
 	</p>
+
+	<!-- https://greglandrum.github.io/rdkit-blog/posts/2025-12-21-Chiral-atoms.html -->
 
 	<table>
 		<thead>
@@ -232,16 +236,16 @@
 				<td>clockwise (looking from first neighbour)</td>
 				<td><code>[C@@H]</code></td>
 			</tr>
-			<tr>
-				<td><code>@?</code></td>
-				<td>anticlockwise or chirality unspecified</td>
-				<td><code>[C@?H]</code></td>
-			</tr>
-			<tr>
-				<td><code>@@?</code></td>
-				<td>clockwise or chirality unspecified</td>
-				<td><code>[C@@?H]</code></td>
-			</tr>
+			<!-- <tr> -->
+			<!-- 	<td><code>@?</code></td> -->
+			<!-- 	<td>anticlockwise or chirality unspecified</td> -->
+			<!-- 	<td><code>[C@?H]</code></td> -->
+			<!-- </tr> -->
+			<!-- <tr> -->
+			<!-- 	<td><code>@@?</code></td> -->
+			<!-- 	<td>clockwise or chirality unspecified</td> -->
+			<!-- 	<td><code>[C@@?H]</code></td> -->
+			<!-- </tr> -->
 		</tbody>
 	</table>
 
@@ -249,7 +253,11 @@
 	<!-- not supported: Non-tetrahedral chiral classes -->
 	<!-- not supported: the @? operator -->
 
-	<SmartsDemo smiles="C[C@H](F)Cl" smarts={['C[C@@H](F)Cl']} />
+	<!-- TODO Move @? to a note -->
+	<!-- TODO note about rdkit.js substructure match -->
+
+	<SmartsDemo smiles="C[C@H](F)Cl" smarts={['Cl[C@@H](F)C', 'C[C@H](F)Cl']} />
+	<SmartsDemo smiles="Br[C@H](F)CCC[C@@H](Br)F" smarts={['Br[#6](C)F', 'Br[#6@H](C)F', 'Br[#6@@H](C)F']} />
 
 	<HeadingAnchor id="recursive-smarts">Recursive SMARTS</HeadingAnchor>
 
@@ -302,8 +310,6 @@
 
 	<HeadingAnchor id="hybridization-queries">Hybridization Queries</HeadingAnchor>
 
-	<div class="article-infobox">RDKit extension — not part of the Daylight SMARTS standard.</div>
-
 	<p>
 		Atoms can be matched by hybridization state using the <code>^</code> primitive followed by a number.
 	</p>
@@ -328,8 +334,6 @@
 	<SmartsDemo smiles="CC=CF" smarts={['[^3]', '[^2]']} />
 
 	<HeadingAnchor id="heteroatom-neighbor-queries">Heteroatom Neighbor Queries</HeadingAnchor>
-
-	<div class="article-infobox">RDKit extension — not part of the Daylight SMARTS standard.</div>
 
 	<p>
 		Two primitives match atoms based on the number of heteroatom neighbors (non-C, non-H) they have:
@@ -357,8 +361,6 @@
 	<SmartsDemo smiles="O=C(O)c1nc(O)ccn1" smarts={['[z2]', '[Z2]', '[Z1]']} />
 
 	<HeadingAnchor id="range-queries">Range Queries</HeadingAnchor>
-
-	<div class="article-infobox">RDKit extension — not part of the Daylight SMARTS standard.</div>
 
 	<p>
 		Many numeric primitives accept a range in curly braces instead of a fixed value. Supported
@@ -392,8 +394,6 @@
 	<SmartsDemo smiles="CC(=O)OC" smarts={['[D{2-3}]', '[z{1-}]']} />
 
 	<HeadingAnchor id="dative-bonds">Dative Bonds</HeadingAnchor>
-
-	<div class="article-infobox">RDKit extension — not part of the Daylight SMARTS standard.</div>
 
 	<p>
 		Dative bonds can be matched directionally. Direction matters — swapping <code>-&gt;</code> and
