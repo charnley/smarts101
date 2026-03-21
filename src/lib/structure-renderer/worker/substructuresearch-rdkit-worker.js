@@ -34,15 +34,9 @@ const initializeRDKit = async () => {
 /**
  * RDKit-based substructure search
  *
- * Uses a two-pass strategy to support chirality-aware matching:
- *   Pass 1 - SubstructLibrary.get_matches(q, useChirality=true) to determine
- *             which molecules actually match (respecting chirality markers).
- *   Pass 2 - JSMol.get_substruct_matches(q) on confirmed matches only to
- *             retrieve atom/bond indices needed for highlighting.
- *
- * Background: JSMol.get_substruct_matches() accepts only one argument in the
- * RDKit.js WASM bindings and always ignores chirality. The useChirality flag
- * is only exposed on SubstructLibrary.
+ * Note: JSMol.get_substruct_matches() in the RDKit.js WASM bindings has no
+ * useChirality parameter, so chiral SMARTS (e.g. [C@@H]) will match both
+ * enantiomers. Chirality enforcement can be revisited if needed.
  *
  * @param {string} smarts - SMARTS pattern
  * @param {string[]} smilesList - Array of SMILES strings
@@ -90,13 +84,6 @@ const performRDKitSearch = (smarts, smilesList, includeAtomBondIndices = false) 
 	const atomBondMatches = includeAtomBondIndices ? new Array(smilesList.length) : null;
 	const allAtomBondMatches = includeAtomBondIndices ? new Array(smilesList.length) : [];
 
-	// --- Pass 1: chirality-aware match using SubstructLibrary ---
-	// Build a library of all valid molecules and record which input index each
-	// library slot corresponds to.
-	const lib = new RDKit.SubstructLibrary();
-	/** @type {number[]} maps library slot index to smilesList index */
-	const libSlotToInputIdx = [];
-
 	for (let i = 0; i < smilesList.length; i++) {
 		if (includeAtomBondIndices && atomBondMatches) {
 			atomBondMatches[i] = { atoms: [], bonds: [] };
@@ -104,58 +91,28 @@ const performRDKitSearch = (smarts, smilesList, includeAtomBondIndices = false) 
 		const smi = smilesList[i];
 		if (typeof smi !== 'string' || !smi.trim()) continue;
 		try {
-			const mol = getMoleculeFromSmiles(smi);
-			if (!mol) continue;
-			lib.add_mol(mol);
-			libSlotToInputIdx.push(i);
-		} catch {
-			// skip invalid molecules
-		}
-	}
+			const targetMol = getMoleculeFromSmiles(smi);
+			if (!targetMol) continue;
 
-	// get_matches returns a JSON array of library slot indices that match.
-	// Signature: get_matches(q, useChirality, numThreads, maxResults)
-	// -1 for maxResults means no limit.
-	const matchingLibSlots = new Set(JSON.parse(lib.get_matches(queryMol, true, 1, -1) ?? '[]'));
+			const jsonResult = targetMol.get_substruct_matches(queryMol) ?? '[]';
+			const matchResults = JSON.parse(jsonResult);
+			matches[i] = matchResults.length > 0;
 
-	for (const slot of matchingLibSlots) {
-		const inputIdx = libSlotToInputIdx[slot];
-		if (inputIdx !== undefined) {
-			matches[inputIdx] = true;
-		}
-	}
-
-	// --- Pass 2: atom/bond indices for highlighting (only confirmed matches) ---
-	if (includeAtomBondIndices && atomBondMatches) {
-		for (const slot of matchingLibSlots) {
-			const inputIdx = libSlotToInputIdx[slot];
-			if (inputIdx === undefined) continue;
-			const smi = smilesList[inputIdx];
-			if (typeof smi !== 'string' || !smi.trim()) continue;
-			try {
-				const targetMol = getMoleculeFromSmiles(smi);
-				if (!targetMol) continue;
-
-				// JSMol.get_substruct_matches has no useChirality param in RDKit.js,
-				// but we already know this molecule matched chirally (Pass 1), so the
-				// atom/bond details returned here are valid for the correct enantiomer.
-				const jsonResult = targetMol.get_substruct_matches(queryMol) ?? '[]';
-				const matchResults = JSON.parse(jsonResult);
-
+			if (includeAtomBondIndices && atomBondMatches && matchResults.length > 0) {
 				const atoms = [];
 				const bonds = [];
 				for (const match of matchResults) {
 					atoms.push(...(match.atoms || []));
 					bonds.push(...(match.bonds || []));
 				}
-				atomBondMatches[inputIdx] = {
+				atomBondMatches[i] = {
 					atoms: Array.from(new Set(atoms)),
 					bonds: Array.from(new Set(bonds)),
 				};
-				allAtomBondMatches[inputIdx] = matchResults;
-			} catch {
-				atomBondMatches[inputIdx] = { atoms: [], bonds: [] };
+				allAtomBondMatches[i] = matchResults;
 			}
+		} catch {
+			// skip invalid molecules
 		}
 	}
 

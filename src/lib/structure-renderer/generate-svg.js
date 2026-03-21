@@ -1,9 +1,8 @@
 /**
- * @fileoverview Step 1 — Generate the base molecule SVG and extract molecular properties.
+ * @fileoverview Step 1 — Generate the base molecule SVG.
  *
- * Calls the RDKit worker to produce an SVG string, injects it into the container's
- * `.structure-shell` element, then fetches molecular properties (mass, formula, etc.)
- * as a non-blocking side-step.
+ * Calls the RDKit worker to produce an SVG string and injects it into the
+ * container's `.structure-shell` element.
  */
 
 import { rdkitWorker } from './worker-manager.js';
@@ -25,10 +24,6 @@ import { rdkitWorker } from './worker-manager.js';
  * @property {string} svgViewBox - ViewBox string ("minX minY w h")
  * @property {Object.<number, number[][]>} bondAtomsMap - Bond index → atom-hook arrays
  * @property {Object.<number, number[]>} atomBondsMap - Atom index → bond indices
- * @property {{ monoisotopic?: number, mostAbundantMonoisotopic?: number, weightedMean?: number } | null} mass
- * @property {string | null} formula
- * @property {string | null} smiles
- * @property {string | null} molblock
  */
 
 /**
@@ -74,30 +69,6 @@ export async function generateMoleculeSVG({
 	const bondAtomsMap = outcome.bondAtomsMap || {};
 	const atomBondsMap = outcome.atomBondsMap || {};
 
-	// Extract molecular properties (best-effort; failure is non-fatal)
-	let mass = null,
-		formula = null,
-		smiles = null,
-		molblock = null;
-	try {
-		const structureInfo = await rdkitWorker.extractStructureDefinition(definition);
-		mass = structureInfo?.masses ?? null;
-		formula = structureInfo?.molecularFormula ?? null;
-		smiles = structureInfo?.smiles ?? null;
-		molblock = structureInfo?.molblock ?? null;
-	} catch (propErr) {
-		console.warn('[StructureRenderer] Could not extract molecular properties:', propErr);
-	}
-
 	// @ts-ignore
-	return {
-		svgRoot,
-		svgViewBox,
-		bondAtomsMap,
-		atomBondsMap,
-		mass,
-		formula,
-		smiles,
-		molblock,
-	};
+	return { svgRoot, svgViewBox, bondAtomsMap, atomBondsMap };
 }
