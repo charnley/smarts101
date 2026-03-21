@@ -15,7 +15,7 @@
 	 *   height?: number,
 	 *   darkMode?: boolean | null,
 	 *   showAtomIndices?: boolean,
-	 *   preferCoorDGen?: boolean,
+	 *   useCoordgen?: boolean,
 	 *   explicitHydrogens?: boolean,
 	 * }}
 	 */
@@ -35,7 +35,7 @@
 		/** Show atom index numbers on the molecule. Default false. */
 		showAtomIndices = false,
 		/** Use CoordGen layout engine in RDKit. Default false. */
-		preferCoorDGen = false,
+		useCoordgen = false,
 		/** Keep explicit hydrogens when rendering (relevant for SDF input). Default false. */
 		explicitHydrogens = false,
 	} = $props();
@@ -63,7 +63,7 @@
 			highlights,
 			isDark,
 			showAtomIndices,
-			preferCoorDGen,
+			useCoordgen,
 			explicitHydrogens,
 		];
 
@@ -91,7 +91,7 @@
 					userDrawingOptions: {
 						darkMode: isDark,
 						showAtomIndices,
-						preferCoorDGen,
+						preferCoorDGen: useCoordgen,
 						explicitHydrogens,
 					},
 					showBondIndices: false,

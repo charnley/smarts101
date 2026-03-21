@@ -33,6 +33,11 @@ const initializeRDKit = async () => {
 
 /**
  * RDKit-based substructure search
+ *
+ * Note: JSMol.get_substruct_matches() in the RDKit.js WASM bindings has no
+ * useChirality parameter, so chiral SMARTS (e.g. [C@@H]) will match both
+ * enantiomers. Chirality enforcement can be revisited if needed.
+ *
  * @param {string} smarts - SMARTS pattern
  * @param {string[]} smilesList - Array of SMILES strings
  * @param {boolean} includeAtomBondIndices - Whether to include atom/bond match data
@@ -75,53 +80,39 @@ const performRDKitSearch = (smarts, smilesList, includeAtomBondIndices = false) 
 	};
 
 	const queryMol = getSmartsQueryMolecule(smarts);
-	const matches = new Array(smilesList.length);
+	const matches = new Array(smilesList.length).fill(false);
 	const atomBondMatches = includeAtomBondIndices ? new Array(smilesList.length) : null;
 	const allAtomBondMatches = includeAtomBondIndices ? new Array(smilesList.length) : [];
 
 	for (let i = 0; i < smilesList.length; i++) {
-		const smi = smilesList[i];
 		if (includeAtomBondIndices && atomBondMatches) {
 			atomBondMatches[i] = { atoms: [], bonds: [] };
 		}
-		if (typeof smi !== 'string' || !smi.trim()) {
-			matches[i] = false;
-			continue;
-		}
+		const smi = smilesList[i];
+		if (typeof smi !== 'string' || !smi.trim()) continue;
 		try {
 			const targetMol = getMoleculeFromSmiles(smi);
-			if (!targetMol) {
-				matches[i] = false;
-				if (includeAtomBondIndices && atomBondMatches) {
-					atomBondMatches[i] = { atoms: [], bonds: [] };
-				}
-				continue;
-			}
+			if (!targetMol) continue;
 
-			const jsonResult = targetMol.get_substruct_matches(queryMol, true) ?? '{}';
+			const jsonResult = targetMol.get_substruct_matches(queryMol) ?? '[]';
 			const matchResults = JSON.parse(jsonResult);
 			matches[i] = matchResults.length > 0;
-			for (let match of matchResults) {
-				if (includeAtomBondIndices && atomBondMatches) {
-					const { atoms, bonds } = atomBondMatches[i] ?? { atoms: [], bonds: [] };
-					try {
-						atoms.push(...(match.atoms || []));
-						bonds.push(...(match.bonds || []));
-						atomBondMatches[i] = {
-							atoms: Array.from(new Set(atoms)),
-							bonds: Array.from(new Set(bonds)),
-						};
-						allAtomBondMatches[i] = matchResults;
-					} catch (parseError) {
-						atomBondMatches[i] = { atoms: [], bonds: [] };
-					}
+
+			if (includeAtomBondIndices && atomBondMatches && matchResults.length > 0) {
+				const atoms = [];
+				const bonds = [];
+				for (const match of matchResults) {
+					atoms.push(...(match.atoms || []));
+					bonds.push(...(match.bonds || []));
 				}
+				atomBondMatches[i] = {
+					atoms: Array.from(new Set(atoms)),
+					bonds: Array.from(new Set(bonds)),
+				};
+				allAtomBondMatches[i] = matchResults;
 			}
 		} catch {
-			matches[i] = false;
-			if (includeAtomBondIndices && atomBondMatches) {
-				atomBondMatches[i] = { atoms: [], bonds: [] };
-			}
+			// skip invalid molecules
 		}
 	}
 

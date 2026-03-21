@@ -7,10 +7,11 @@
 	/**
 	 * @type {{
 	 *   smiles: string,
-	 *   smarts?: string[]
+	 *   smarts?: string[],
+	 *   useCoordgen?: boolean,
 	 * }}
 	 */
-	let { smiles, smarts = [] } = $props();
+	let { smiles, smarts = [], useCoordgen = false } = $props();
 
 	// Tailwind 600-series for light mode, 400-series for dark mode
 	const PALETTE_LIGHT = ['#2563eb', '#16a34a', '#dc2626', '#d97706', '#7c3aed', '#0891b2'];
@@ -109,6 +110,12 @@
 		{/each}
 	</div>
 	<div class="flex shrink-0 items-center justify-center p-2">
-		<StructureRenderer structureDefinition={smiles} {highlights} width={300} height={220} />
+		<StructureRenderer
+			structureDefinition={smiles}
+			{highlights}
+			{useCoordgen}
+			width={300}
+			height={220}
+		/>
 	</div>
 </div>

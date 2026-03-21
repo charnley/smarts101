@@ -7,8 +7,6 @@
 import initRDKitModule from '@rdkit/rdkit';
 import wasmUrl from '@rdkit/rdkit/dist/RDKit_minimal.wasm?url';
 import { parseHTML } from 'linkedom';
-import { getProperties } from '../../../lib/features/chemistry/molecular-properties.js';
-
 // linkedom gives us DOMParser + document for SVG parsing inside the worker
 const { document, DOMParser } = parseHTML('<!DOCTYPE html><html><body></body></html>');
 globalThis.DOMParser = DOMParser;
@@ -30,16 +28,6 @@ function getMolecule(input) {
 	const mol = rdkit.get_mol(input);
 	if (!mol) throw new Error('Failed to parse molecule');
 	return mol;
-}
-
-/** Extract structure info (SMILES, formula, masses) */
-function extractStructureDefinition({ definition }) {
-	const mol = getMolecule(definition);
-	const smiles = mol.get_smiles();
-	const molblock = mol.get_v3Kmolblock();
-	const properties = getProperties(smiles);
-	mol.delete();
-	return { smiles, molblock, cleanMolblock: molblock, ...properties };
 }
 
 /**
@@ -173,9 +161,6 @@ self.onmessage = async (event) => {
 				break;
 			case 'generateSVG':
 				result = await generateStructureSVG(payload);
-				break;
-			case 'extractStructure':
-				result = extractStructureDefinition(payload);
 				break;
 			default:
 				throw new Error(`Unknown message type: ${type}`);

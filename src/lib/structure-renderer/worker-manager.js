@@ -187,8 +187,6 @@ export const rdkitWorker = {
 	init: () => renderPool.init(),
 	/** @param {Object} params */
 	generateSVG: (params) => renderPool.send('generateSVG', params),
-	/** @param {string} definition */
-	extractStructureDefinition: (definition) => renderPool.send('extractStructure', { definition }),
 	terminate: () => renderPool.terminate(),
 };
 
