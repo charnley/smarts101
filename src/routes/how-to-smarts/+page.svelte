@@ -159,80 +159,17 @@
 			</tr>
 		</tbody>
 	</table>
-
-	<SmartsDemo smiles="CC(=O)Oc1ccccc1C(=O)O" smarts={['[D1]', '[D2]', '[D3]', '[R]', '[r6]']} />
 </div>
 
 <SmartsDemo smiles="CCCC=O" smarts={['[*H0]', '[*H1]', '[*H2]', '[*H3]']} />
 
-<SmartsDemo smiles="CCC(N)CC([NH-])CC([NH3+])CC" smarts={['[#7+1]', '[#7-1]', '[#7+0]']} />
+<SmartsDemo smiles="CCC(N)CC([NH-])CC([NH3+])CC[13CH3]" smarts={['[#7+1]', '[#7-1]', '[13C]']} />
+
+<SmartsDemo smiles="CC(=O)Oc1ccccc1C(=O)O" smarts={['[D1]', '[r6]']} />
 
 <SmartsDemo smiles="c1ccc2c(c1)cc1ccc3cccc4ccc2c1c34" smarts={['[R1]', '[R2]', '[R3]']} />
 
 <div class="article">
-	<HeadingAnchor id="bond-primitives">Bond Primitives</HeadingAnchor>
-
-	<p>
-		Bonds between atoms can also be constrained. An unspecified bond in a SMARTS pattern matches
-		either a single or aromatic bond.
-	</p>
-
-	<table>
-		<thead>
-			<tr>
-				<th>Symbol</th>
-				<th>Meaning</th>
-			</tr>
-		</thead>
-		<tbody>
-			<tr>
-				<td><code>-</code></td>
-				<td>single bond</td>
-			</tr>
-			<tr>
-				<td><code>=</code></td>
-				<td>double bond</td>
-			</tr>
-			<tr>
-				<td><code>#</code></td>
-				<td>triple bond</td>
-			</tr>
-			<tr>
-				<td><code>:</code></td>
-				<td>aromatic bond</td>
-			</tr>
-			<tr>
-				<td><code>~</code></td>
-				<td>any bond (wildcard)</td>
-			</tr>
-			<tr>
-				<td><code>@</code></td>
-				<td>any ring bond</td>
-			</tr>
-			<tr>
-				<td><code>/</code></td>
-				<td>directional bond "up" (for E/Z stereo)</td>
-			</tr>
-			<tr>
-				<td><code>\</code></td>
-				<td>directional bond "down" (for E/Z stereo)</td>
-			</tr>
-			<tr>
-				<td><code>/?</code></td>
-				<td>directional "up" or unspecified</td>
-			</tr>
-			<tr>
-				<td><code>\?</code></td>
-				<td>directional "down" or unspecified</td>
-			</tr>
-		</tbody>
-	</table>
-
-	<p class="article-muted">
-		Example: <code>*!@*</code> matches two atoms connected by a non-ring bond. <code>F/C=C/F</code>
-		matches trans-difluoroethylene.
-	</p>
-
 	<HeadingAnchor id="logical-operators">Logical Operators</HeadingAnchor>
 
 	<p>Atom and bond primitives can be combined using logical operators to build complex queries:</p>
@@ -244,10 +181,29 @@
 		<li><code>!</code> — NOT</li>
 	</ul>
 
-	<p class="article-muted">
-		Example: <code>[n,N;!H0]</code> matches any nitrogen (aromatic or aliphatic) that has at least one
-		hydrogen.
+	<SmartsDemo smiles="CN(C)CCN" smarts={['[n,N;!H0]']} />
+
+	<HeadingAnchor id="bond-primitives">Bond Primitives</HeadingAnchor>
+
+	<p>
+		Bonds between atoms can also be constrained. An unspecified bond in a SMARTS pattern matches
+		either a single or aromatic bond.
 	</p>
+
+	<ul>
+		<li><code>-</code> — single bond</li>
+		<li><code>=</code> — double bond</li>
+		<li><code>#</code> — triple bond</li>
+		<li><code>:</code> — aromatic bond</li>
+		<li><code>~</code> — any bond (wildcard)</li>
+		<li><code>@</code> — any ring bond</li>
+		<li><code>/</code> — directional bond "up" (for E/Z stereo)</li>
+		<li><code>\</code> — directional bond "down" (for E/Z stereo)</li>
+		<li><code>/?</code> — directional "up" or unspecified</li>
+		<li><code>\?</code> — directional "down" or unspecified</li>
+	</ul>
+
+	<SmartsDemo smiles="FC1=CC(N)=CC=C1" smarts={['*!@*']} />
 
 	<HeadingAnchor id="chirality">Chirality</HeadingAnchor>
 
@@ -289,10 +245,11 @@
 		</tbody>
 	</table>
 
-	<p class="article-muted">
-		Example: <code>C[C@H](F)Cl</code> matches only one enantiomer of chlorofluoromethylmethane.
-		Using <code>C[CH](F)Cl</code> (no chirality) matches both.
-	</p>
+	<!-- TODO Something seems off here -->
+	<!-- not supported: Non-tetrahedral chiral classes -->
+	<!-- not supported: the @? operator -->
+
+	<SmartsDemo smiles="C[C@H](F)Cl" smarts={['[C@@H]']} />
 
 	<HeadingAnchor id="recursive-smarts">Recursive SMARTS</HeadingAnchor>
 
@@ -302,34 +259,12 @@
 		can be combined with other primitives using logical operators.
 	</p>
 
-	<table>
-		<thead>
-			<tr>
-				<th>SMARTS</th>
-				<th>Meaning</th>
-			</tr>
-		</thead>
-		<tbody>
-			<tr>
-				<td><code>[$(*C)]</code></td>
-				<td>atom connected to a methyl (or methylene) carbon</td>
-			</tr>
-			<tr>
-				<td><code>[$(*CC)]</code></td>
-				<td>atom connected to an ethyl carbon</td>
-			</tr>
-			<tr>
-				<td><code>[$(*C);$(*CC)]</code></td>
-				<td>atom satisfying both environments above (matches CCC)</td>
-			</tr>
-			<tr>
-				<td><code>C[$(aaO);$(aaaN)]</code></td>
-				<td>carbon ortho to O and meta to N on an aromatic ring (all orientations)</td>
-			</tr>
-		</tbody>
-	</table>
+	<ul>
+		<li><code>[$(*C)]</code> — atom connected to a methyl (or methylene) carbon</li>
+		<li><code>[$(*C);$(*CC)]</code> — atom connected to both methyl and ethyl sidegroups</li>
+	</ul>
 
-	<SmartsDemo smiles="c1cc(O)c(C)cc1N" smarts={['[$(*C)]', '[$(*cN)]']} />
+	<SmartsDemo smiles="c1cc(O)c(C)cc1N" smarts={['[$(*cN),$(*C)]']} />
 
 	<HeadingAnchor id="component-level-grouping">Component-level Grouping</HeadingAnchor>
 
@@ -375,6 +310,20 @@
 			</tr>
 		</tbody>
 	</table>
+
+	<!-- component level grouping requiring matches in different components, i.e. (C).(C) -->
+	<!-- In RDKit, parentheses like (C) do NOT create a “component-level grouping constraint” the way your table suggests. They’re basically just branching syntax, not logical grouping. -->
+	<!-- (C.C) C.C ❌ No SMARTS requires same component, but SMILES has two separate ones -->
+	<!-- mol = Chem.MolFromSmiles("CC.CO") -->
+	<!-- frags = Chem.GetMolFrags(mol) -->
+	<!-- (C) → no special meaning beyond syntax -->
+	<!-- (C.C) → behaves exactly like C.C -->
+	<!-- (C).(C) → behaves exactly like C.C -->
+	<!-- RDKit cannot enforce “same vs different component” via parentheses -->
+
+	<SmartsDemo smiles="CC(=O)O" smarts={['(O=C.O)']} />
+	<SmartsDemo smiles="CCO" smarts={['C.O']} />
+
 
 	<HeadingAnchor id="hybridization-queries">Hybridization Queries</HeadingAnchor>
 
