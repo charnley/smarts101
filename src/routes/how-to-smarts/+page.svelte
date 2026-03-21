@@ -11,13 +11,12 @@
 		Systems, the same company that introduced SMILES. The documentation here is heavily inspired by
 		the original
 		<a href="https://www.daylight.com/dayhtml/doc/theory/theory.smarts.html"
-			>Daylight SMARTS theory</a
-		>. In this documentation we are following the implementation by
+			>Daylight SMARTS theory</a>.
+		In this documentation we are following the implementation by
 		<a href="https://www.rdkit.org/docs/RDKit_Book.html">RDKit</a>, which also includes syntax
 		extensions by <a href="https://docs.chemaxon.com/display/docs/smarts.md">ChemAxon</a>.
+		Extensions like Hybridization, Heteroatom Neighbor, Range Queries and Dative Bonds are RDKit specific.
 	</p>
-
-	<p>Hybridization, Heteroatom Neighbor, Range Queries, Dative Bonds</p>
 
 	<HeadingAnchor id="what-is-smarts">What is SMARTS?</HeadingAnchor>
 
@@ -216,8 +215,6 @@
 		matches both enantiomers.
 	</p>
 
-	<!-- https://greglandrum.github.io/rdkit-blog/posts/2025-12-21-Chiral-atoms.html -->
-
 	<table>
 		<thead>
 			<tr>
@@ -237,31 +234,21 @@
 				<td>clockwise (looking from first neighbour)</td>
 				<td><code>[C@@H]</code></td>
 			</tr>
-			<!-- <tr> -->
-			<!-- 	<td><code>@?</code></td> -->
-			<!-- 	<td>anticlockwise or chirality unspecified</td> -->
-			<!-- 	<td><code>[C@?H]</code></td> -->
-			<!-- </tr> -->
-			<!-- <tr> -->
-			<!-- 	<td><code>@@?</code></td> -->
-			<!-- 	<td>clockwise or chirality unspecified</td> -->
-			<!-- 	<td><code>[C@@?H]</code></td> -->
-			<!-- </tr> -->
 		</tbody>
 	</table>
 
-	<!-- TODO Something seems off here -->
-	<!-- not supported: Non-tetrahedral chiral classes -->
-	<!-- not supported: the @? operator -->
-
-	<!-- TODO Move @? to a note -->
-	<!-- TODO note about rdkit.js substructure match -->
+	<p>
+		Note, the <code>@?</code> and <code>@@?</code> operators, although part of Daylight, are not supported in RDKit.
+		Also, non-tetrahedral chiral classes are not supported. <a href="https://greglandrum.github.io/rdkit-blog/posts/2025-12-21-Chiral-atoms.html">Read more chirality.</a>
+	</p>
 
 	<SmartsDemo smiles="C[C@H](F)Cl" smarts={['Cl[C@@H](F)C', 'C[C@H](F)Cl']} />
 	<SmartsDemo
 		smiles="Br[C@H](F)CCC[C@@H](Br)F"
 		smarts={['Br[#6](C)F', 'Br[#6@H](C)F', 'Br[#6@@H](C)F']}
 	/>
+
+	<p>Huh? That seems wrong? Yes, because currently the JavaScript port of RDKit does not allow for chiral search. I have <code>TODO</code>.</p>
 
 	<HeadingAnchor id="recursive-smarts">Recursive SMARTS</HeadingAnchor>
 
