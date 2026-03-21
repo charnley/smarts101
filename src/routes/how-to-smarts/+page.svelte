@@ -11,11 +11,12 @@
 		Systems, the same company that introduced SMILES. The documentation here is heavily inspired by
 		the original
 		<a href="https://www.daylight.com/dayhtml/doc/theory/theory.smarts.html"
-			>Daylight SMARTS theory</a>.
-		In this documentation we are following the implementation by
+			>Daylight SMARTS theory</a
+		>. In this documentation we are following the implementation by
 		<a href="https://www.rdkit.org/docs/RDKit_Book.html">RDKit</a>, which also includes syntax
 		extensions by <a href="https://docs.chemaxon.com/display/docs/smarts.md">ChemAxon</a>.
-		Extensions like Hybridization, Heteroatom Neighbor, Range Queries and Dative Bonds are RDKit specific.
+		Extensions like Hybridization, Heteroatom Neighbor, Range Queries and Dative Bonds are RDKit
+		specific.
 	</p>
 
 	<HeadingAnchor id="what-is-smarts">What is SMARTS?</HeadingAnchor>
@@ -236,8 +237,11 @@
 	</table>
 
 	<p>
-		Note, the <code>@?</code> and <code>@@?</code> operators, although part of Daylight, are not supported in RDKit.
-		Also, non-tetrahedral chiral classes are not supported. <a href="https://greglandrum.github.io/rdkit-blog/posts/2025-12-21-Chiral-atoms.html">Read more chirality.</a>
+		Note, the <code>@?</code> and <code>@@?</code> operators, although part of Daylight, are not
+		supported in RDKit. Also, non-tetrahedral chiral classes are not supported.
+		<a href="https://greglandrum.github.io/rdkit-blog/posts/2025-12-21-Chiral-atoms.html"
+			>Read more chirality.</a
+		>
 	</p>
 
 	<SmartsDemo smiles="C[C@H](F)Cl" smarts={['Cl[C@@H](F)C', 'C[C@H](F)Cl']} />
@@ -246,7 +250,10 @@
 		smarts={['Br[#6](C)F', 'Br[#6@H](C)F', 'Br[#6@@H](C)F']}
 	/>
 
-	<p>Huh? That seems wrong? Yes, because currently the JavaScript port of RDKit does not allow for chiral search. I have <code>TODO</code>.</p>
+	<p>
+		Huh? That seems wrong? Yes, because currently the JavaScript port of RDKit does not allow for
+		chiral search. I have <code>TODO</code>.
+	</p>
 
 	<HeadingAnchor id="recursive-smarts">Recursive SMARTS</HeadingAnchor>
 
@@ -258,7 +265,9 @@
 
 	<ul>
 		<li><code>[$(*C)]</code> - atom connected to a methyl (or methylene) carbon</li>
-		<li><code>[$(*[CH3]);$(*C[CH3])]</code> - atom connected to both methyl and ethyl sidegroups</li>
+		<li>
+			<code>[$(*[CH3]);$(*C[CH3])]</code> - atom connected to both methyl and ethyl sidegroups
+		</li>
 	</ul>
 
 	<SmartsDemo smiles="c1cc(O)c(C)cc1N" smarts={['[$(*cN),$(*C)]']} />
@@ -344,7 +353,8 @@
 	<HeadingAnchor id="dative-bonds">Dative Bonds</HeadingAnchor>
 
 	<p>
-		Dative bonds <code>&lt;-</code> and <code>-&gt;</code>, are covalent bonds in which both electrons in the shared pair come from the same atom, so the bond is directional.
+		Dative bonds <code>&lt;-</code> and <code>-&gt;</code>, are covalent bonds in which both
+		electrons in the shared pair come from the same atom, so the bond is directional.
 	</p>
 
 	<ul>
@@ -353,8 +363,8 @@
 	</ul>
 
 	<p>
-		Above bonds will not match the same atoms.
-		In the example below, the nitrogen in trimethylamine donates a dative bond to platinum.
+		Above bonds will not match the same atoms. In the example below, the nitrogen in trimethylamine
+		donates a dative bond to platinum.
 		<code>[#7]-&gt;*</code> matches the nitrogen as donor, while <code>*&lt;-[#7]</code> matches the
 		platinum as acceptor. With SMILES <code>[Fe]->CC1=O.CN(C1)(C)->[Pt]</code>.
 	</p>
@@ -388,5 +398,4 @@
 	<h3>Two carbons connected by a double or triple bond</h3>
 
 	<SmartsDemo smiles="C=CC1=CC=CC(C#C)=C1" smarts={['[C,c]=,#[C,c]']} />
-
 </div>

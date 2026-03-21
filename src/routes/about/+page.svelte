@@ -52,7 +52,9 @@
 			>
 		</li>
 		<li>
-			<a href="https://www.rdkit.org/docs/RDKit_Book.html">https://www.rdkit.org/docs/RDKit_Book.html</a>
+			<a href="https://www.rdkit.org/docs/RDKit_Book.html"
+				>https://www.rdkit.org/docs/RDKit_Book.html</a
+			>
 		</li>
 	</ul>
 </div>

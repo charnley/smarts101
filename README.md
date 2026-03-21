@@ -15,5 +15,3 @@ An interactive browser-based app for interacting with SMARTS, a cheminformatics 
 
 - [ ] Find a way to work with reaction smarts `>>`
 - [ ] atom mappings `:[n]`
-
-
