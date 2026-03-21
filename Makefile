@@ -1,9 +1,12 @@
 .PHONY: build format dev
 
-all: node_modules
+all: node_modules .env
 
 node_modules:
 	pnpm i
+
+.env:
+	ln -s .env.example .env
 
 build:
 	pnpm run build
