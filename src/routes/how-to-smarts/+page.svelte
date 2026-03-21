@@ -399,35 +399,20 @@
 
 	<HeadingAnchor id="examples">Examples</HeadingAnchor>
 
-	<p>A selection of useful SMARTS patterns:</p>
+	<h3>Arene Halogens in Ortho</h3>
 
-	<table>
-		<thead>
-			<tr>
-				<th>SMARTS</th>
-				<th>Meaning</th>
-			</tr>
-		</thead>
-		<tbody>
-			<tr><td><code>cc</code></td><td>any pair of attached aromatic carbons</td></tr>
-			<tr><td><code>c:c</code></td><td>aromatic carbons joined by an aromatic bond</td></tr>
-			<tr
-				><td><code>c-c</code></td><td>aromatic carbons joined by a single bond (e.g. biphenyl)</td
-				></tr
-			>
-			<tr><td><code>[O;H1]</code></td><td>hydroxy oxygen</td></tr>
-			<tr><td><code>[O;D1]</code></td><td>1-connected oxygen (hydroxy or hydroxide)</td></tr>
-			<tr><td><code>[O;D2]</code></td><td>2-connected (etheric) oxygen</td></tr>
-			<tr><td><code>[C,c]</code></td><td>any carbon (aromatic or aliphatic)</td></tr>
-			<tr><td><code>[F,Cl,Br,I]</code></td><td>the first four halogens</td></tr>
-			<tr><td><code>[N;R]</code></td><td>aliphatic nitrogen in a ring</td></tr>
-			<tr><td><code>[n;H1]</code></td><td>H-pyrrole nitrogen</td></tr>
-			<tr><td><code>*!@*</code></td><td>two atoms connected by a non-ring bond</td></tr>
-			<tr
-				><td><code>[C,c]=,#[C,c]</code></td><td>two carbons connected by a double or triple bond</td
-				></tr
-			>
-		</tbody>
-	</table>
+	<SmartsDemo smiles="c1c(CC)c(F)c(Br)c(Br)c1" smarts={['Cccc([F,Cl,Br,I])']} />
+
+	<h3>Aromatic carbons joined by a single bond</h3>
+
+	<SmartsDemo smiles="c1ccccc1-c2ccccc2" smarts={['c-c']} />
+
+	<h3>Aliphatic nitrogen in a ring</h3>
+
+	<SmartsDemo smiles="N1CCCCC1CCc2ccncc2" smarts={['[N;R]']} />
+
+	<h3>Two carbons connected by a double or triple bond</h3>
+
+	<SmartsDemo smiles="C=CC1=CC=CC(C#C)=C1" smarts={['[C,c]=,#[C,c]']} />
 
 </div>
