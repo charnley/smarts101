@@ -11,9 +11,17 @@
 	 *   description: string,
 	 *   smiles: string,
 	 *   referenceSMARTS: string,
+	 *   oncorrect?: () => void,
 	 * }}
 	 */
-	let { index, description, smiles, referenceSMARTS } = $props();
+	let { index, description, smiles, referenceSMARTS, oncorrect } = $props();
+
+	/** @type {HTMLInputElement | null} */
+	let inputEl = $state(null);
+
+	export function focusInput() {
+		inputEl?.focus();
+	}
 
 	// ── State ────────────────────────────────────────────────────────────────
 	let userSmarts = $state('');
@@ -81,6 +89,7 @@
 			const refAtoms = extractAtoms(refResult);
 
 			checkResult = setsEqual(userAtoms, refAtoms) ? 'correct' : 'incorrect';
+			if (checkResult === 'correct') oncorrect?.();
 		} catch {
 			checkResult = 'incorrect';
 		} finally {
@@ -144,8 +153,12 @@
 					value={userSmarts}
 					aria-invalid={!syntaxValid && userSmarts.trim() ? true : undefined}
 					class="flex-1 font-mono"
+					bind:ref={inputEl}
 					oninput={(/** @type {Event} */ e) =>
 						onInput(/** @type {HTMLInputElement} */ (e.currentTarget).value)}
+					onkeydown={(/** @type {KeyboardEvent} */ e) => {
+						if (e.key === 'Enter' && userSmarts.trim() && syntaxValid && !checking) checkAnswer();
+					}}
 				/>
 				<Button
 					size="sm"

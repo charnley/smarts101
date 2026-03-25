@@ -1,6 +1,14 @@
 <script>
 	import QuizSmarts from '$lib/components/QuizSmarts.svelte';
 
+	/** @type {QuizSmarts[]} */
+	let quizRefs = $state([]);
+
+	/** @param {number} index */
+	function focusNext(index) {
+		quizRefs[index]?.focusInput();
+	}
+
 	/**
 	 * @typedef {{ description: string, smiles: string, referenceSMARTS: string }} QuizQuestion
 	 */
@@ -73,10 +81,12 @@
 <div class="quiz">
 	{#each questions as q, i}
 		<QuizSmarts
+			bind:this={quizRefs[i]}
 			index={i + 1}
 			description={q.description}
 			smiles={q.smiles}
 			referenceSMARTS={q.referenceSMARTS}
+			oncorrect={() => focusNext(i + 1)}
 		/>
 	{/each}
 </div>
