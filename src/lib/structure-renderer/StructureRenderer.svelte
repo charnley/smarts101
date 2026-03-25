@@ -17,6 +17,7 @@
 	 *   showAtomIndices?: boolean,
 	 *   useCoordgen?: boolean,
 	 *   explicitHydrogens?: boolean,
+	 *   hasMatch?: boolean,
 	 * }}
 	 */
 	let {
@@ -38,6 +39,11 @@
 		useCoordgen = false,
 		/** Keep explicit hydrogens when rendering (relevant for SDF input). Default false. */
 		explicitHydrogens = false,
+		/**
+		 * Bindable — set to true when the current SMARTS highlights have at least one match
+		 * on this molecule, false otherwise. Only meaningful when highlights.definitions is non-empty.
+		 */
+		hasMatch = $bindable(false),
 	} = $props();
 
 	// Resolve dark mode: prop override takes priority, otherwise follow the app theme.
@@ -104,15 +110,19 @@
 				recolorBlackElements(svgRoot);
 
 				if (hasHighlights) {
-					await applyHighlights({
+					const result = await applyHighlights({
 						svgRoot,
 						svgViewBox,
 						highlights,
 						definition: structureDefinition,
 					});
+					hasMatch = (result?.detectedMatches?.length ?? 0) > 0;
+				} else {
+					hasMatch = false;
 				}
 			} catch (/** @type {any} */ err) {
 				renderError = err?.message ?? 'Render failed';
+				hasMatch = false;
 			} finally {
 				isRendering = false;
 			}

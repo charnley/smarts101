@@ -9,6 +9,7 @@
 	 *   height?: number,
 	 *   useCoordgen?: boolean,
 	 *   explicitHydrogens?: boolean,
+	 *   hasMatch?: boolean,
 	 * }}
 	 */
 	let {
@@ -18,6 +19,7 @@
 		height = 200,
 		useCoordgen = false,
 		explicitHydrogens = false,
+		hasMatch = $bindable(false),
 	} = $props();
 </script>
 
@@ -32,6 +34,7 @@
 			{height}
 			{useCoordgen}
 			{explicitHydrogens}
+			bind:hasMatch
 		/>
 	</div>
 </div>

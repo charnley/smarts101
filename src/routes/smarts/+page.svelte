@@ -117,6 +117,13 @@
 		withIds(DEFAULT_MOLECULES.map((m) => ({ structureDefinition: m.smiles }))),
 	);
 
+	/**
+	 * Per-molecule match state — index-parallel to `molecules`.
+	 * Each entry is set to `true` by its MoleculeBox when the active SMARTS matches.
+	 * @type {boolean[]}
+	 */
+	let matchStates = $state(DEFAULT_MOLECULES.map(() => false));
+
 	/** 'grid' shows the molecule cards; 'edit' shows the textarea editor */
 	let viewMode = $state(/** @type {'grid' | 'edit'} */ ('grid'));
 
@@ -142,6 +149,16 @@
 				}
 			: { definitions: [] },
 	);
+
+	/**
+	 * When the molecule list changes, reset all match states to false.
+	 * We use $effect so this runs reactively whenever `molecules` is replaced.
+	 */
+	$effect(() => {
+		// Touch molecules to track it as a dependency
+		void molecules;
+		matchStates = molecules.map(() => false);
+	});
 
 	// ── View mode toggle ─────────────────────────────────────────────────────
 	function switchToEdit() {
@@ -264,15 +281,20 @@
 		<!-- Grid view -->
 		{#if viewMode === 'grid'}
 			<div class="grid gap-4 {gridClass}">
-				{#each molecules as mol (mol.id)}
-					<MoleculeBox
-						structureDefinition={mol.structureDefinition}
-						{highlights}
-						width={molSize.width}
-						height={molSize.height}
-						useCoordgen={settings.useCoordgen}
-						explicitHydrogens={settings.explicitHydrogens}
-					/>
+				{#each molecules as mol, i (mol.id)}
+					<div
+						class={settings.filterMatchesOnly && activeSmarts && !matchStates[i] ? 'hidden' : ''}
+					>
+						<MoleculeBox
+							structureDefinition={mol.structureDefinition}
+							{highlights}
+							width={molSize.width}
+							height={molSize.height}
+							useCoordgen={settings.useCoordgen}
+							explicitHydrogens={settings.explicitHydrogens}
+							bind:hasMatch={matchStates[i]}
+						/>
+					</div>
 				{/each}
 			</div>
 
@@ -332,9 +354,20 @@
 			<div class="flex items-center gap-3">
 				<Checkbox class="" id="coordgen" bind:checked={settings.useCoordgen} />
 				<div class="flex flex-col gap-0.5">
-					<Label class="" for="coordgen">Use CoordGen layout engine</Label>
+					<Label class="" for="coordgen">Generate Coordinate</Label>
 					<p class="text-xs text-muted-foreground">
-						Calls <code class="font-mono">prefer_coordgen()</code> before each render.
+						Generate new coordinates for molecules (will be slower, but pretty)
+					</p>
+				</div>
+			</div>
+
+			<!-- Filter matches only -->
+			<div class="flex items-center gap-3">
+				<Checkbox class="" id="filter-matches" bind:checked={settings.filterMatchesOnly} />
+				<div class="flex flex-col gap-0.5">
+					<Label class="" for="filter-matches">Show only matching molecules</Label>
+					<p class="text-xs text-muted-foreground">
+						Hides molecules that do not match the active SMARTS pattern.
 					</p>
 				</div>
 			</div>
