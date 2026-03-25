@@ -5,6 +5,7 @@ const STORAGE_KEY = 'smarts101-settings';
  * @property {1|2|3} columnsPerRow    - Number of molecule cards per row in the grid
  * @property {boolean} explicitHydrogens - Keep explicit H atoms when rendering SDF input
  * @property {boolean} useCoordgen    - Use CoordGen layout engine in RDKit
+ * @property {boolean} filterMatchesOnly - Only show molecules that match the active SMARTS pattern
  */
 
 /** @type {Settings} */
@@ -12,6 +13,7 @@ const DEFAULTS = {
 	columnsPerRow: 3,
 	explicitHydrogens: false,
 	useCoordgen: false,
+	filterMatchesOnly: false,
 };
 
 /**
