@@ -17,55 +17,53 @@
 	const questions = [
 		{
 			description: 'An aliphatic carbon attached to an oxygen with any bond.',
-			// Aspirin: has aliphatic C bonded to O (ester + carboxyl)
 			smiles: 'CC(=O)Oc1ccccc1C(=O)O',
 			referenceSMARTS: '[C;!a]~[O]',
 		},
 		{
+		  description: 'An aromatic six-membered ring carbon.',
+		  smiles: 'Cc1ccccc1O',
+		  referenceSMARTS: '[c;r6]',
+		},
+		{
 			description: 'An atom which is not in any ring and is not an oxygen.',
-			// Ibuprofen: has non-ring, non-oxygen carbons in its isobutyl tail
 			smiles: 'CC(C)Cc1ccc(cc1)C(C)C(=O)O',
 			referenceSMARTS: '[!R;!#8]',
 		},
 		{
-			description: 'Two atoms bonded by a non-ring bond.',
-			// Aspirin: plenty of non-ring bonds (methyl, carboxyl)
-			smiles: 'CC(=O)Oc1ccccc1C(=O)O',
-			referenceSMARTS: '[*]!@[*]',
+			description: 'Carbon and Nitrogen atoms bonded by a non-ring bond.',
+			smiles: 'CC(=O)Nc1ccncc1C(=O)N',
+			referenceSMARTS: '[#7]!@[#6]',
 		},
 		{
 			description: 'An aromatic atom single-bonded to any halogen.',
-			// Fluorobenzene: simplest aromatic + halogen
-			smiles: 'Fc1ccccc1',
+			smiles: 'Fc1c(Cl)c(Br)c(I)c(C)c1(O)',
 			referenceSMARTS: '[a]-[F,Cl,Br,I]',
 		},
 		{
-			description:
-				'An atom that is an oxygen or a nitrogen (aliphatic or aromatic), with at least one hydrogen attached, and in a five-membered ring.',
-			// Histidine: imidazole ring (5-membered) with ring N-H
-			smiles: 'N[C@@H](Cc1c[nH]cn1)C(=O)O',
-			referenceSMARTS: '[O,N;!H0;r5]',
+			description: 'Nitrogen (aliphatic or aromatic), with at least one hydrogen attached, and in a five-membered ring.',
+			smiles: 'c1c(N)c[nH]c1CC2NCCC2',
+			referenceSMARTS: '[#8,#7;!H0;r5]',
 		},
 		{
-			description: 'A nitrogen atom connected to a carbonyl carbon (amide bond).',
-			// Paracetamol: classic amide N-C(=O)
-			smiles: 'CC(=O)Nc1ccc(O)cc1',
-			referenceSMARTS: '[N]-C(=O)',
+		  description: 'Single Carbon attached to a carbonyl group.',
+		  smiles: 'CC(=O)OC(CO)C',
+		  referenceSMARTS: '[C;$(C=O)]',
 		},
 		{
-			description: 'Any aromatic carbon atom.',
-			// Pyrene: purely aromatic — every carbon is aromatic
-			smiles: 'c1ccc2c(c1)cc1ccc3cccc4ccc2c1c34',
-			referenceSMARTS: '[c]',
-		},
-		{
-			description: 'A carbon that is part of a hydroxyl group (single bond to an –OH).',
-			// Glucose: multiple C-OH hydroxyl groups
-			smiles: 'OC[C@H]1OC(O)[C@H](O)[C@@H](O)[C@@H]1O',
-			referenceSMARTS: '[C]-[OH]',
-		},
+		  description: 'Find the Carbon Carbon bonds on the 5\' on RNA backbone' ,
+		  smiles: 'Nc1ccn([C@@H]2O[C@H](COP(=O)(O)O)[C@@H](OP(=O)(O)OC[C@H]3O[C@@H](n4cnc5c(=O)[nH]c(N)nc54)[C@H](O)[C@@H]3OP(=O)(O)O)[C@H]2O)c(=O)n1',
+		  referenceSMARTS: '[$(CCOP)][$(CC1OCCC1)]',
+		}
 	];
 </script>
+
+<!-- peptide: [$(CN)][$(C(=O)NCC(=O))] -->
+<!-- sukker: [$(C1C(CO)OC(O)C(O)C1(O))][$(OC1C(O)C(O)CC(CO)O1)] -->
+<!-- sukker:  [$(CCOP)][$(CC1OCCC1)] 5" --> 
+<!-- $([CX3](=[OX1])[NX3][CX4])][$([NX3][CX3][CX4])] -->
+<!-- samme peptid -->
+<!-- -"$([CX3](=[OX1])[NX3][CX4])][$([NX3][CX3][CX4])]"- -->
 
 <div class="article">
 	<h1>Test your SMARTS skills</h1>
