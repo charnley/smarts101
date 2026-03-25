@@ -30,22 +30,24 @@
 	/** @type {null | 'correct' | 'incorrect'} */
 	let checkResult = $state(null);
 	let solutionRevealed = $state(false);
+	let hintActive = $state(false);
 
 	// ── Colors ───────────────────────────────────────────────────────────────
 	let highlightColor = $derived(mode.current === 'dark' ? '#60a5fa' : '#2563eb');
 
 	// ── Live highlights ───────────────────────────────────────────────────────
-	let highlights = $derived(
-		syntaxValid && userSmarts.trim()
-			? {
-					definitions: [
-						{ smarts: userSmarts.trim(), color: highlightColor, id: 'user', name: 'Your pattern' },
-					],
-					outline: true,
-					fill: false,
-				}
-			: { definitions: [] },
-	);
+	let highlights = $derived({
+		definitions: [
+			...(syntaxValid && userSmarts.trim()
+				? [{ smarts: userSmarts.trim(), color: highlightColor, id: 'user', name: 'Your pattern' }]
+				: []),
+			...(hintActive
+				? [{ smarts: referenceSMARTS, color: '#eab308', id: 'hint', name: 'Hint' }]
+				: []),
+		],
+		outline: true,
+		fill: false,
+	});
 
 	// ── Debounced syntax validation ──────────────────────────────────────────
 	/** @type {ReturnType<typeof setTimeout> | null} */
@@ -203,14 +205,19 @@
 				<code class="font-mono text-foreground">{referenceSMARTS}</code>
 			</div>
 		{:else}
-			<Button
-				variant="ghost"
-				size="sm"
-				class="self-start"
-				onclick={() => (solutionRevealed = true)}
-			>
-				Show solution
-			</Button>
+			<div class="flex gap-1">
+				<Button
+					variant="ghost"
+					size="sm"
+					class={hintActive ? 'text-yellow-500 hover:text-yellow-500' : ''}
+					onclick={() => (hintActive = !hintActive)}
+				>
+					{hintActive ? 'Hide hint' : 'Hint'}
+				</Button>
+				<Button variant="ghost" size="sm" onclick={() => (solutionRevealed = true)}>
+					Show solution
+				</Button>
+			</div>
 		{/if}
 	</div>
 </div>
