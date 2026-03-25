@@ -22,7 +22,7 @@
 			},
 			{
 				title: 'Quiz',
-				url: '/test',
+				url: '/quiz',
 				icon: BookOpenCheckIcon,
 				isActive: true,
 				items: [],

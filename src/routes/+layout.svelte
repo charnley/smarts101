@@ -21,7 +21,7 @@
 	const navItems = [
 		{ title: 'Query', url: '/smarts', icon: FlaskConicalIcon },
 		{ title: 'Learn', url: '/how-to-smarts', icon: BookOpenIcon },
-		{ title: 'Quiz', url: '/test', icon: BookOpenCheckIcon },
+		{ title: 'Quiz', url: '/quiz', icon: BookOpenCheckIcon },
 		{ title: 'About', url: '/about', icon: InfoIcon },
 	];
 </script>
