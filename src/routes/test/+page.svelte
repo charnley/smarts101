@@ -91,6 +91,10 @@
 	{/each}
 </div>
 
+<div class="article">
+	<p>Do you have a interesting SMARTS you want to share/test others? <a href="https://github.com/charnley/smarts101">Make a pull request and add it</a>.</p>
+</div>
+
 <style>
 	.quiz {
 		display: flex;
