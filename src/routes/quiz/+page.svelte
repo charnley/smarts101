@@ -21,9 +21,9 @@
 			referenceSMARTS: '[C;!a]~[O]',
 		},
 		{
-		  description: 'An aromatic six-membered ring carbon.',
-		  smiles: 'Cc1ccccc1O',
-		  referenceSMARTS: '[c;r6]',
+			description: 'An aromatic six-membered ring carbon.',
+			smiles: 'Cc1ccccc1O',
+			referenceSMARTS: '[c;r6]',
 		},
 		{
 			description: 'An atom which is not in any ring and is not an oxygen.',
@@ -41,26 +41,28 @@
 			referenceSMARTS: '[a]-[F,Cl,Br,I]',
 		},
 		{
-			description: 'Nitrogen (aliphatic or aromatic), with at least one hydrogen attached, and in a five-membered ring.',
+			description:
+				'Nitrogen (aliphatic or aromatic), with at least one hydrogen attached, and in a five-membered ring.',
 			smiles: 'c1c(N)c[nH]c1CC2NCCC2',
 			referenceSMARTS: '[#8,#7;!H0;r5]',
 		},
 		{
-		  description: 'Single Carbon attached to a carbonyl group.',
-		  smiles: 'CC(=O)OC(CO)C',
-		  referenceSMARTS: '[C;$(C=O)]',
+			description: 'Single Carbon attached to a carbonyl group.',
+			smiles: 'CC(=O)OC(CO)C',
+			referenceSMARTS: '[C;$(C=O)]',
 		},
 		{
-		  description: 'Find the Carbon Carbon bonds on the 5\' on RNA backbone' ,
-		  smiles: 'Nc1ccn([C@@H]2O[C@H](COP(=O)(O)O)[C@@H](OP(=O)(O)OC[C@H]3O[C@@H](n4cnc5c(=O)[nH]c(N)nc54)[C@H](O)[C@@H]3OP(=O)(O)O)[C@H]2O)c(=O)n1',
-		  referenceSMARTS: '[$(CCOP)][$(CC1OCCC1)]',
-		}
+			description: "Find the Carbon Carbon bonds on the 5' on RNA backbone",
+			smiles:
+				'Nc1ccn([C@@H]2O[C@H](COP(=O)(O)O)[C@@H](OP(=O)(O)OC[C@H]3O[C@@H](n4cnc5c(=O)[nH]c(N)nc54)[C@H](O)[C@@H]3OP(=O)(O)O)[C@H]2O)c(=O)n1',
+			referenceSMARTS: '[$(CCOP)][$(CC1OCCC1)]',
+		},
 	];
 </script>
 
 <!-- peptide: [$(CN)][$(C(=O)NCC(=O))] -->
 <!-- sukker: [$(C1C(CO)OC(O)C(O)C1(O))][$(OC1C(O)C(O)CC(CO)O1)] -->
-<!-- sukker:  [$(CCOP)][$(CC1OCCC1)] 5" --> 
+<!-- sukker:  [$(CCOP)][$(CC1OCCC1)] 5" -->
 <!-- $([CX3](=[OX1])[NX3][CX4])][$([NX3][CX3][CX4])] -->
 <!-- samme peptid -->
 <!-- -"$([CX3](=[OX1])[NX3][CX4])][$([NX3][CX3][CX4])]"- -->
@@ -90,7 +92,11 @@
 </div>
 
 <div class="article">
-	<p>Do you have a interesting SMARTS you want to share/test others? <a href="https://github.com/charnley/smarts101">Make a pull request and add it</a>.</p>
+	<p>
+		Do you have a interesting SMARTS you want to share/test others? <a
+			href="https://github.com/charnley/smarts101">Make a pull request and add it</a
+		>.
+	</p>
 </div>
 
 <style>
