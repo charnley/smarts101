@@ -150,16 +150,6 @@
 			: { definitions: [] },
 	);
 
-	/**
-	 * When the molecule list changes, reset all match states to false.
-	 * We use $effect so this runs reactively whenever `molecules` is replaced.
-	 */
-	$effect(() => {
-		// Touch molecules to track it as a dependency
-		void molecules;
-		matchStates = molecules.map(() => false);
-	});
-
 	// ── View mode toggle ─────────────────────────────────────────────────────
 	function switchToEdit() {
 		textareaValue = toTextarea(molecules);
@@ -170,6 +160,7 @@
 		const parsed = fromTextarea(textareaValue);
 		if (parsed.length > 0) {
 			molecules = parsed;
+			matchStates = parsed.map(() => false);
 		}
 		viewMode = 'grid';
 	}
@@ -185,6 +176,7 @@
 	function loadSet(setKey) {
 		const list = withIds(SETS[setKey].molecules.map((m) => ({ structureDefinition: m.smiles })));
 		molecules = list;
+		matchStates = list.map(() => false);
 		textareaValue = toTextarea(list);
 	}
 
@@ -264,7 +256,8 @@
 				<ToggleGroup.Root type="single" value={viewMode} onValueChange={onViewModeChange}>
 					<ToggleGroup.Item value="grid" variant="outline" size="sm" class="">View</ToggleGroup.Item
 					>
-					<ToggleGroup.Item value="edit" variant="outline" size="sm" class="">Edit Molecules</ToggleGroup.Item
+					<ToggleGroup.Item value="edit" variant="outline" size="sm" class=""
+						>Edit Molecules</ToggleGroup.Item
 					>
 				</ToggleGroup.Root>
 				<Button
