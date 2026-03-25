@@ -56,5 +56,14 @@
 				>https://www.rdkit.org/docs/RDKit_Book.html</a
 			>
 		</li>
+		<li>
+			<a href="https://baoilleach.github.io/smartersmarts-js"
+				>https://baoilleach.github.io/smartersmarts-js</a
+			>
+			and
+			<a href="https://baoilleach.blogspot.com/2023/02/smarts-for-dummies-part-ii.html"
+				>smarts for dummies</a
+			>
+		</li>
 	</ul>
 </div>
