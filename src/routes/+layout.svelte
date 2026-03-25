@@ -41,7 +41,7 @@
 <ModeWatcher />
 
 <div class="layout-root">
-	<header class="sticky top-0 z-10 flex h-16 shrink-0 items-center bg-background">
+	<header class="sticky top-0 z-20 flex h-16 shrink-0 items-center bg-background">
 		<!-- Left: hamburger (mobile) + title -->
 		<div class="flex items-center gap-2 px-4">
 			<Button
