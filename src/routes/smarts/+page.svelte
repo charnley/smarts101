@@ -264,7 +264,7 @@
 				<ToggleGroup.Root type="single" value={viewMode} onValueChange={onViewModeChange}>
 					<ToggleGroup.Item value="grid" variant="outline" size="sm" class="">View</ToggleGroup.Item
 					>
-					<ToggleGroup.Item value="edit" variant="outline" size="sm" class="">Edit</ToggleGroup.Item
+					<ToggleGroup.Item value="edit" variant="outline" size="sm" class="">Edit Molecules</ToggleGroup.Item
 					>
 				</ToggleGroup.Root>
 				<Button
