@@ -22,7 +22,7 @@
 		},
 		{
 			description: 'An aromatic six-membered ring carbon.',
-			smiles: 'Cc1ccccc1O',
+			smiles: 'c3ccc3Cc1ccc(Cc2ccccccc2)cc1O',
 			referenceSMARTS: '[c;r6]',
 		},
 		{
