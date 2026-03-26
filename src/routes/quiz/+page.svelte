@@ -43,16 +43,16 @@
 		{
 			description:
 				'Nitrogen (aliphatic or aromatic), with at least one hydrogen attached, and in a five-membered ring.',
-			smiles: 'c1c(N)c[nH]c1CC2NCCC2',
-			referenceSMARTS: '[#8,#7;!H0;r5]',
+			smiles: 'n1c(N)c[nH]c1CC2NCCC2',
+			referenceSMARTS: '[#7;!H0;r5]',
 		},
 		{
-			description: 'Single Carbon attached to a carbonyl group.',
+			description: 'Carbon attached to a carbonyl group; match only carbon.',
 			smiles: 'CC(=O)OC(CO)C',
 			referenceSMARTS: '[C;$(C=O)]',
 		},
 		{
-			description: "Find the Carbon Carbon bonds on the 5' on RNA backbone",
+			description: "Identify the carbon–carbon bonds along the sugar backbone of the RNA residue at the 5′ end.",
 			smiles:
 				'Nc1ccn([C@@H]2O[C@H](COP(=O)(O)O)[C@@H](OP(=O)(O)OC[C@H]3O[C@@H](n4cnc5c(=O)[nH]c(N)nc54)[C@H](O)[C@@H]3OP(=O)(O)O)[C@H]2O)c(=O)n1',
 			referenceSMARTS: '[$(CCOP)][$(CC1OCCC1)]',
