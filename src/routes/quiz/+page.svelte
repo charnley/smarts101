@@ -52,10 +52,11 @@
 			referenceSMARTS: '[C;$(C=O)]',
 		},
 		{
-			description: "Identify the carbon–carbon bonds along the sugar backbone of the RNA residue at the 5′ end.",
+			description:
+				'Identify the oxygen–carbon bond that connects the sugar ring to the phosphate group at the 5′ end of the RNA',
 			smiles:
 				'Nc1ccn([C@@H]2O[C@H](COP(=O)(O)O)[C@@H](OP(=O)(O)OC[C@H]3O[C@@H](n4cnc5c(=O)[nH]c(N)nc54)[C@H](O)[C@@H]3OP(=O)(O)O)[C@H]2O)c(=O)n1',
-			referenceSMARTS: '[$(CCOP)][$(CC1OCCC1)]',
+			referenceSMARTS: '[$(OPO)][$(CC1OCCC1)]',
 		},
 	];
 </script>
