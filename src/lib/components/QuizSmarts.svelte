@@ -11,10 +11,22 @@
 	 *   description: string,
 	 *   smiles: string,
 	 *   referenceSMARTS: string,
+	 *   useCoordgen?: boolean,
+	 *   rendererWidth?: number,
+	 *   rendererHeight?: number,
 	 *   oncorrect?: () => void,
 	 * }}
 	 */
-	let { index, description, smiles, referenceSMARTS, oncorrect } = $props();
+	let {
+		index,
+		description,
+		smiles,
+		referenceSMARTS,
+		useCoordgen = false,
+		rendererWidth = 280,
+		rendererHeight = 200,
+		oncorrect,
+	} = $props();
 
 	/** @type {HTMLInputElement | null} */
 	let inputEl = $state(null);
@@ -139,61 +151,61 @@
 		<p class="m-0 leading-relaxed text-foreground">{description}</p>
 	</div>
 
-	<!-- Body: two-column -->
-	<div class="flex flex-row max-sm:flex-col-reverse">
-		<!-- Left: input row + feedback + solution -->
-		<div
-			class="flex min-w-0 flex-1 flex-col gap-2.5 border-r border-border p-4 px-5 max-sm:border-t max-sm:border-r-0 max-sm:border-border"
-		>
-			<!-- Input + Check button on the same row -->
-			<div class="flex items-center gap-2">
-				<Input
-					type="text"
-					placeholder="Enter a SMARTS pattern…"
-					spellcheck={false}
-					autocomplete="off"
-					value={userSmarts}
-					aria-invalid={!syntaxValid && userSmarts.trim() ? true : undefined}
-					class="flex-1 font-mono"
-					bind:ref={inputEl}
-					oninput={(/** @type {Event} */ e) =>
-						onInput(/** @type {HTMLInputElement} */ (e.currentTarget).value)}
-					onkeydown={(/** @type {KeyboardEvent} */ e) => {
-						if (e.key === 'Enter' && userSmarts.trim() && syntaxValid && !checking) checkAnswer();
-					}}
-				/>
-				<Button
-					size="sm"
-					onclick={checkAnswer}
-					disabled={!userSmarts.trim() || !syntaxValid || checking}
-				>
-					{checking ? 'Checking…' : 'Check'}
-				</Button>
+	<!-- Input row: full width below header -->
+	<div class="flex flex-col gap-2.5 border-b border-border px-5 py-4">
+		<div class="flex items-center gap-2">
+			<Input
+				type="text"
+				placeholder="Enter a SMARTS pattern…"
+				spellcheck={false}
+				autocomplete="off"
+				value={userSmarts}
+				aria-invalid={!syntaxValid && userSmarts.trim() ? true : undefined}
+				class="flex-1 font-mono"
+				bind:ref={inputEl}
+				oninput={(/** @type {Event} */ e) =>
+					onInput(/** @type {HTMLInputElement} */ (e.currentTarget).value)}
+				onkeydown={(/** @type {KeyboardEvent} */ e) => {
+					if (e.key === 'Enter' && userSmarts.trim() && syntaxValid && !checking) checkAnswer();
+				}}
+			/>
+			<Button
+				size="sm"
+				onclick={checkAnswer}
+				disabled={!userSmarts.trim() || !syntaxValid || checking}
+			>
+				{checking ? 'Checking…' : 'Check'}
+			</Button>
+		</div>
+
+		{#if !syntaxValid && userSmarts.trim()}
+			<p class="m-0 text-destructive">Invalid SMARTS syntax</p>
+		{/if}
+
+		{#if checkResult === 'correct'}
+			<div
+				class="rounded-md border border-green-600/30 bg-green-600/10 px-3 py-2 font-medium text-green-600"
+			>
+				Correct!
 			</div>
+		{:else if checkResult === 'incorrect'}
+			<div
+				class="rounded-md border border-destructive/25 bg-destructive/10 px-3 py-2 font-medium text-destructive"
+			>
+				Not quite — try again.
+			</div>
+		{/if}
+	</div>
 
-			{#if !syntaxValid && userSmarts.trim()}
-				<p class="m-0 text-destructive">Invalid SMARTS syntax</p>
-			{/if}
-
-			{#if checkResult === 'correct'}
-				<div
-					class="rounded-md border border-green-600/30 bg-green-600/10 px-3 py-2 font-medium text-green-600"
-				>
-					Correct!
-				</div>
-			{:else if checkResult === 'incorrect'}
-				<div
-					class="rounded-md border border-destructive/25 bg-destructive/10 px-3 py-2 font-medium text-destructive"
-				>
-					Not quite — try again.
-				</div>
-			{/if}
-		</div>
-
-		<!-- Right: molecule renderer -->
-		<div class="flex shrink-0 items-center justify-center p-3">
-			<StructureRenderer structureDefinition={smiles} {highlights} width={280} height={200} />
-		</div>
+	<!-- Molecule renderer -->
+	<div class="flex items-center justify-center p-3">
+		<StructureRenderer
+			structureDefinition={smiles}
+			{highlights}
+			{useCoordgen}
+			width={rendererWidth}
+			height={rendererHeight}
+		/>
 	</div>
 
 	<div class="border-t border-border p-2">

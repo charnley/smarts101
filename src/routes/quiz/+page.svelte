@@ -10,7 +10,7 @@
 	}
 
 	/**
-	 * @typedef {{ description: string, smiles: string, referenceSMARTS: string }} QuizQuestion
+	 * @typedef {{ description: string, smiles: string, referenceSMARTS: string, useCoordgen?: boolean, rendererWidth?: number, rendererHeight?: number }} QuizQuestion
 	 */
 
 	/** @type {QuizQuestion[]} */
@@ -57,6 +57,9 @@
 			smiles:
 				'Nc1ccn([C@@H]2O[C@H](COP(=O)(O)O)[C@@H](OP(=O)(O)OC[C@H]3O[C@@H](n4cnc5c(=O)[nH]c(N)nc54)[C@H](O)[C@@H]3OP(=O)(O)O)[C@H]2O)c(=O)n1',
 			referenceSMARTS: '[$(OPO)][$(CC1OCCC1)]',
+			useCoordgen: true,
+			rendererWidth: 480,
+			rendererHeight: 340,
 		},
 	];
 </script>
@@ -87,6 +90,9 @@
 			description={q.description}
 			smiles={q.smiles}
 			referenceSMARTS={q.referenceSMARTS}
+			useCoordgen={q.useCoordgen ?? false}
+			rendererWidth={q.rendererWidth}
+			rendererHeight={q.rendererHeight}
 			oncorrect={() => focusNext(i + 1)}
 		/>
 	{/each}
