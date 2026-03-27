@@ -64,6 +64,14 @@
 	];
 </script>
 
+<svelte:head>
+	<title>SMARTS101 — Quiz</title>
+	<meta
+		name="description"
+		content="Test your SMARTS knowledge with interactive exercises"
+	/>
+</svelte:head>
+
 <!-- peptide: [$(CN)][$(C(=O)NCC(=O))] -->
 <!-- sukker: [$(C1C(CO)OC(O)C(O)C1(O))][$(OC1C(O)C(O)CC(CO)O1)] -->
 <!-- sukker:  [$(CCOP)][$(CC1OCCC1)] 5" -->

@@ -27,7 +27,7 @@
 </script>
 
 <svelte:head>
-	<title>SMARTS101: build, test and debug SMARTS queries</title>
+	<title>SMARTS101</title>
 	<link rel="icon" href={favicon} />
 	{#if PUBLIC_UMAMI_WEBSITE_ID}
 		<script

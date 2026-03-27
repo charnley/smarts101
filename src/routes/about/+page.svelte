@@ -1,3 +1,11 @@
+<svelte:head>
+	<title>SMARTS101 — About</title>
+	<meta
+		name="description"
+		content="About SMARTS101 — a free, open-source tool for visualizing and debugging SMARTS substructure queries."
+	/>
+</svelte:head>
+
 <div class="article">
 	<h1>About...</h1>
 

@@ -3,6 +3,14 @@
 	import HeadingAnchor from '$lib/components/HeadingAnchor.svelte';
 </script>
 
+<svelte:head>
+	<title>SMARTS101 — Learn SMARTS</title>
+	<meta
+		name="description"
+		content="A comprehensive guide to SMARTS syntax: atoms, bonds, logical operators, chirality, and recursive SMARTS."
+	/>
+</svelte:head>
+
 <div class="article">
 	<HeadingAnchor id="introduction-to-smarts" level="h1">Introduction to SMARTS</HeadingAnchor>
 

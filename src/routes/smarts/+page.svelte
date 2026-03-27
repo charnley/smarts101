@@ -212,6 +212,14 @@
 	}
 </script>
 
+<svelte:head>
+	<title>SMARTS101 — Query Tool</title>
+	<meta
+		name="description"
+		content="Interactively build, test and debug SMARTS substructure queries against molecules (SMILES)."
+	/>
+</svelte:head>
+
 <div class="mx-auto flex max-w-[1200px] flex-col gap-6 py-2">
 	<!-- Query input -->
 	<section class="flex w-full flex-col gap-2">
