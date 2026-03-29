@@ -7,12 +7,12 @@
 	import { Button } from '$lib/components/ui/button';
 	import Sun from '@lucide/svelte/icons/sun';
 	import Moon from '@lucide/svelte/icons/moon';
-	import GithubIcon from '@lucide/svelte/icons/github';
 	import MenuIcon from '@lucide/svelte/icons/menu';
 	import BookOpenIcon from '@lucide/svelte/icons/book-open';
 	import BookOpenCheckIcon from '@lucide/svelte/icons/book-open-check';
 	import InfoIcon from '@lucide/svelte/icons/info';
 	import FlaskConicalIcon from '@lucide/svelte/icons/flask-conical';
+	import { SiGithub } from "@icons-pack/svelte-simple-icons";
 
 	let { children } = $props();
 
@@ -82,7 +82,7 @@
 				href="https://github.com/charnley/smarts101"
 				aria-label="GitHub"
 			>
-				<GithubIcon class="size-5" />
+				<SiGithub class="size-5" />
 			</Button>
 		</div>
 	</header>

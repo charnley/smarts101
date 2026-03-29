@@ -232,6 +232,7 @@
 			spellcheck={false}
 			autocomplete="off"
 			aria-invalid={!!smartsError || undefined}
+			autofocus
 		/>
 		{#if smartsError}
 			<p class="m-0 text-xs text-destructive" role="alert">{smartsError}</p>
