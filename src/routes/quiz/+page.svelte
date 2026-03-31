@@ -16,24 +16,25 @@
 	/** @type {QuizQuestion[]} */
 	const questions = [
 		{
-			description: 'An aliphatic carbon attached to an oxygen with any bond.',
+			description: 'An aliphatic carbon attached to an aliphatic oxygen with any bond.',
 			smiles: 'CC(=O)Oc1ccccc1C(=O)O',
-			referenceSMARTS: '[C;!a]~[O]',
+			referenceSMARTS: 'C~O',
 		},
 		{
 			description: 'An aromatic six-membered ring carbon.',
 			smiles: 'c3ccc3Cc1ccc(Cc2ccccccc2)cc1O',
+			// TODO enforce that the expression only matches single carbons and not the whole ring of carbons together
 			referenceSMARTS: '[c;r6]',
 		},
 		{
 			description: 'An atom which is not in any ring and is not an oxygen.',
 			smiles: 'CC(C)Cc1ccc(cc1)C(C)C(=O)O',
-			referenceSMARTS: '[!R;!#8]',
+			referenceSMARTS: '[!#8!R]',
 		},
 		{
 			description: 'Carbon and Nitrogen atoms bonded by a non-ring bond.',
 			smiles: 'CC(=O)Nc1ccncc1C(=O)N',
-			referenceSMARTS: '[#7]!@[#6]',
+			referenceSMARTS: '[#6]!@[#7]',
 		},
 		{
 			description: 'An aromatic atom single-bonded to any halogen.',
@@ -44,16 +45,16 @@
 			description:
 				'Nitrogen (aliphatic or aromatic), with at least one hydrogen attached, and in a five-membered ring.',
 			smiles: 'n1c(N)c[nH]c1CC2NCCC2',
-			referenceSMARTS: '[#7;!H0;r5]',
+			referenceSMARTS: '[#7h1;r5]',
 		},
 		{
 			description: 'Carbon attached to a carbonyl group; match only carbon.',
 			smiles: 'CC(=O)OC(CO)C',
-			referenceSMARTS: '[C;$(C=O)]',
+			referenceSMARTS: '[$(C=O)]',
 		},
 		{
 			description:
-				'Identify the oxygen–carbon bond that connects the sugar ring to the phosphate group at the 5′ end of the RNA',
+				'Identify the oxygen–carbon bond that connects the sugar ring to the phosphate group at every 5′ extension of the RNA',
 			smiles:
 				'Nc1ccn([C@@H]2O[C@H](COP(=O)(O)O)[C@@H](OP(=O)(O)OC[C@H]3O[C@@H](n4cnc5c(=O)[nH]c(N)nc54)[C@H](O)[C@@H]3OP(=O)(O)O)[C@H]2O)c(=O)n1',
 			referenceSMARTS: '[$(OPO)][$(CC1OCCC1)]',
