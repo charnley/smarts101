@@ -150,6 +150,34 @@ async function generateStructureSVG({
 	return { svg: finalSvg, bondAtomsMap, atomBondsMap, viewBox };
 }
 
+/** Generate an SVG for a SMARTS query molecule using get_qmol */
+async function generateQuerySVG({ smartsInput, width, height, darkMode = false }) {
+	if (!rdkit) throw new Error('RDKit not initialized');
+	const mol = rdkit.get_qmol(smartsInput);
+	if (!mol) throw new Error('Invalid SMARTS');
+
+	const options = {
+		centreMoleculesBeforeDrawing: true,
+		bondLineWidth: 2.0,
+		multipleBondOffset: 0.25,
+		fixedScale: 0.08,
+		baseFontSize: 0.8,
+		minFontSize: -1,
+		maxFontSize: -1,
+		atomColourPalette: darkMode ? PALETTE_DARK : PALETTE_LIGHT,
+		backgroundColour: [0, 0, 0, 0],
+		width: parseInt(`${width}`),
+		height: parseInt(`${height}`),
+	};
+
+	const svg = mol.get_svg_with_highlights(JSON.stringify(options));
+	const el = new DOMParser().parseFromString(svg, 'text/xml').documentElement;
+	const viewBox = el.getAttribute('viewBox') || `0 0 ${width} ${height}`;
+	const finalSvg = el.toString?.() ?? el.outerHTML;
+	mol.delete();
+	return { svg: finalSvg, viewBox };
+}
+
 self.onmessage = async (event) => {
 	const { id, type, payload } = event.data;
 	try {
@@ -161,6 +189,9 @@ self.onmessage = async (event) => {
 				break;
 			case 'generateSVG':
 				result = await generateStructureSVG(payload);
+				break;
+			case 'generateQuerySVG':
+				result = await generateQuerySVG(payload);
 				break;
 			default:
 				throw new Error(`Unknown message type: ${type}`);

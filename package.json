@@ -64,6 +64,7 @@
 		"openchemlib": "^9.22.0",
 		"openchemlib-utils": "^8.15.0",
 		"paper": "^0.12.18",
-		"paperjs-offset": "^1.0.8"
+		"paperjs-offset": "^1.0.8",
+		"web-tree-sitter": "^0.26.7"
 	}
 }

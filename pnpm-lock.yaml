@@ -38,6 +38,9 @@ importers:
       paperjs-offset:
         specifier: ^1.0.8
         version: 1.0.8
+      web-tree-sitter:
+        specifier: ^0.26.7
+        version: 0.26.7
     devDependencies:
       '@icons-pack/svelte-simple-icons':
         specifier: ^7.2.0
@@ -2037,6 +2040,9 @@ packages:
       jsdom:
         optional: true
 
+  web-tree-sitter@0.26.7:
+    resolution: {integrity: sha512-KiZhelTvBA/ziUHEO7Emb75cGVAq8iGZNabYaZm53Zpy50NsXyOW+xSHlwHt5CVg/TRPZBfeVLTTobF0LjFJ1w==}
+
   webpack-virtual-modules@0.6.2:
     resolution: {integrity: sha512-66/V2i5hQanC51vBQKPH4aI8NMAcBW59FVBs+rC7eGHupMyfn34q7rZIE+ETlJ+XTevqfUhVVBgSUNSW2flEUQ==}
 
@@ -3745,6 +3751,8 @@ snapshots:
       '@vitest/browser-playwright': 4.1.2(playwright@1.58.2)(vite@8.0.3(@emnapi/core@1.9.1)(@emnapi/runtime@1.9.1)(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1))(vitest@4.1.2)
     transitivePeerDependencies:
       - msw
+
+  web-tree-sitter@0.26.7: {}
 
   webpack-virtual-modules@0.6.2: {}
 
