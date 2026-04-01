@@ -1,0 +1,14 @@
+{
+  "name": "tree-sitter-smarts",
+  "version": "0.1.0",
+  "description": "Tree-sitter grammar for SMARTS (chemical substructure query language)",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "generate": "tree-sitter generate",
+    "build:wasm": "tree-sitter generate && tree-sitter build --wasm"
+  },
+  "devDependencies": {
+    "tree-sitter-cli": "^0.26.7"
+  }
+}

@@ -40,7 +40,7 @@ export default grammar({
 		// -----------------------------------------------------------------------
 		// Chain
 		// -----------------------------------------------------------------------
-		chain: ($) => seq($.atom, repeat(choice(seq($._bond, $.atom), $.atom))),
+		chain: ($) => seq($.atom, repeat(choice(seq($.bond, $.atom), $.atom))),
 
 		// -----------------------------------------------------------------------
 		// Atom
@@ -180,7 +180,7 @@ export default grammar({
 		// Bond primitives (outside brackets, between atoms)
 		// /? and \? matched before / and \
 		// -----------------------------------------------------------------------
-		_bond: (_$) =>
+		bond: (_$) =>
 			token(
 				choice(
 					'-', // single
@@ -211,6 +211,6 @@ export default grammar({
 		// -----------------------------------------------------------------------
 		// Branch: ( bond? chain )
 		// -----------------------------------------------------------------------
-		branch: ($) => seq('(', optional($._bond), $.chain, ')'),
+		branch: ($) => seq('(', optional($.bond), $.chain, ')'),
 	},
 });
