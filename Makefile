@@ -1,9 +1,11 @@
 .PHONY: build format dev build-wasm
 
-TREE_SITTER ?= tree-sitter
-TREE_SITTER_DIR = tree-sitter-smarts
+TREE_SITTER ?= npx tree-sitter
+TREE_SITTER_DIR = ./src/lib/grammar-smarts
 
 all: node_modules .env
+
+# Build
 
 node_modules:
 	pnpm i
@@ -11,8 +13,15 @@ node_modules:
 .env:
 	ln -s .env.example .env
 
-build:
+build: dep
 	pnpm run build
+
+dep: ./src/lib/grammar-smarts/tree-sitter-smarts.wasm
+
+build-wasm:
+	cd $(TREE_SITTER_DIR) && $(TREE_SITTER) build --wasm
+
+./src/lib/grammar-smarts/tree-sitter-smarts.wasm: build-wasm
 
 format:
 	npx prettier --write .
@@ -20,12 +29,10 @@ format:
 test-format:
 	npx prettier --check .
 
-dev:
+# Start
+
+dev: dep
 	pnpm run dev
 
 start-storybook:
 	npx storybook dev -p 6006
-
-build-wasm:
-	make -C $(TREE_SITTER_DIR) build TREE_SITTER=$(TREE_SITTER)
-	cp $(TREE_SITTER_DIR)/tree-sitter-smarts.wasm src/lib/tree-sitter-smarts.wasm

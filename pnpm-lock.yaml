@@ -7,40 +7,6 @@ settings:
 importers:
 
   .:
-    dependencies:
-      '@rdkit/rdkit':
-        specifier: 2025.3.4-1.0.0
-        version: 2025.3.4-1.0.0
-      html-to-image:
-        specifier: ^1.11.13
-        version: 1.11.13
-      isotopic-distribution:
-        specifier: ^3.6.0
-        version: 3.6.0
-      linkedom:
-        specifier: ^0.18.12
-        version: 0.18.12
-      mf-parser:
-        specifier: ^3.8.0
-        version: 3.8.0
-      mode-watcher:
-        specifier: ^1.1.0
-        version: 1.1.0(svelte@5.55.0)
-      openchemlib:
-        specifier: ^9.22.0
-        version: 9.22.0
-      openchemlib-utils:
-        specifier: ^8.15.0
-        version: 8.15.0(openchemlib@9.22.0)
-      paper:
-        specifier: ^0.12.18
-        version: 0.12.18
-      paperjs-offset:
-        specifier: ^1.0.8
-        version: 1.0.8
-      web-tree-sitter:
-        specifier: ^0.26.7
-        version: 0.26.7
     devDependencies:
       '@icons-pack/svelte-simple-icons':
         specifier: ^7.2.0
@@ -54,6 +20,9 @@ importers:
       '@playwright/test':
         specifier: ^1.58.2
         version: 1.58.2
+      '@rdkit/rdkit':
+        specifier: 2025.3.4-1.0.0
+        version: 2025.3.4-1.0.0
       '@storybook/addon-svelte-csf':
         specifier: ^5.1.2
         version: 5.1.2(@storybook/svelte@10.3.3(storybook@10.3.3(@testing-library/dom@10.4.1)(prettier@3.8.1)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(svelte@5.55.0))(@sveltejs/vite-plugin-svelte@7.0.0(svelte@5.55.0)(vite@8.0.3(@emnapi/core@1.9.1)(@emnapi/runtime@1.9.1)(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)))(storybook@10.3.3(@testing-library/dom@10.4.1)(prettier@3.8.1)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(svelte@5.55.0)(vite@8.0.3(@emnapi/core@1.9.1)(@emnapi/runtime@1.9.1)(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1))
@@ -93,9 +62,36 @@ importers:
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
+      html-to-image:
+        specifier: ^1.11.13
+        version: 1.11.13
+      isotopic-distribution:
+        specifier: ^3.6.0
+        version: 3.6.0
       layerchart:
         specifier: 2.0.0-next.43
         version: 2.0.0-next.43(svelte@5.55.0)
+      linkedom:
+        specifier: ^0.18.12
+        version: 0.18.12
+      mf-parser:
+        specifier: ^3.8.0
+        version: 3.8.0
+      mode-watcher:
+        specifier: ^1.1.0
+        version: 1.1.0(svelte@5.55.0)
+      openchemlib:
+        specifier: ^9.22.0
+        version: 9.22.0
+      openchemlib-utils:
+        specifier: ^8.15.0
+        version: 8.15.0(openchemlib@9.22.0)
+      paper:
+        specifier: ^0.12.18
+        version: 0.12.18
+      paperjs-offset:
+        specifier: ^1.0.8
+        version: 1.0.8
       playwright:
         specifier: ^1.58.2
         version: 1.58.2
@@ -126,6 +122,9 @@ importers:
       tailwindcss:
         specifier: ^4.2.2
         version: 4.2.2
+      tree-sitter-cli:
+        specifier: ^0.26.8
+        version: 0.26.8
       tw-animate-css:
         specifier: ^1.4.0
         version: 1.4.0
@@ -144,6 +143,9 @@ importers:
       vitest-browser-svelte:
         specifier: ^2.1.0
         version: 2.1.0(svelte@5.55.0)(vitest@4.1.2)
+      web-tree-sitter:
+        specifier: ^0.26.7
+        version: 0.26.7
 
 packages:
 
@@ -1899,6 +1901,11 @@ packages:
   totalist@3.0.1:
     resolution: {integrity: sha512-sf4i37nQ2LBx4m3wB74y+ubopq6W/dIzXg0FDGjsYnZHVa1Da8FH853wlL2gtUhg+xJXjfk3kUZS3BRoQeoQBQ==}
     engines: {node: '>=6'}
+
+  tree-sitter-cli@0.26.8:
+    resolution: {integrity: sha512-teQFMF5V/g8aIdakZ0M/eZoedCM3MuBt1JuDOICLloA2hy7QfeOInb99U6wiML4qXcBHWREwf0U1TWzw7p67YA==}
+    engines: {node: '>=12.0.0'}
+    hasBin: true
 
   ts-dedent@2.2.0:
     resolution: {integrity: sha512-q5W7tVM71e2xjHZTlgfTDoPF/SmqKG5hddq9SzR49CH2hayqRKJtQ4mtRlSxKaJlR/+9rEM+mnBHf7I2/BQcpQ==}
@@ -3661,6 +3668,8 @@ snapshots:
   tinyspy@4.0.4: {}
 
   totalist@3.0.1: {}
+
+  tree-sitter-cli@0.26.8: {}
 
   ts-dedent@2.2.0: {}
 

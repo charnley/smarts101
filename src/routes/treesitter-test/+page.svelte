@@ -3,7 +3,7 @@
 	import { Input } from '$lib/components/ui/input/index.js';
 	import SmartsQueryRenderer from '$lib/components/SmartsQueryRenderer.svelte';
 	import { Parser, Language } from 'web-tree-sitter';
-	import smartsWasmUrl from '$lib/tree-sitter-smarts.wasm?url';
+	import smartsWasmUrl from '$lib/grammar-smarts/tree-sitter-smarts.wasm?url';
 	import coreWasmUrl from 'web-tree-sitter/web-tree-sitter.wasm?url';
 
 	/**

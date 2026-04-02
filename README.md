@@ -11,6 +11,12 @@ An interactive browser-based app for interacting with SMARTS, a cheminformatics 
 | `sveltekit` + `svelte` v5          | Web framework                                                  |
 | `tailwindcss` v4 + `shadcn-svelte` | Styling and headless UI primitives                             |
 
+## Dependencies
+
+You need
+
+- `sudo apt install emscripten`
+
 # TODO
 
 - [ ] Find a way to work with reaction smarts `>>`
