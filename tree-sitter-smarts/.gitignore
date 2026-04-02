@@ -1,6 +1,0 @@
-node_modules/
-src/
-bindings/
-build/
-tree-sitter.json
-*.wasm
