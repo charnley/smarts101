@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import { Input } from '$lib/components/ui/input/index.js';
 	import SmartsQueryRenderer from '$lib/components/SmartsQueryRenderer.svelte';
+	import { validateSmarts } from '$lib/utils.js';
 	import { Parser, Language } from 'web-tree-sitter';
 	import smartsWasmUrl from '$lib/grammar-smarts/tree-sitter-smarts.wasm?url';
 	import coreWasmUrl from 'web-tree-sitter/web-tree-sitter.wasm?url';
@@ -301,6 +302,8 @@
 	let loadError = $state(/** @type {string|null} */ (null));
 
 	let cursorPos = $state(0);
+	/** @type {{ valid: boolean, errors: string[] } | null} */
+	let smartsCheck = $state(null);
 
 	let activeNode = $derived.by(() => {
 		if (!tree) return null;
@@ -322,6 +325,9 @@
 			p.setLanguage(lang);
 			parser = p;
 			({ tree, treeLines } = parse(p, smarts));
+			validateSmarts(smarts).then((r) => {
+				smartsCheck = r;
+			});
 		} catch (/** @type {any} */ err) {
 			loadError = err?.message ?? String(err);
 		}
@@ -338,6 +344,9 @@
 		if (debounce) clearTimeout(debounce);
 		debounce = setTimeout(() => {
 			if (parser) ({ tree, treeLines } = parse(parser, smarts));
+			validateSmarts(smarts).then((r) => {
+				smartsCheck = r;
+			});
 		}, 150);
 	}
 
@@ -451,6 +460,9 @@
 				<div class="rounded-md border border-border bg-card">
 					<SmartsQueryRenderer {smarts} width={300} height={220} />
 				</div>
+				{#if smartsCheck && !smartsCheck.valid && smartsCheck.errors.length}
+					<p class="w-full font-mono text-xs text-destructive">{smartsCheck.errors[0]}</p>
+				{/if}
 			</div>
 		</div>
 
