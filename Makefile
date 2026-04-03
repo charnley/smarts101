@@ -19,7 +19,7 @@ build: dep
 dep: ./src/lib/grammar-smarts/tree-sitter-smarts.wasm
 
 build-wasm:
-	cd $(TREE_SITTER_DIR) && $(TREE_SITTER) build --wasm
+	cd $(TREE_SITTER_DIR) && $(TREE_SITTER) generate && $(TREE_SITTER) build --wasm
 
 ./src/lib/grammar-smarts/tree-sitter-smarts.wasm: build-wasm
 
@@ -28,6 +28,9 @@ format:
 
 test-format:
 	npx prettier --check .
+
+test:
+	npm run test:grammar
 
 # Start
 

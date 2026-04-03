@@ -13,6 +13,7 @@
 		"lint": "prettier --check .",
 		"format": "prettier --write .",
 		"test:unit": "vitest",
+		"test:grammar": "vitest run --project server src/lib/grammar-smarts/grammar.tests.js",
 		"test": "npm run test:unit -- --run && npm run test:e2e",
 		"test:e2e": "playwright test",
 		"storybook": "storybook dev -p 6006",
