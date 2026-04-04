@@ -28,9 +28,8 @@ const initializeRDKit = async () => {
 /**
  * RDKit-based substructure search
  *
- * Note: JSMol.get_substruct_matches() in the RDKit.js WASM bindings has no
- * useChirality parameter, so chiral SMARTS (e.g. [C@@H]) will match both
- * enantiomers. Chirality enforcement can be revisited if needed.
+ * Note: JSMol.get_substruct_matches() in the RDKit.js WASM bindings has
+ * useChirality parameter, but needs be newest >=2026.03.
  *
  * @param {string} smarts - SMARTS pattern
  * @param {string[]} smilesList - Array of SMILES strings
@@ -88,7 +87,7 @@ const performRDKitSearch = (smarts, smilesList, includeAtomBondIndices = false) 
 			const targetMol = getMoleculeFromSmiles(smi);
 			if (!targetMol) continue;
 
-			const jsonResult = targetMol.get_substruct_matches(queryMol) ?? '[]';
+			const jsonResult = targetMol.get_substruct_matches(queryMol, JSON.stringify({ useChirality: true })) ?? '[]';
 			const matchResults = JSON.parse(jsonResult);
 			matches[i] = matchResults.length > 0;
 
