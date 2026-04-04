@@ -1,10 +1,5 @@
-// @ts-ignore — rdkit types don't expose a default-export call signature
-// import _initRDKitModule from '@rdkit/rdkit';
-// import wasmUrl from '@rdkit/rdkit/dist/RDKit_minimal.wasm?url';
-
 import initRDKitModule from './RDKit_minimal.js';
 import wasmUrl from './RDKit_minimal.wasm?url';
-
 
 /**
  * Atom colour palettes for light and dark backgrounds.
@@ -40,7 +35,7 @@ export const PALETTE_DARK = {
 };
 
 
-// ── Plain singleton (no logging) — for workers ────────────────────────────
+// ── Singleton ─────────────────────────────────────────────────────────────
 
 /** @type {import('@rdkit/rdkit').RDKitModule | null} */
 let _rdkit = null;
@@ -48,8 +43,7 @@ let _rdkit = null;
 let _initPromise = null;
 
 /**
- * Returns the shared RDKit module instance (no logging hooks).
- * Suitable for use in Web Workers.
+ * Returns the shared RDKit module instance.
  * @returns {Promise<import('@rdkit/rdkit').RDKitModule>}
  */
 export async function getRDKit() {
@@ -63,53 +57,30 @@ export async function getRDKit() {
 	return _initPromise;
 }
 
-// ── Logging singleton — for validateSmarts ────────────────────────────────
-
-/** @type {string[]} */
-const _logBuf = [];
-let _capturing = false;
-/** @type {import('@rdkit/rdkit').RDKitModule | null} */
-let _rdkitLogging = null;
-/** @type {Promise<import('@rdkit/rdkit').RDKitModule> | null} */
-let _initLoggingPromise = null;
-
-/**
- * Returns the shared RDKit module instance with error logging hooks enabled.
- * @returns {Promise<import('@rdkit/rdkit').RDKitModule>}
- */
-async function getRDKitWithLogging() {
-	if (_rdkitLogging) return _rdkitLogging;
-	if (!_initLoggingPromise) {
-		_initLoggingPromise = initRDKitModule(
-			/** @type {any} */ ({
-				locateFile: () => wasmUrl,
-				printErr: (/** @type {string} */ msg) => {
-					if (_capturing) _logBuf.push(msg);
-				},
-			}),
-		).then((r) => {
-			/** @type {any} */ (r).enable_logging('error');
-			_rdkitLogging = r;
-			return r;
-		});
-	}
-	return _initLoggingPromise;
-}
-
 // ── SMARTS validation ─────────────────────────────────────────────────────
 
 /**
  * Parse a SMARTS string with RDKit and return any parse errors.
+ * Uses set_log_capture to intercept RDKit's internal error log channel
+ * (rdApp.error), which is the correct way to get structured parse errors
+ * from the WASM build — stderr is not reliably available in the browser.
  * @param {string} smarts
  * @returns {Promise<{ valid: boolean, errors: string[] }>}
  */
 export async function validateSmarts(smarts) {
-	const rdkit = await getRDKitWithLogging();
-	_logBuf.length = 0;
-	_capturing = true;
+	const rdkit = await getRDKit();
+	const logHandle = (rdkit).set_log_capture('rdApp.error');
 	const mol = rdkit.get_qmol(smarts);
-	_capturing = false;
+	const raw = logHandle?.get_buffer() ?? '';
+	logHandle?.clear_buffer();
+	logHandle?.delete();
 	if (mol) mol.delete();
-	const errors = [...new Set(_logBuf.map((m) => m.replace(/^\[\d+:\d+:\d+\] /, '')))];
+
+	// Strip timestamps
+	const lines = raw
+		.split('\n')
+		.map((s) => s.replace(/^\[\d+:\d+:\d+\] /, ''))
+		.filter(Boolean);
+	const errors = lines.length ? [lines.join('\n')] : [];
 	return { valid: mol !== null, errors };
 }
