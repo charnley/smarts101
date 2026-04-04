@@ -461,7 +461,8 @@
 					<SmartsQueryRenderer {smarts} width={300} height={220} />
 				</div>
 				{#if smartsCheck && !smartsCheck.valid && smartsCheck.errors.length}
-					<pre class="w-full whitespace-pre-wrap font-mono text-xs text-destructive">{smartsCheck.errors[0]}</pre>
+					<pre class="w-full font-mono text-xs whitespace-pre-wrap text-destructive">{smartsCheck
+							.errors[0]}</pre>
 				{/if}
 			</div>
 		</div>

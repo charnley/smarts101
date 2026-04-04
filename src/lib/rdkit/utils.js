@@ -34,7 +34,6 @@ export const PALETTE_DARK = {
 	53: [0.7, 0.4, 0.9], // I  — light violet
 };
 
-
 // ── Singleton ─────────────────────────────────────────────────────────────
 
 /** @type {import('@rdkit/rdkit').RDKitModule | null} */
@@ -69,7 +68,7 @@ export async function getRDKit() {
  */
 export async function validateSmarts(smarts) {
 	const rdkit = await getRDKit();
-	const logHandle = (rdkit).set_log_capture('rdApp.error');
+	const logHandle = rdkit.set_log_capture('rdApp.error');
 	const mol = rdkit.get_qmol(smarts);
 	const raw = logHandle?.get_buffer() ?? '';
 	logHandle?.clear_buffer();

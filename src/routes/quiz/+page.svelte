@@ -66,10 +66,7 @@
 
 <svelte:head>
 	<title>SMARTS101 — Quiz</title>
-	<meta
-		name="description"
-		content="Test your SMARTS knowledge with interactive exercises"
-	/>
+	<meta name="description" content="Test your SMARTS knowledge with interactive exercises" />
 </svelte:head>
 
 <!-- peptide: [$(CN)][$(C(=O)NCC(=O))] -->

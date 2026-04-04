@@ -87,7 +87,8 @@ const performRDKitSearch = (smarts, smilesList, includeAtomBondIndices = false) 
 			const targetMol = getMoleculeFromSmiles(smi);
 			if (!targetMol) continue;
 
-			const jsonResult = targetMol.get_substruct_matches(queryMol, JSON.stringify({ useChirality: true })) ?? '[]';
+			const jsonResult =
+				targetMol.get_substruct_matches(queryMol, JSON.stringify({ useChirality: true })) ?? '[]';
 			const matchResults = JSON.parse(jsonResult);
 			matches[i] = matchResults.length > 0;
 

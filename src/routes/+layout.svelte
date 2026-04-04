@@ -12,7 +12,7 @@
 	import BookOpenCheckIcon from '@lucide/svelte/icons/book-open-check';
 	import InfoIcon from '@lucide/svelte/icons/info';
 	import FlaskConicalIcon from '@lucide/svelte/icons/flask-conical';
-	import { SiGithub } from "@icons-pack/svelte-simple-icons";
+	import { SiGithub } from '@icons-pack/svelte-simple-icons';
 
 	let { children } = $props();
 
