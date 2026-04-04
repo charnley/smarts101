@@ -3,12 +3,8 @@
  * Dedicated worker for RDKit-based substructure matching
  */
 
-import _initRDKitModule from '@rdkit/rdkit';
-/** @type {(opts: any) => Promise<any>} */
-const initRDKitModule = /** @type {any} */ (_initRDKitModule);
-import wasmUrl from '@rdkit/rdkit/dist/RDKit_minimal.wasm?url';
+import { getRDKit } from '$lib/rdkit/utils.js';
 
-let rdkitInitialized = false;
 /** @type {any} */
 let RDKit = null;
 
@@ -17,11 +13,9 @@ let RDKit = null;
  * @returns {Promise<boolean>}
  */
 const initializeRDKit = async () => {
-	if (!rdkitInitialized) {
+	if (!RDKit) {
 		try {
-			const rdkitLib = await initRDKitModule({ locateFile: () => wasmUrl });
-			RDKit = rdkitLib;
-			rdkitInitialized = true;
+			RDKit = await getRDKit();
 			return true;
 		} catch (error) {
 			console.error('[RDKit Worker] Failed to initialize RDKit:', error);
@@ -44,7 +38,7 @@ const initializeRDKit = async () => {
  * @returns {{matches: boolean[], indices: number[], allAtomBondMatches?: any[], atomBondMatches?: Array<{atoms: number[], bonds: number[]}>}}
  */
 const performRDKitSearch = (smarts, smilesList, includeAtomBondIndices = false) => {
-	if (!RDKit || !rdkitInitialized) {
+	if (!RDKit) {
 		throw new Error('RDKit not initialized');
 	}
 

@@ -4,8 +4,7 @@
  */
 
 // @ts-nocheck
-import initRDKitModule from '@rdkit/rdkit';
-import wasmUrl from '@rdkit/rdkit/dist/RDKit_minimal.wasm?url';
+import { getRDKit } from '$lib/rdkit/utils.js';
 import { parseHTML } from 'linkedom';
 // linkedom gives us DOMParser + document for SVG parsing inside the worker
 const { document, DOMParser } = parseHTML('<!DOCTYPE html><html><body></body></html>');
@@ -14,12 +13,9 @@ globalThis.document = document;
 
 /** @type {any} */
 let rdkit = null;
-let isInitialized = false;
 
 async function initRDKit() {
-	if (isInitialized) return;
-	rdkit = await initRDKitModule({ locateFile: () => wasmUrl });
-	isInitialized = true;
+	rdkit = await getRDKit();
 	self.postMessage({ type: 'initialized', success: true });
 }
 

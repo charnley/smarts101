@@ -2,7 +2,7 @@
 	import { onMount } from 'svelte';
 	import { Input } from '$lib/components/ui/input/index.js';
 	import SmartsQueryRenderer from '$lib/components/SmartsQueryRenderer.svelte';
-	import { validateSmarts } from '$lib/utils.js';
+	import { validateSmarts } from '$lib/rdkit/utils.js';
 	import { Parser, Language } from 'web-tree-sitter';
 	import smartsWasmUrl from '$lib/grammar-smarts/tree-sitter-smarts.wasm?url';
 	import coreWasmUrl from 'web-tree-sitter/web-tree-sitter.wasm?url';
