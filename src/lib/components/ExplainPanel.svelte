@@ -7,23 +7,21 @@
 </script>
 
 <div class="flex w-80 shrink-0 flex-col gap-3 rounded-lg">
-
 	<div class="flex justify-end">
 		<Button variant="outline" aria-label="Close panel" onclick={onclose}>
-			<PanelRightClose size={16}/> Explain
+			<PanelRightClose size={16} /> Explain
 		</Button>
 	</div>
 
-<div class="rounded-lg border p-4">
+	<div class="rounded-lg border p-4">
+		placeholder
+		<br />
+		<br />
 
-	placeholder
-	<br />
-	<br />
+		placeholder
+		<br />
+		<br />
 
-	placeholder
-	<br />
-	<br />
-
-	placeholder
-</div>
+		placeholder
+	</div>
 </div>
