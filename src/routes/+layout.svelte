@@ -5,6 +5,7 @@
 
 	import { ModeWatcher, toggleMode, mode } from 'mode-watcher';
 	import { Button } from '$lib/components/ui/button';
+	import * as Sheet from '$lib/components/ui/sheet/index.js';
 	import Sun from '@lucide/svelte/icons/sun';
 	import Moon from '@lucide/svelte/icons/moon';
 	import MenuIcon from '@lucide/svelte/icons/menu';
@@ -87,22 +88,27 @@
 		</div>
 	</header>
 
-	<!-- Mobile dropdown menu -->
-	{#if menuOpen}
-		<div class="mobile-menu md:hidden">
-			{#each navItems as item}
-				<Button
-					variant="secondary"
-					href={item.url}
-					class="w-full justify-start"
-					onclick={() => (menuOpen = false)}
-				>
-					<item.icon class="size-4" />
-					{item.title}
-				</Button>
-			{/each}
-		</div>
-	{/if}
+	<!-- Mobile nav sheet -->
+	<Sheet.Root bind:open={menuOpen}>
+		<Sheet.Content side="left" class="" portalProps={{}}>
+			<Sheet.Header class="">
+				<Sheet.Title class="">SMARTS 101</Sheet.Title>
+			</Sheet.Header>
+			<div class="flex flex-col gap-1 p-4">
+				{#each navItems as item}
+					<Button
+						variant="ghost"
+						href={item.url}
+						class="w-full justify-start"
+						onclick={() => (menuOpen = false)}
+					>
+						<item.icon class="size-4" />
+						{item.title}
+					</Button>
+				{/each}
+			</div>
+		</Sheet.Content>
+	</Sheet.Root>
 
 	<main class="gap-4 p-4">
 		{@render children()}
@@ -123,20 +129,5 @@
 		to {
 			border-bottom: 1px solid var(--border);
 		}
-	}
-
-	.mobile-menu {
-		position: fixed;
-		top: 4rem; /* h-16 = 64px = 4rem */
-		left: 0;
-		right: 0;
-		z-index: 20;
-		background: var(--background);
-		border-bottom: 1px solid var(--border);
-		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-		display: flex;
-		flex-direction: column;
-		gap: 0.5rem;
-		padding: 0.75rem 1rem;
 	}
 </style>

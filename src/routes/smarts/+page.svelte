@@ -7,12 +7,15 @@
 	import { Button } from '$lib/components/ui/button/index.js';
 	import * as ToggleGroup from '$lib/components/ui/toggle-group/index.js';
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
+	import * as Sheet from '$lib/components/ui/sheet/index.js';
 	import { Checkbox } from '$lib/components/ui/checkbox/index.js';
 	import { Label } from '$lib/components/ui/label/index.js';
 	import SettingsIcon from '@lucide/svelte/icons/settings';
+	import ListFilter from '@lucide/svelte/icons/list-filter';
 	import PanelRightOpen from '@lucide/svelte/icons/panel-right-open';
 	import ExplainPanel from '$lib/components/ExplainPanel.svelte';
 	import { settings } from '$lib/settings.svelte.js';
+	import { isMediumScreen } from '$lib/breakpoints.svelte.js';
 	import {
 		RNA,
 		DNA,
@@ -99,6 +102,15 @@
 
 	// ── Explain panel ────────────────────────────────────────────────────────
 	let explainOpen = $state(false);
+	let explainSheetOpen = $state(false);
+
+	function toggleExplain() {
+		if (isMediumScreen.value) explainOpen = !explainOpen;
+		else explainSheetOpen = !explainSheetOpen;
+	}
+
+	// ── Sets sheet ───────────────────────────────────────────────────────────
+	let setsSheetOpen = $state(false);
 
 	// ── Grid layout derived from settings ────────────────────────────────────
 	const COLS_CLASS = {
@@ -242,8 +254,8 @@
 					aria-invalid={!!smartsError || undefined}
 					autofocus
 				/>
-				{#if !explainOpen}
-					<Button variant="outline" onclick={() => (explainOpen = true)}>
+				{#if !explainOpen && !explainSheetOpen}
+					<Button variant="outline" onclick={toggleExplain}>
 						<PanelRightOpen size={16} />
 						Explain
 					</Button>
@@ -259,19 +271,28 @@
 			<!-- Toolbar -->
 			<div class="flex flex-wrap items-center justify-between gap-3">
 				{#if viewMode === 'edit'}
-					<div class="flex flex-wrap items-center gap-1.5">
-						<span class="text-sm text-muted-foreground">Start from:</span>
-						{#each Object.entries(SETS) as [key, set]}
-							<Button
-								variant="outline"
-								size="sm"
-								class="rounded-full"
-								onclick={() => loadSet(/** @type {keyof typeof SETS} */ (key))}
-							>
-								{set.label}
-							</Button>
-						{/each}
-					</div>
+					{#if isMediumScreen.value}
+						<!-- Pills: md and up -->
+						<div class="flex flex-wrap items-center gap-1.5">
+							<span class="text-sm text-muted-foreground">Start from:</span>
+							{#each Object.entries(SETS) as [key, set]}
+								<Button
+									variant="outline"
+									size="sm"
+									class="rounded-full"
+									onclick={() => loadSet(/** @type {keyof typeof SETS} */ (key))}
+								>
+									{set.label}
+								</Button>
+							{/each}
+						</div>
+					{:else}
+						<!-- Sheet trigger: mobile only -->
+						<Button variant="outline" size="sm" onclick={() => (setsSheetOpen = true)}>
+							<ListFilter size={16} />
+							Start from…
+						</Button>
+					{/if}
 				{:else}
 					<div></div>
 				{/if}
@@ -334,11 +355,47 @@
 		</section>
 	</div>
 
-	<!-- Explain panel -->
+	<!-- Explain panel: md and up -->
 	{#if explainOpen}
-		<ExplainPanel smarts={activeSmarts} onclose={() => (explainOpen = false)} />
+		<div class="hidden md:block">
+			<ExplainPanel smarts={activeSmarts} onclose={() => (explainOpen = false)} />
+		</div>
 	{/if}
 </div>
+
+<!-- Explain sheet (mobile, < md) -->
+<Sheet.Root bind:open={explainSheetOpen}>
+	<Sheet.Content side="right" class="" portalProps={{}}>
+		<Sheet.Header class="">
+			<Sheet.Title class="">Explain</Sheet.Title>
+		</Sheet.Header>
+		<div class="p-4">
+			<ExplainPanel smarts={activeSmarts} onclose={() => (explainSheetOpen = false)} />
+		</div>
+	</Sheet.Content>
+</Sheet.Root>
+
+<!-- Sets sheet (mobile) -->
+<Sheet.Root bind:open={setsSheetOpen}>
+	<Sheet.Content side="left" class="" portalProps={{}}>
+		<Sheet.Header class="">
+			<Sheet.Title class="">Start from…</Sheet.Title>
+		</Sheet.Header>
+		<div class="flex flex-col gap-2 p-4">
+			{#each Object.entries(SETS) as [key, set]}
+				<Button
+					variant="outline"
+					onclick={() => {
+						loadSet(/** @type {keyof typeof SETS} */ (key));
+						setsSheetOpen = false;
+					}}
+				>
+					{set.label}
+				</Button>
+			{/each}
+		</div>
+	</Sheet.Content>
+</Sheet.Root>
 
 <!-- Settings dialog -->
 <Dialog.Root bind:open={settingsOpen}>
