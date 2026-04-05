@@ -1,5 +1,5 @@
 <script>
-	import { ScrollArea } from "$lib/components/ui/scroll-area/index.js";
+	import { ScrollArea } from '$lib/components/ui/scroll-area/index.js';
 	import ChevronDown from '@lucide/svelte/icons/chevron-down';
 	import ChevronRight from '@lucide/svelte/icons/chevron-right';
 	import { buildExplainer } from '$lib/grammar-smarts/smarts-docs.js';
