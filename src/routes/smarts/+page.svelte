@@ -1,4 +1,5 @@
 <script>
+	import { onMount } from 'svelte';
 	import { performSubstructureSearch } from '$lib/structure-renderer/worker-manager.js';
 	import MoleculeBox from '$lib/components/MoleculeBox.svelte';
 	import { mode } from 'mode-watcher';
@@ -16,6 +17,9 @@
 	import ExplainPanel from '$lib/components/ExplainPanel.svelte';
 	import { settings } from '$lib/settings.svelte.js';
 	import { isMediumScreen } from '$lib/breakpoints.svelte.js';
+	import { Parser, Language } from 'web-tree-sitter';
+	import smartsWasmUrl from '$lib/grammar-smarts/tree-sitter-smarts.wasm?url';
+	import coreWasmUrl from 'web-tree-sitter/web-tree-sitter.wasm?url';
 	import {
 		RNA,
 		DNA,
@@ -99,6 +103,26 @@
 
 	// ── Settings dialog ──────────────────────────────────────────────────────
 	let settingsOpen = $state(false);
+
+	// ── Tree-sitter parser ───────────────────────────────────────────────────
+	/** @type {Parser | null} */
+	let parser = $state(null);
+	/** @type {import('web-tree-sitter').Tree | null} */
+	let smartsTree = $state(null);
+	let cursorPos = $state(0);
+
+	onMount(async () => {
+		try {
+			await Parser.init({ locateFile: () => coreWasmUrl });
+			const lang = await Language.load(smartsWasmUrl);
+			const p = new Parser();
+			p.setLanguage(lang);
+			parser = p;
+			if (rawSmarts.trim()) smartsTree = p.parse(rawSmarts);
+		} catch {
+			// parser unavailable — ExplainPanel gracefully shows nothing
+		}
+	});
 
 	// ── Explain panel ────────────────────────────────────────────────────────
 	let explainOpen = $state(false);
@@ -204,9 +228,21 @@
 	 * Called on every keystroke in the SMARTS input.
 	 * Validates the pattern against a known molecule after a short delay.
 	 */
-	function onSmartsInput() {
+	/** @param {Event} e */
+	function onSmartsInput(e) {
+		const el = /** @type {HTMLInputElement} */ (e.currentTarget);
+		cursorPos = el.selectionStart ?? 0;
 		if (debounceTimer) clearTimeout(debounceTimer);
-		debounceTimer = setTimeout(() => validateAndApply(rawSmarts), 350);
+		debounceTimer = setTimeout(() => {
+			if (parser) smartsTree = rawSmarts.trim() ? parser.parse(rawSmarts) : null;
+			validateAndApply(rawSmarts);
+		}, 350);
+	}
+
+	/** @param {Event} e */
+	function onSmartsCursorMove(e) {
+		const el = /** @type {HTMLInputElement} */ (e.currentTarget);
+		cursorPos = el.selectionStart ?? 0;
 	}
 
 	async function validateAndApply(/** @type {string} */ smarts) {
@@ -249,6 +285,8 @@
 					placeholder="Enter a SMARTS pattern, e.g. [OX2H] for hydroxyl…"
 					bind:value={rawSmarts}
 					oninput={onSmartsInput}
+					onclick={onSmartsCursorMove}
+					onkeyup={onSmartsCursorMove}
 					spellcheck={false}
 					autocomplete="off"
 					aria-invalid={!!smartsError || undefined}
@@ -358,7 +396,12 @@
 	<!-- Explain panel: md and up -->
 	{#if explainOpen}
 		<div class="hidden md:block">
-			<ExplainPanel smarts={activeSmarts} onclose={() => (explainOpen = false)} />
+			<ExplainPanel
+				smarts={rawSmarts}
+				tree={smartsTree}
+				{cursorPos}
+				onclose={() => (explainOpen = false)}
+			/>
 		</div>
 	{/if}
 </div>
@@ -370,7 +413,12 @@
 			<Sheet.Title class="">Explain</Sheet.Title>
 		</Sheet.Header>
 		<div class="p-4">
-			<ExplainPanel smarts={activeSmarts} onclose={() => (explainSheetOpen = false)} />
+			<ExplainPanel
+				smarts={rawSmarts}
+				tree={smartsTree}
+				{cursorPos}
+				onclose={() => (explainSheetOpen = false)}
+			/>
 		</div>
 	</Sheet.Content>
 </Sheet.Root>
