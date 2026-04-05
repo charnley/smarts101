@@ -3,6 +3,7 @@
 	import ChevronDown from '@lucide/svelte/icons/chevron-down';
 	import ChevronRight from '@lucide/svelte/icons/chevron-right';
 	import { buildExplainer } from '$lib/grammar-smarts/smarts-docs.js';
+	import SmartsQueryRenderer from '$lib/components/SmartsQueryRenderer.svelte';
 
 	/**
 	 * @typedef {import('$lib/grammar-smarts/smarts-docs.js').ExplainerEntry} ExplainerEntry
@@ -16,6 +17,10 @@
 	 * }}
 	 */
 	let { smarts, tree = null, cursorPos = 0 } = $props();
+
+	/** @type {HTMLDivElement | undefined} */
+	let containerEl = $state();
+	let containerWidth = $derived(containerEl?.clientWidth ?? 280);
 
 	/** @type {ExplainerEntry[]} */
 	let entries = $derived.by(() => {
@@ -47,7 +52,10 @@
 	}
 </script>
 
-<div class="flex h-full flex-col gap-2">
+<div class="flex h-full flex-col gap-2" bind:this={containerEl}>
+	{#if smarts.trim()}
+		<SmartsQueryRenderer {smarts} width={containerWidth} height={180} />
+	{/if}
 	{#if entries.length === 0}
 		<p class="px-1 text-xs text-muted-foreground">
 			{smarts.trim() ? 'No tokens found.' : 'Type a SMARTS string to see an explanation.'}
