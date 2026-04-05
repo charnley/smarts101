@@ -10,6 +10,8 @@
 	import { Checkbox } from '$lib/components/ui/checkbox/index.js';
 	import { Label } from '$lib/components/ui/label/index.js';
 	import SettingsIcon from '@lucide/svelte/icons/settings';
+	import PanelRightOpen from '@lucide/svelte/icons/panel-right-open';
+	import ExplainPanel from '$lib/components/ExplainPanel.svelte';
 	import { settings } from '$lib/settings.svelte.js';
 	import {
 		RNA,
@@ -94,6 +96,9 @@
 
 	// ── Settings dialog ──────────────────────────────────────────────────────
 	let settingsOpen = $state(false);
+
+	// ── Explain panel ────────────────────────────────────────────────────────
+	let explainOpen = $state(false);
 
 	// ── Grid layout derived from settings ────────────────────────────────────
 	const COLS_CLASS = {
@@ -220,102 +225,119 @@
 	/>
 </svelte:head>
 
-<div class="mx-auto flex max-w-[1200px] flex-col gap-6 py-2">
-	<!-- Query input -->
-	<section class="flex w-full flex-col gap-2">
-		<Input
-			class="font-mono text-base"
-			type="text"
-			placeholder="Enter a SMARTS pattern, e.g. [OX2H] for hydroxyl…"
-			bind:value={rawSmarts}
-			oninput={onSmartsInput}
-			spellcheck={false}
-			autocomplete="off"
-			aria-invalid={!!smartsError || undefined}
-			autofocus
-		/>
-		{#if smartsError}
-			<p class="m-0 text-xs text-destructive" role="alert">{smartsError}</p>
-		{/if}
-	</section>
-
-	<!-- Grid / Edit section -->
-	<section class="flex w-full flex-col gap-3">
-		<!-- Toolbar -->
-		<div class="flex flex-wrap items-center justify-between gap-3">
-			{#if viewMode === 'edit'}
-				<div class="flex flex-wrap items-center gap-1.5">
-					<span class="text-sm text-muted-foreground">Start from:</span>
-					{#each Object.entries(SETS) as [key, set]}
-						<Button
-							variant="outline"
-							size="sm"
-							class="rounded-full"
-							onclick={() => loadSet(/** @type {keyof typeof SETS} */ (key))}
-						>
-							{set.label}
-						</Button>
-					{/each}
-				</div>
-			{:else}
-				<div></div>
-			{/if}
-
+<div class="mx-auto flex max-w-[1200px] items-start gap-4 py-2">
+	<!-- Left column: query input + grid -->
+	<div class="flex min-w-0 flex-1 flex-col gap-6">
+		<!-- Query input -->
+		<section class="flex w-full flex-col gap-2">
 			<div class="flex items-center gap-2">
-				<ToggleGroup.Root type="single" value={viewMode} onValueChange={onViewModeChange}>
-					<ToggleGroup.Item value="grid" variant="outline" size="sm" class="">View</ToggleGroup.Item
-					>
-					<ToggleGroup.Item value="edit" variant="outline" size="sm" class=""
-						>Edit Molecules</ToggleGroup.Item
-					>
-				</ToggleGroup.Root>
-				<Button
-					variant="outline"
-					size="icon-sm"
-					aria-label="Settings"
-					onclick={() => (settingsOpen = true)}
-				>
-					<SettingsIcon size={16} />
-				</Button>
-			</div>
-		</div>
-
-		<!-- Grid view -->
-		{#if viewMode === 'grid'}
-			<div class="grid gap-4 {gridClass}">
-				{#each molecules as mol, i (mol.id)}
-					<div
-						class={settings.filterMatchesOnly && activeSmarts && !matchStates[i] ? 'hidden' : ''}
-					>
-						<MoleculeBox
-							structureDefinition={mol.structureDefinition}
-							{highlights}
-							width={molSize.width}
-							height={molSize.height}
-							useCoordgen={settings.useCoordgen}
-							explicitHydrogens={settings.explicitHydrogens}
-							bind:hasMatch={matchStates[i]}
-						/>
-					</div>
-				{/each}
-			</div>
-
-			<!-- Edit view -->
-		{:else}
-			<div class="flex flex-col gap-2">
-				<Textarea
-					class="max-h-[70vh] w-full resize-y overflow-auto font-mono text-sm leading-relaxed whitespace-pre"
-					bind:value={textareaValue}
+				<Input
+					class="flex-1 font-mono text-base"
+					type="text"
+					placeholder="Enter a SMARTS pattern, e.g. [OX2H] for hydroxyl…"
+					bind:value={rawSmarts}
+					oninput={onSmartsInput}
 					spellcheck={false}
 					autocomplete="off"
-					rows={Math.max(8, textareaValue.split('\n').length + 2)}
+					aria-invalid={!!smartsError || undefined}
+					autofocus
 				/>
-				<p class="m-0 text-sm text-muted-foreground">
-					<strong>Format:</strong> SMILES per line or multi-SDF input.
-				</p>
+				{#if !explainOpen}
+					<Button variant="outline" onclick={() => (explainOpen = true)}>
+						<PanelRightOpen size={16} />
+						Explain
+					</Button>
+				{/if}
 			</div>
-		{/if}
-	</section>
+			{#if smartsError}
+				<p class="m-0 text-xs text-destructive" role="alert">{smartsError}</p>
+			{/if}
+		</section>
+
+		<!-- Grid / Edit section -->
+		<section class="flex w-full flex-col gap-3">
+			<!-- Toolbar -->
+			<div class="flex flex-wrap items-center justify-between gap-3">
+				{#if viewMode === 'edit'}
+					<div class="flex flex-wrap items-center gap-1.5">
+						<span class="text-sm text-muted-foreground">Start from:</span>
+						{#each Object.entries(SETS) as [key, set]}
+							<Button
+								variant="outline"
+								size="sm"
+								class="rounded-full"
+								onclick={() => loadSet(/** @type {keyof typeof SETS} */ (key))}
+							>
+								{set.label}
+							</Button>
+						{/each}
+					</div>
+				{:else}
+					<div></div>
+				{/if}
+
+				<div class="flex items-center gap-2">
+					<ToggleGroup.Root type="single" value={viewMode} onValueChange={onViewModeChange}>
+						<ToggleGroup.Item value="grid" variant="outline" size="sm" class=""
+							>View</ToggleGroup.Item
+						>
+						<ToggleGroup.Item value="edit" variant="outline" size="sm" class=""
+							>Edit Molecules</ToggleGroup.Item
+						>
+					</ToggleGroup.Root>
+					<Button
+						variant="outline"
+						size="icon-sm"
+						aria-label="Settings"
+						onclick={() => (settingsOpen = true)}
+					>
+						<SettingsIcon size={16} />
+					</Button>
+				</div>
+			</div>
+
+			<!-- Grid view -->
+			{#if viewMode === 'grid'}
+				<div class="grid gap-4 {gridClass}">
+					{#each molecules as mol, i (mol.id)}
+						<div
+							class={settings.filterMatchesOnly && activeSmarts && !matchStates[i] ? 'hidden' : ''}
+						>
+							<MoleculeBox
+								structureDefinition={mol.structureDefinition}
+								{highlights}
+								width={molSize.width}
+								height={molSize.height}
+								useCoordgen={settings.useCoordgen}
+								explicitHydrogens={settings.explicitHydrogens}
+								bind:hasMatch={matchStates[i]}
+							/>
+						</div>
+					{/each}
+				</div>
+
+				<!-- Edit view -->
+			{:else}
+				<div class="flex flex-col gap-2">
+					<Textarea
+						class="max-h-[70vh] w-full resize-y overflow-auto font-mono text-sm leading-relaxed whitespace-pre"
+						bind:value={textareaValue}
+						spellcheck={false}
+						autocomplete="off"
+						rows={Math.max(8, textareaValue.split('\n').length + 2)}
+					/>
+					<p class="m-0 text-sm text-muted-foreground">
+						<strong>Format:</strong> SMILES per line or multi-SDF input.
+					</p>
+				</div>
+			{/if}
+		</section>
+	</div>
+
+	<!-- Explain panel -->
+	{#if explainOpen}
+		<ExplainPanel smarts={activeSmarts} onclose={() => (explainOpen = false)} />
+	{/if}
 </div>
 
 <!-- Settings dialog -->
