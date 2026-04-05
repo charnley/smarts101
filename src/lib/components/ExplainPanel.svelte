@@ -1,6 +1,5 @@
 <script>
-	import { Button } from '$lib/components/ui/button/index.js';
-	import PanelRightClose from '@lucide/svelte/icons/panel-right-close';
+	import { ScrollArea } from "$lib/components/ui/scroll-area/index.js";
 	import ChevronDown from '@lucide/svelte/icons/chevron-down';
 	import ChevronRight from '@lucide/svelte/icons/chevron-right';
 	import { buildExplainer } from '$lib/grammar-smarts/smarts-docs.js';
@@ -14,10 +13,9 @@
 	 *   smarts: string,
 	 *   tree?: import('web-tree-sitter').Tree | null,
 	 *   cursorPos?: number,
-	 *   onclose: () => void
 	 * }}
 	 */
-	let { smarts, tree = null, cursorPos = 0, onclose } = $props();
+	let { smarts, tree = null, cursorPos = 0 } = $props();
 
 	/** @type {ExplainerEntry[]} */
 	let entries = $derived.by(() => {
@@ -49,26 +47,19 @@
 	}
 </script>
 
-<div class="flex w-72 shrink-0 flex-col gap-3">
-	<div class="flex items-center justify-between">
-		<span class="text-xs font-medium tracking-wide text-muted-foreground uppercase"
-			>Explanation</span
-		>
-		<Button variant="ghost" size="sm" aria-label="Close panel" onclick={onclose}>
-			<PanelRightClose size={14} />
-		</Button>
-	</div>
-
+<div class="flex h-full flex-col gap-2">
 	{#if entries.length === 0}
-		<p class="text-xs text-muted-foreground">
+		<p class="px-1 text-xs text-muted-foreground">
 			{smarts.trim() ? 'No tokens found.' : 'Type a SMARTS string to see an explanation.'}
 		</p>
 	{:else}
-		<div class="flex flex-col">
-			{#each entries as entry}
-				{@render entryRow(entry, 0)}
-			{/each}
-		</div>
+		<ScrollArea class="h-[100%]">
+			<div class="flex flex-col">
+				{#each entries as entry}
+					{@render entryRow(entry, 0)}
+				{/each}
+			</div>
+		</ScrollArea>
 	{/if}
 </div>
 

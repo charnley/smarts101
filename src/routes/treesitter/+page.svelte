@@ -1,8 +1,10 @@
 <script>
 	import { onMount } from 'svelte';
 	import { Input } from '$lib/components/ui/input/index.js';
+	import { Button } from '$lib/components/ui/button/index.js';
 	import SmartsQueryRenderer from '$lib/components/SmartsQueryRenderer.svelte';
 	import ExplainPanel from '$lib/components/ExplainPanel.svelte';
+	import PanelRightClose from '@lucide/svelte/icons/panel-right-close';
 	import { validateSmarts } from '$lib/rdkit/utils.js';
 	import { Parser, Language } from 'web-tree-sitter';
 	import smartsWasmUrl from '$lib/grammar-smarts/tree-sitter-smarts.wasm?url';
@@ -189,7 +191,22 @@
 
 			<!-- 2. Explainer panel -->
 			{#if showExplain}
-				<ExplainPanel {smarts} {tree} {cursorPos} onclose={() => (showExplain = false)} />
+				<div class="flex w-64 shrink-0 flex-col gap-2 self-stretch">
+					<div class="flex items-center justify-between">
+						<span class="text-xs font-medium tracking-wide text-muted-foreground uppercase"
+							>Explanation</span
+						>
+						<Button
+							variant="ghost"
+							size="sm"
+							aria-label="Close panel"
+							onclick={() => (showExplain = false)}
+						>
+							<PanelRightClose size={14} />
+						</Button>
+					</div>
+					<ExplainPanel {smarts} {tree} {cursorPos} />
+				</div>
 			{/if}
 
 			<!-- 3. SMARTS structure visualisation -->

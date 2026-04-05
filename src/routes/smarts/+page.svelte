@@ -14,6 +14,7 @@
 	import SettingsIcon from '@lucide/svelte/icons/settings';
 	import ListFilter from '@lucide/svelte/icons/list-filter';
 	import PanelRightOpen from '@lucide/svelte/icons/panel-right-open';
+	import PanelRightClose from '@lucide/svelte/icons/panel-right-close';
 	import ExplainPanel from '$lib/components/ExplainPanel.svelte';
 	import { settings } from '$lib/settings.svelte.js';
 	import { isMediumScreen } from '$lib/breakpoints.svelte.js';
@@ -395,30 +396,33 @@
 
 	<!-- Explain panel: md and up -->
 	{#if explainOpen}
-		<div class="hidden md:block">
-			<ExplainPanel
-				smarts={rawSmarts}
-				tree={smartsTree}
-				{cursorPos}
-				onclose={() => (explainOpen = false)}
-			/>
+		<div class="hidden w-72 shrink-0 flex-col gap-2 md:flex">
+			<div class="flex items-center justify-between">
+				<span class="text-xs font-medium tracking-wide text-muted-foreground uppercase"
+					>Explanation</span
+				>
+				<Button
+					variant="ghost"
+					size="sm"
+					aria-label="Close panel"
+					onclick={() => (explainOpen = false)}
+				>
+					<PanelRightClose size={14} />
+				</Button>
+			</div>
+			<ExplainPanel smarts={rawSmarts} tree={smartsTree} {cursorPos} />
 		</div>
 	{/if}
 </div>
 
 <!-- Explain sheet (mobile, < md) -->
 <Sheet.Root bind:open={explainSheetOpen}>
-	<Sheet.Content side="right" class="" portalProps={{}}>
+	<Sheet.Content side="right" class="flex flex-col" portalProps={{}}>
 		<Sheet.Header class="">
-			<Sheet.Title class="">Explain</Sheet.Title>
+			<Sheet.Title class="">Explanation</Sheet.Title>
 		</Sheet.Header>
-		<div class="p-4">
-			<ExplainPanel
-				smarts={rawSmarts}
-				tree={smartsTree}
-				{cursorPos}
-				onclose={() => (explainSheetOpen = false)}
-			/>
+		<div class="flex min-h-0 flex-1 flex-col p-4">
+			<ExplainPanel smarts={rawSmarts} tree={smartsTree} {cursorPos} />
 		</div>
 	</Sheet.Content>
 </Sheet.Root>
