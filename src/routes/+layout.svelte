@@ -112,7 +112,7 @@
 		</Sheet.Content>
 	</Sheet.Root>
 
-	<main class="mx-auto w-full max-w-[1200px] gap-4 p-4">
+	<main class="mx-auto w-full max-w-[1200px] gap-4 p-4 pt-6">
 		{@render children()}
 	</main>
 </div>
