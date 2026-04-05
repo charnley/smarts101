@@ -18,6 +18,8 @@
 	import ExplainPanel from '$lib/components/ExplainPanel.svelte';
 	import { settings } from '$lib/settings.svelte.js';
 	import { isMediumScreen } from '$lib/breakpoints.svelte.js';
+	import { validateSmarts } from '$lib/rdkit/utils.js';
+	import * as Tooltip from '$lib/components/ui/tooltip/index.js';
 	import { Parser, Language } from 'web-tree-sitter';
 	import smartsWasmUrl from '$lib/grammar-smarts/tree-sitter-smarts.wasm?url';
 	import coreWasmUrl from 'web-tree-sitter/web-tree-sitter.wasm?url';
@@ -253,14 +255,16 @@
 			activeSmarts = '';
 			return;
 		}
-		try {
-			// Validate by running a search against a simple molecule
-			const result = await performSubstructureSearch([trimmed], 'C');
-			if (!result?.success) throw new Error(result?.error ?? 'Invalid SMARTS');
+		const { valid, errors } = await validateSmarts(trimmed);
+		if (valid) {
 			smartsError = null;
 			activeSmarts = trimmed;
-		} catch (/** @type {any} */ err) {
-			smartsError = err?.message ?? 'Invalid SMARTS';
+		} else {
+			const raw = errors[0] ?? '';
+			const posMatch = raw.match(/position\s+(\d+)/i);
+			smartsError = posMatch
+				? `Check for mistakes around position ${posMatch[1]}`
+				: 'Invalid SMARTS';
 			activeSmarts = '';
 		}
 	}
@@ -280,19 +284,28 @@
 		<!-- Query input -->
 		<section class="flex w-full flex-col gap-2">
 			<div class="flex items-center gap-2">
-				<Input
-					class="flex-1 font-mono text-base"
-					type="text"
-					placeholder="Enter a SMARTS pattern, e.g. [OX2H] for hydroxyl…"
-					bind:value={rawSmarts}
-					oninput={onSmartsInput}
-					onclick={onSmartsCursorMove}
-					onkeyup={onSmartsCursorMove}
-					spellcheck={false}
-					autocomplete="off"
-					aria-invalid={!!smartsError || undefined}
-					autofocus
-				/>
+				<Tooltip.Provider>
+					<Tooltip.Root open={!!smartsError}>
+						<Tooltip.Trigger class="flex-1" asChild>
+							<Input
+								class="w-full font-mono text-base"
+								type="text"
+								placeholder="Enter a SMARTS pattern, e.g. [OX2H] for hydroxyl…"
+								bind:value={rawSmarts}
+								oninput={onSmartsInput}
+								onclick={onSmartsCursorMove}
+								onkeyup={onSmartsCursorMove}
+								spellcheck={false}
+								autocomplete="off"
+								aria-invalid={!!smartsError || undefined}
+								autofocus
+							/>
+						</Tooltip.Trigger>
+						<Tooltip.Content side="top" sideOffset={4}>
+							{smartsError}
+						</Tooltip.Content>
+					</Tooltip.Root>
+				</Tooltip.Provider>
 				{#if !explainOpen && !explainSheetOpen}
 					<Button variant="outline" onclick={toggleExplain}>
 						<PanelRightOpen size={16} />
@@ -300,9 +313,6 @@
 					</Button>
 				{/if}
 			</div>
-			{#if smartsError}
-				<p class="m-0 text-xs text-destructive" role="alert">{smartsError}</p>
-			{/if}
 		</section>
 
 		<!-- Grid / Edit section -->
