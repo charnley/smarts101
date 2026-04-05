@@ -237,7 +237,7 @@
 	/>
 </svelte:head>
 
-<div class="mx-auto flex max-w-[1200px] items-start gap-4 py-2">
+<div class="flex items-start gap-4 py-2">
 	<!-- Left column: query input + grid -->
 	<div class="flex min-w-0 flex-1 flex-col gap-6">
 		<!-- Query input -->

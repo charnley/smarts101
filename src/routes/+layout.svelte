@@ -43,48 +43,50 @@
 
 <div class="layout-root">
 	<header class="sticky top-0 z-20 flex h-16 shrink-0 items-center bg-background">
-		<!-- Left: hamburger (mobile) + title -->
-		<div class="flex items-center gap-2 px-4">
-			<Button
-				class="-ms-1 md:hidden"
-				variant="ghost"
-				size="icon"
-				aria-label="Toggle menu"
-				onclick={() => (menuOpen = !menuOpen)}
-			>
-				<MenuIcon class="size-5" />
-			</Button>
-			<span class="font-bold">SMARTS 101</span>
-		</div>
-
-		<!-- Center: nav links (desktop only) -->
-		<nav class="hidden flex-1 justify-center gap-1 md:flex">
-			{#each navItems as item}
-				<Button variant="ghost" href={item.url}>
-					<item.icon class="size-4" />
-					{item.title}
+		<div class="mx-auto flex w-full max-w-[1200px] items-center px-4">
+			<!-- Left: hamburger (mobile) + title -->
+			<div class="flex items-center gap-2">
+				<Button
+					class="-ms-1 md:hidden"
+					variant="ghost"
+					size="icon"
+					aria-label="Toggle menu"
+					onclick={() => (menuOpen = !menuOpen)}
+				>
+					<MenuIcon class="size-5" />
 				</Button>
-			{/each}
-		</nav>
+				<span class="font-bold">SMARTS 101</span>
+			</div>
 
-		<!-- Right: actions -->
-		<div class="ms-auto flex items-center gap-1 px-4 md:ms-0">
-			<Button variant="ghost" size="icon" onclick={toggleMode} aria-label="Toggle theme">
-				{#if mode.current === 'dark'}
-					<Sun class="size-5" />
-				{:else}
-					<Moon class="size-5" />
-				{/if}
-			</Button>
-			<Button
-				variant="ghost"
-				size="icon"
-				target="_new"
-				href="https://github.com/charnley/smarts101"
-				aria-label="GitHub"
-			>
-				<SiGithub class="size-5" />
-			</Button>
+			<!-- Center: nav links (desktop only) -->
+			<nav class="hidden flex-1 justify-center gap-1 md:flex">
+				{#each navItems as item}
+					<Button variant="ghost" href={item.url}>
+						<item.icon class="size-4" />
+						{item.title}
+					</Button>
+				{/each}
+			</nav>
+
+			<!-- Right: actions -->
+			<div class="ms-auto flex items-center gap-1 md:ms-0">
+				<Button variant="ghost" size="icon" onclick={toggleMode} aria-label="Toggle theme">
+					{#if mode.current === 'dark'}
+						<Sun class="size-5" />
+					{:else}
+						<Moon class="size-5" />
+					{/if}
+				</Button>
+				<Button
+					variant="ghost"
+					size="icon"
+					target="_new"
+					href="https://github.com/charnley/smarts101"
+					aria-label="GitHub"
+				>
+					<SiGithub class="size-5" />
+				</Button>
+			</div>
 		</div>
 	</header>
 
@@ -110,7 +112,7 @@
 		</Sheet.Content>
 	</Sheet.Root>
 
-	<main class="gap-4 p-4">
+	<main class="mx-auto w-full max-w-[1200px] gap-4 p-4">
 		{@render children()}
 	</main>
 </div>
