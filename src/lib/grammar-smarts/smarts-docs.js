@@ -778,6 +778,12 @@ export function buildExplainer(rootNode, src) {
 
 	// Handle reaction vs plain smarts at the top level
 	for (const child of rootNode.children) {
+		// Surface ERROR nodes at the top level (e.g. "CH" → C parses fine, H is an ERROR sibling)
+		const err = errorEntry(child, src);
+		if (err) {
+			entries.push(err);
+			continue;
+		}
 		if (!child.isNamed) continue;
 
 		if (child.type === 'reaction') {
