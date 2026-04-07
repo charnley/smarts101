@@ -17,6 +17,11 @@
 
 	.article p {
 		@apply leading-7 [&:not(:first-child)]:mt-6;
+		word-wrap:break-word;
+	}
+
+	.article a {
+		word-wrap:break-word;
 	}
 
 	.article a {
