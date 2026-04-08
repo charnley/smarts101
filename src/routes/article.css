@@ -17,6 +17,11 @@
 
 	.article p {
 		@apply leading-7 [&:not(:first-child)]:mt-6;
+		word-wrap: break-word;
+	}
+
+	.article a {
+		word-wrap: break-word;
 	}
 
 	.article a {
@@ -35,8 +40,13 @@
 		@apply my-6 ms-6 list-decimal [&>li]:mt-2;
 	}
 
-	.article code {
+	/* General, not only article usage */
+	code {
 		@apply relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm font-semibold;
+	}
+
+	code.error {
+		@apply bg-destructive/15 text-destructive;
 	}
 
 	.article table {

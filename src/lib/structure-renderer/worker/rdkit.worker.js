@@ -4,8 +4,7 @@
  */
 
 // @ts-nocheck
-import initRDKitModule from '@rdkit/rdkit';
-import wasmUrl from '@rdkit/rdkit/dist/RDKit_minimal.wasm?url';
+import { getRDKit, PALETTE_DARK, PALETTE_LIGHT } from '$lib/rdkit/utils.js';
 import { parseHTML } from 'linkedom';
 // linkedom gives us DOMParser + document for SVG parsing inside the worker
 const { document, DOMParser } = parseHTML('<!DOCTYPE html><html><body></body></html>');
@@ -14,12 +13,9 @@ globalThis.document = document;
 
 /** @type {any} */
 let rdkit = null;
-let isInitialized = false;
 
 async function initRDKit() {
-	if (isInitialized) return;
-	rdkit = await initRDKitModule({ locateFile: () => wasmUrl });
-	isInitialized = true;
+	rdkit = await getRDKit();
 	self.postMessage({ type: 'initialized', success: true });
 }
 
@@ -29,39 +25,6 @@ function getMolecule(input) {
 	if (!mol) throw new Error('Failed to parse molecule');
 	return mol;
 }
-
-/**
- * Atom colour palettes for light and dark backgrounds.
- * Values are [r, g, b] in 0–1 range (RDKit convention).
- * Extend these objects to tune any element's colour.
- */
-const PALETTE_LIGHT = {
-	0: [0.1, 0.1, 0.1], // default / unknown
-	1: [5, 0, 0], // H
-	6: [0, 0, 0], // C  — black
-	7: [0, 0, 0.9], // N  — blue
-	8: [0.9, 0, 0], // O  — red
-	9: [0, 0.5, 0], // F  — green
-	15: [0.5, 0, 0.5], // P  — purple
-	16: [0.5, 0.25, 0], // S  — brown/orange
-	17: [0, 0.5, 0], // Cl — green
-	35: [0, 0.5, 0], // Br — green
-	53: [0.25, 0, 0.5], // I  — violet
-};
-
-const PALETTE_DARK = {
-	0: [0.85, 0.85, 0.85], // default / unknown
-	1: [0.85, 0.85, 0.85], // H
-	6: [1.0, 1.0, 1.0], // C  — light grey
-	7: [0.4, 0.6, 1], // N  — light blue
-	8: [1, 0.4, 0.4], // O  — light red
-	9: [0.2, 0.9, 0.4], // F  — bright green
-	15: [0.85, 0.4, 0.85], // P  — light purple
-	16: [0.9, 0.75, 0.1], // S  — yellow-orange
-	17: [0.2, 0.9, 0.4], // Cl — bright green
-	35: [0.2, 0.9, 0.4], // Br — bright green
-	53: [0.7, 0.4, 0.9], // I  — light violet
-};
 
 /** Generate an SVG with atom/bond class annotations for highlight support */
 async function generateStructureSVG({
@@ -150,6 +113,34 @@ async function generateStructureSVG({
 	return { svg: finalSvg, bondAtomsMap, atomBondsMap, viewBox };
 }
 
+/** Generate an SVG for a SMARTS query molecule using get_qmol */
+async function generateQuerySVG({ smartsInput, width, height, darkMode = false }) {
+	if (!rdkit) throw new Error('RDKit not initialized');
+	const mol = rdkit.get_qmol(smartsInput);
+	if (!mol) throw new Error('Invalid SMARTS');
+
+	const options = {
+		centreMoleculesBeforeDrawing: true,
+		bondLineWidth: 2.0,
+		multipleBondOffset: 0.25,
+		fixedScale: 0.08,
+		baseFontSize: 0.8,
+		minFontSize: -1,
+		maxFontSize: -1,
+		atomColourPalette: darkMode ? PALETTE_DARK : PALETTE_LIGHT,
+		backgroundColour: [0, 0, 0, 0],
+		width: parseInt(`${width}`),
+		height: parseInt(`${height}`),
+	};
+
+	const svg = mol.get_svg_with_highlights(JSON.stringify(options));
+	const el = new DOMParser().parseFromString(svg, 'text/xml').documentElement;
+	const viewBox = el.getAttribute('viewBox') || `0 0 ${width} ${height}`;
+	const finalSvg = el.toString?.() ?? el.outerHTML;
+	mol.delete();
+	return { svg: finalSvg, viewBox };
+}
+
 self.onmessage = async (event) => {
 	const { id, type, payload } = event.data;
 	try {
@@ -161,6 +152,9 @@ self.onmessage = async (event) => {
 				break;
 			case 'generateSVG':
 				result = await generateStructureSVG(payload);
+				break;
+			case 'generateQuerySVG':
+				result = await generateQuerySVG(payload);
 				break;
 			default:
 				throw new Error(`Unknown message type: ${type}`);

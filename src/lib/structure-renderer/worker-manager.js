@@ -187,6 +187,8 @@ export const rdkitWorker = {
 	init: () => renderPool.init(),
 	/** @param {Object} params */
 	generateSVG: (params) => renderPool.send('generateSVG', params),
+	/** @param {Object} params */
+	generateQuerySVG: (params) => renderPool.send('generateQuerySVG', params),
 	terminate: () => renderPool.terminate(),
 };
 

@@ -3,12 +3,8 @@
  * Dedicated worker for RDKit-based substructure matching
  */
 
-import _initRDKitModule from '@rdkit/rdkit';
-/** @type {(opts: any) => Promise<any>} */
-const initRDKitModule = /** @type {any} */ (_initRDKitModule);
-import wasmUrl from '@rdkit/rdkit/dist/RDKit_minimal.wasm?url';
+import { getRDKit } from '$lib/rdkit/utils.js';
 
-let rdkitInitialized = false;
 /** @type {any} */
 let RDKit = null;
 
@@ -17,11 +13,9 @@ let RDKit = null;
  * @returns {Promise<boolean>}
  */
 const initializeRDKit = async () => {
-	if (!rdkitInitialized) {
+	if (!RDKit) {
 		try {
-			const rdkitLib = await initRDKitModule({ locateFile: () => wasmUrl });
-			RDKit = rdkitLib;
-			rdkitInitialized = true;
+			RDKit = await getRDKit();
 			return true;
 		} catch (error) {
 			console.error('[RDKit Worker] Failed to initialize RDKit:', error);
@@ -34,9 +28,8 @@ const initializeRDKit = async () => {
 /**
  * RDKit-based substructure search
  *
- * Note: JSMol.get_substruct_matches() in the RDKit.js WASM bindings has no
- * useChirality parameter, so chiral SMARTS (e.g. [C@@H]) will match both
- * enantiomers. Chirality enforcement can be revisited if needed.
+ * Note: JSMol.get_substruct_matches() in the RDKit.js WASM bindings has
+ * useChirality parameter, but needs be newest >=2026.03.
  *
  * @param {string} smarts - SMARTS pattern
  * @param {string[]} smilesList - Array of SMILES strings
@@ -44,7 +37,7 @@ const initializeRDKit = async () => {
  * @returns {{matches: boolean[], indices: number[], allAtomBondMatches?: any[], atomBondMatches?: Array<{atoms: number[], bonds: number[]}>}}
  */
 const performRDKitSearch = (smarts, smilesList, includeAtomBondIndices = false) => {
-	if (!RDKit || !rdkitInitialized) {
+	if (!RDKit) {
 		throw new Error('RDKit not initialized');
 	}
 
@@ -94,7 +87,8 @@ const performRDKitSearch = (smarts, smilesList, includeAtomBondIndices = false) 
 			const targetMol = getMoleculeFromSmiles(smi);
 			if (!targetMol) continue;
 
-			const jsonResult = targetMol.get_substruct_matches(queryMol) ?? '[]';
+			const jsonResult =
+				targetMol.get_substruct_matches(queryMol, JSON.stringify({ useChirality: true })) ?? '[]';
 			const matchResults = JSON.parse(jsonResult);
 			matches[i] = matchResults.length > 0;
 

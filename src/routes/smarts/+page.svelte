@@ -1,4 +1,5 @@
 <script>
+	import { onMount } from 'svelte';
 	import { performSubstructureSearch } from '$lib/structure-renderer/worker-manager.js';
 	import MoleculeBox from '$lib/components/MoleculeBox.svelte';
 	import { mode } from 'mode-watcher';
@@ -7,10 +8,21 @@
 	import { Button } from '$lib/components/ui/button/index.js';
 	import * as ToggleGroup from '$lib/components/ui/toggle-group/index.js';
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
+	import * as Sheet from '$lib/components/ui/sheet/index.js';
 	import { Checkbox } from '$lib/components/ui/checkbox/index.js';
 	import { Label } from '$lib/components/ui/label/index.js';
 	import SettingsIcon from '@lucide/svelte/icons/settings';
+	import ListFilter from '@lucide/svelte/icons/list-filter';
+	import PanelRightOpen from '@lucide/svelte/icons/panel-right-open';
+	import PanelRightClose from '@lucide/svelte/icons/panel-right-close';
+	import ExplainPanel from '$lib/components/ExplainPanel.svelte';
 	import { settings } from '$lib/settings.svelte.js';
+	import { isMediumScreen } from '$lib/breakpoints.svelte.js';
+	import { validateSmarts } from '$lib/rdkit/utils.js';
+	import * as Tooltip from '$lib/components/ui/tooltip/index.js';
+	import { Parser, Language } from 'web-tree-sitter';
+	import smartsWasmUrl from '$lib/grammar-smarts/tree-sitter-smarts.wasm?url';
+	import coreWasmUrl from 'web-tree-sitter/web-tree-sitter.wasm?url';
 	import {
 		RNA,
 		DNA,
@@ -94,6 +106,38 @@
 
 	// ── Settings dialog ──────────────────────────────────────────────────────
 	let settingsOpen = $state(false);
+
+	// ── Tree-sitter parser ───────────────────────────────────────────────────
+	/** @type {Parser | null} */
+	let parser = $state(null);
+	/** @type {import('web-tree-sitter').Tree | null} */
+	let smartsTree = $state(null);
+	let cursorPos = $state(0);
+
+	onMount(async () => {
+		try {
+			await Parser.init({ locateFile: () => coreWasmUrl });
+			const lang = await Language.load(smartsWasmUrl);
+			const p = new Parser();
+			p.setLanguage(lang);
+			parser = p;
+			if (rawSmarts.trim()) smartsTree = p.parse(rawSmarts);
+		} catch {
+			// parser unavailable — ExplainPanel gracefully shows nothing
+		}
+	});
+
+	// ── Explain panel ────────────────────────────────────────────────────────
+	let explainOpen = $state(false);
+	let explainSheetOpen = $state(false);
+
+	function toggleExplain() {
+		if (isMediumScreen.value) explainOpen = !explainOpen;
+		else explainSheetOpen = !explainSheetOpen;
+	}
+
+	// ── Sets sheet ───────────────────────────────────────────────────────────
+	let setsSheetOpen = $state(false);
 
 	// ── Grid layout derived from settings ────────────────────────────────────
 	const COLS_CLASS = {
@@ -187,9 +231,21 @@
 	 * Called on every keystroke in the SMARTS input.
 	 * Validates the pattern against a known molecule after a short delay.
 	 */
-	function onSmartsInput() {
+	/** @param {Event} e */
+	function onSmartsInput(e) {
+		const el = /** @type {HTMLInputElement} */ (e.currentTarget);
+		cursorPos = el.selectionStart ?? 0;
 		if (debounceTimer) clearTimeout(debounceTimer);
-		debounceTimer = setTimeout(() => validateAndApply(rawSmarts), 350);
+		debounceTimer = setTimeout(() => {
+			if (parser) smartsTree = rawSmarts.trim() ? parser.parse(rawSmarts) : null;
+			validateAndApply(rawSmarts);
+		}, 350);
+	}
+
+	/** @param {Event} e */
+	function onSmartsCursorMove(e) {
+		const el = /** @type {HTMLInputElement} */ (e.currentTarget);
+		cursorPos = el.selectionStart ?? 0;
 	}
 
 	async function validateAndApply(/** @type {string} */ smarts) {
@@ -199,14 +255,16 @@
 			activeSmarts = '';
 			return;
 		}
-		try {
-			// Validate by running a search against a simple molecule
-			const result = await performSubstructureSearch([trimmed], 'C');
-			if (!result?.success) throw new Error(result?.error ?? 'Invalid SMARTS');
+		const { valid, errors } = await validateSmarts(trimmed);
+		if (valid) {
 			smartsError = null;
 			activeSmarts = trimmed;
-		} catch (/** @type {any} */ err) {
-			smartsError = err?.message ?? 'Invalid SMARTS';
+		} else {
+			const raw = errors[0] ?? '';
+			const posMatch = raw.match(/position\s+(\d+)/i);
+			smartsError = posMatch
+				? `Check for mistakes around position ${posMatch[1]}`
+				: 'Invalid SMARTS';
 			activeSmarts = '';
 		}
 	}
@@ -220,103 +278,186 @@
 	/>
 </svelte:head>
 
-<div class="mx-auto flex max-w-[1200px] flex-col gap-6 py-2">
-	<!-- Query input -->
-	<section class="flex w-full flex-col gap-2">
-		<Input
-			class="font-mono text-base"
-			type="text"
-			placeholder="Enter a SMARTS pattern, e.g. [OX2H] for hydroxyl…"
-			bind:value={rawSmarts}
-			oninput={onSmartsInput}
-			spellcheck={false}
-			autocomplete="off"
-			aria-invalid={!!smartsError || undefined}
-			autofocus
-		/>
-		{#if smartsError}
-			<p class="m-0 text-xs text-destructive" role="alert">{smartsError}</p>
-		{/if}
-	</section>
+<div class="flex items-start gap-4 py-2">
+	<!-- Left column: query input + grid -->
+	<div class="flex min-w-0 flex-1 flex-col gap-6">
+		<!-- Query input -->
+		<section class="flex w-full flex-col gap-2">
+			<div class="flex items-center gap-2">
+				<Tooltip.Provider>
+					<Tooltip.Root open={!!smartsError}>
+						<Tooltip.Trigger class="flex-1" asChild>
+							<Input
+								class="w-full font-mono text-base"
+								type="text"
+								placeholder="Enter a SMARTS pattern, e.g. [OX2H] for hydroxyl…"
+								bind:value={rawSmarts}
+								oninput={onSmartsInput}
+								onclick={onSmartsCursorMove}
+								onkeyup={onSmartsCursorMove}
+								spellcheck={false}
+								autocomplete="off"
+								aria-invalid={!!smartsError || undefined}
+								autofocus
+							/>
+						</Tooltip.Trigger>
+						<Tooltip.Content side="top" sideOffset={4}>
+							{smartsError}
+						</Tooltip.Content>
+					</Tooltip.Root>
+				</Tooltip.Provider>
+				{#if !explainOpen && !explainSheetOpen}
+					<Button variant="outline" onclick={toggleExplain}>
+						<PanelRightOpen size={16} />
+						Explain
+					</Button>
+				{/if}
+			</div>
+		</section>
 
-	<!-- Grid / Edit section -->
-	<section class="flex w-full flex-col gap-3">
-		<!-- Toolbar -->
-		<div class="flex flex-wrap items-center justify-between gap-3">
-			{#if viewMode === 'edit'}
-				<div class="flex flex-wrap items-center gap-1.5">
-					<span class="text-sm text-muted-foreground">Start from:</span>
-					{#each Object.entries(SETS) as [key, set]}
-						<Button
-							variant="outline"
-							size="sm"
-							class="rounded-full"
-							onclick={() => loadSet(/** @type {keyof typeof SETS} */ (key))}
-						>
-							{set.label}
+		<!-- Grid / Edit section -->
+		<section class="flex w-full flex-col gap-3">
+			<!-- Toolbar -->
+			<div class="flex flex-wrap items-center justify-between gap-3">
+				{#if viewMode === 'edit'}
+					{#if isMediumScreen.value}
+						<!-- Pills: md and up -->
+						<div class="flex flex-wrap items-center gap-1.5">
+							<span class="text-sm text-muted-foreground">Start from:</span>
+							{#each Object.entries(SETS) as [key, set]}
+								<Button
+									variant="outline"
+									size="sm"
+									class="rounded-full"
+									onclick={() => loadSet(/** @type {keyof typeof SETS} */ (key))}
+								>
+									{set.label}
+								</Button>
+							{/each}
+						</div>
+					{:else}
+						<!-- Sheet trigger: mobile only -->
+						<Button variant="outline" size="sm" onclick={() => (setsSheetOpen = true)}>
+							<ListFilter size={16} />
+							Start from…
 						</Button>
+					{/if}
+				{:else}
+					<div></div>
+				{/if}
+
+				<div class="flex items-center gap-2">
+					<ToggleGroup.Root type="single" value={viewMode} onValueChange={onViewModeChange}>
+						<ToggleGroup.Item value="grid" variant="outline" size="sm" class=""
+							>View</ToggleGroup.Item
+						>
+						<ToggleGroup.Item value="edit" variant="outline" size="sm" class=""
+							>Edit Molecules</ToggleGroup.Item
+						>
+					</ToggleGroup.Root>
+					<Button
+						variant="outline"
+						size="icon-sm"
+						aria-label="Settings"
+						onclick={() => (settingsOpen = true)}
+					>
+						<SettingsIcon size={16} />
+					</Button>
+				</div>
+			</div>
+
+			<!-- Grid view -->
+			{#if viewMode === 'grid'}
+				<div class="grid gap-4 {gridClass}">
+					{#each molecules as mol, i (mol.id)}
+						<div
+							class={settings.filterMatchesOnly && activeSmarts && !matchStates[i] ? 'hidden' : ''}
+						>
+							<MoleculeBox
+								structureDefinition={mol.structureDefinition}
+								{highlights}
+								width={molSize.width}
+								height={molSize.height}
+								useCoordgen={settings.useCoordgen}
+								explicitHydrogens={settings.explicitHydrogens}
+								bind:hasMatch={matchStates[i]}
+							/>
+						</div>
 					{/each}
 				</div>
-			{:else}
-				<div></div>
-			{/if}
 
-			<div class="flex items-center gap-2">
-				<ToggleGroup.Root type="single" value={viewMode} onValueChange={onViewModeChange}>
-					<ToggleGroup.Item value="grid" variant="outline" size="sm" class="">View</ToggleGroup.Item
-					>
-					<ToggleGroup.Item value="edit" variant="outline" size="sm" class=""
-						>Edit Molecules</ToggleGroup.Item
-					>
-				</ToggleGroup.Root>
-				<Button
-					variant="outline"
-					size="icon-sm"
-					aria-label="Settings"
-					onclick={() => (settingsOpen = true)}
+				<!-- Edit view -->
+			{:else}
+				<div class="flex flex-col gap-2">
+					<Textarea
+						class="max-h-[70vh] w-full resize-y overflow-auto font-mono text-sm leading-relaxed whitespace-pre"
+						bind:value={textareaValue}
+						spellcheck={false}
+						autocomplete="off"
+						rows={Math.max(8, textareaValue.split('\n').length + 2)}
+					/>
+					<p class="m-0 text-sm text-muted-foreground">
+						<strong>Format:</strong> SMILES per line or multi-SDF input.
+					</p>
+				</div>
+			{/if}
+		</section>
+	</div>
+
+	<!-- Explain panel: md and up -->
+	{#if explainOpen}
+		<div class="hidden w-72 shrink-0 flex-col gap-2 md:flex">
+			<div class="flex items-center justify-between">
+				<span class="text-xs font-medium tracking-wide text-muted-foreground uppercase"
+					>Explanation</span
 				>
-					<SettingsIcon size={16} />
+				<Button
+					variant="ghost"
+					size="sm"
+					aria-label="Close panel"
+					onclick={() => (explainOpen = false)}
+				>
+					<PanelRightClose size={14} />
 				</Button>
 			</div>
+			<ExplainPanel smarts={rawSmarts} tree={smartsTree} {cursorPos} />
 		</div>
-
-		<!-- Grid view -->
-		{#if viewMode === 'grid'}
-			<div class="grid gap-4 {gridClass}">
-				{#each molecules as mol, i (mol.id)}
-					<div
-						class={settings.filterMatchesOnly && activeSmarts && !matchStates[i] ? 'hidden' : ''}
-					>
-						<MoleculeBox
-							structureDefinition={mol.structureDefinition}
-							{highlights}
-							width={molSize.width}
-							height={molSize.height}
-							useCoordgen={settings.useCoordgen}
-							explicitHydrogens={settings.explicitHydrogens}
-							bind:hasMatch={matchStates[i]}
-						/>
-					</div>
-				{/each}
-			</div>
-
-			<!-- Edit view -->
-		{:else}
-			<div class="flex flex-col gap-2">
-				<Textarea
-					class="max-h-[70vh] w-full resize-y overflow-auto font-mono text-sm leading-relaxed whitespace-pre"
-					bind:value={textareaValue}
-					spellcheck={false}
-					autocomplete="off"
-					rows={Math.max(8, textareaValue.split('\n').length + 2)}
-				/>
-				<p class="m-0 text-sm text-muted-foreground">
-					<strong>Format:</strong> SMILES per line or multi-SDF input.
-				</p>
-			</div>
-		{/if}
-	</section>
+	{/if}
 </div>
+
+<!-- Explain sheet (mobile, < md) -->
+<Sheet.Root bind:open={explainSheetOpen}>
+	<Sheet.Content side="right" class="flex flex-col" portalProps={{}}>
+		<Sheet.Header class="">
+			<Sheet.Title class="">Explanation</Sheet.Title>
+		</Sheet.Header>
+		<div class="flex min-h-0 flex-1 flex-col p-4">
+			<ExplainPanel smarts={rawSmarts} tree={smartsTree} {cursorPos} />
+		</div>
+	</Sheet.Content>
+</Sheet.Root>
+
+<!-- Sets sheet (mobile) -->
+<Sheet.Root bind:open={setsSheetOpen}>
+	<Sheet.Content side="left" class="" portalProps={{}}>
+		<Sheet.Header class="">
+			<Sheet.Title class="">Start from…</Sheet.Title>
+		</Sheet.Header>
+		<div class="flex flex-col gap-2 p-4">
+			{#each Object.entries(SETS) as [key, set]}
+				<Button
+					variant="outline"
+					onclick={() => {
+						loadSet(/** @type {keyof typeof SETS} */ (key));
+						setsSheetOpen = false;
+					}}
+				>
+					{set.label}
+				</Button>
+			{/each}
+		</div>
+	</Sheet.Content>
+</Sheet.Root>
 
 <!-- Settings dialog -->
 <Dialog.Root bind:open={settingsOpen}>

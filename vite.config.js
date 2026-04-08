@@ -5,6 +5,11 @@ import { sveltekit } from '@sveltejs/kit/vite';
 
 export default defineConfig({
 	plugins: [tailwindcss(), sveltekit()],
+	// Allow .wasm files to be imported as ?url asset references
+	assetsInclude: ['**/*.wasm'],
+	optimizeDeps: {
+		exclude: ['web-tree-sitter'],
+	},
 	test: {
 		expect: { requireAssertions: true },
 		projects: [
@@ -27,7 +32,7 @@ export default defineConfig({
 				test: {
 					name: 'server',
 					environment: 'node',
-					include: ['src/**/*.{test,spec}.{js,ts}'],
+					include: ['src/**/*.{test,spec,tests}.{js,ts}'],
 					exclude: ['src/**/*.svelte.{test,spec}.{js,ts}'],
 				},
 			},

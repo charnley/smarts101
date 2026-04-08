@@ -10,18 +10,18 @@
 	<h1>About...</h1>
 
 	<p>
-		Who wrote this and why? Weekend project by <a href="https://github.com/charnley">Jimmy</a> and
-		<a href="https://github.com/leftStone">Denis</a>, because we needed something to visualize
-		SMARTS reactions on various molecules at the same time. Hope it is useful for you too.
+		This is a weekend project by <a href="https://github.com/charnley">Jimmy</a> and
+		<a href="https://github.com/leftStone">Denis</a>, built to help visualize SMARTS reactions
+		across multiple molecules simultaneously. The goal is to do for SMARTS what regex101.com does
+		for regular expressions, making it easier to explore matches and understand how SMARTS patterns
+		work. We hope you find it useful. This is still a work in progress.
 	</p>
 
 	<p>
-		Need features? Something wrong? Have issues? Open a issue at <a
-			href="https://github.com/charnley/smarts101">https://github.com/charnley/smarts101</a
-		>. Or, even better, make a pull request.
+		Have feature requests, found a bug, or ran into an issue? Please open an issue or even better,
+		submit a pull request.
+		<a href="https://github.com/charnley/smarts101">https://github.com/charnley/smarts101</a>.
 	</p>
-
-	<p>This website is based on primarily Svelte 5 and RDKit.</p>
 
 	<h2>FAQ</h2>
 

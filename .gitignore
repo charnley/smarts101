@@ -3,6 +3,8 @@ todo.md
 notes
 tmp
 
+src/lib/tree-sitter-smarts.wasm
+
 # Output
 .output
 .vercel
