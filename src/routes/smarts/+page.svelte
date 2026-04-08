@@ -6,6 +6,7 @@
 	import { Input } from '$lib/components/ui/input/index.js';
 	import { Textarea } from '$lib/components/ui/textarea/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
+	import * as Tabs from '$lib/components/ui/tabs/index.js';
 	import * as ToggleGroup from '$lib/components/ui/toggle-group/index.js';
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
 	import * as Sheet from '$lib/components/ui/sheet/index.js';
@@ -317,44 +318,13 @@
 
 		<!-- Grid / Edit section -->
 		<section class="flex w-full flex-col gap-3">
-			<!-- Toolbar -->
-			<div class="flex flex-wrap items-center justify-between gap-3">
-				{#if viewMode === 'edit'}
-					{#if isMediumScreen.value}
-						<!-- Pills: md and up -->
-						<div class="flex flex-wrap items-center gap-1.5">
-							<span class="text-sm text-muted-foreground">Start from:</span>
-							{#each Object.entries(SETS) as [key, set]}
-								<Button
-									variant="outline"
-									size="sm"
-									class="rounded-full"
-									onclick={() => loadSet(/** @type {keyof typeof SETS} */ (key))}
-								>
-									{set.label}
-								</Button>
-							{/each}
-						</div>
-					{:else}
-						<!-- Sheet trigger: mobile only -->
-						<Button variant="outline" size="sm" onclick={() => (setsSheetOpen = true)}>
-							<ListFilter size={16} />
-							Start from…
-						</Button>
-					{/if}
-				{:else}
-					<div></div>
-				{/if}
-
-				<div class="flex items-center gap-2">
-					<ToggleGroup.Root type="single" value={viewMode} onValueChange={onViewModeChange}>
-						<ToggleGroup.Item value="grid" variant="outline" size="sm" class=""
-							>View</ToggleGroup.Item
-						>
-						<ToggleGroup.Item value="edit" variant="outline" size="sm" class=""
-							>Edit Molecules</ToggleGroup.Item
-						>
-					</ToggleGroup.Root>
+			<Tabs.Root value={viewMode} onValueChange={onViewModeChange}>
+				<!-- Toolbar: tab list left, settings right -->
+				<div class="flex items-center justify-between">
+					<Tabs.List>
+						<Tabs.Trigger value="grid">View</Tabs.Trigger>
+						<Tabs.Trigger value="edit">Edit Molecules</Tabs.Trigger>
+					</Tabs.List>
 					<Button
 						variant="outline"
 						size="icon-sm"
@@ -364,43 +334,68 @@
 						<SettingsIcon size={16} />
 					</Button>
 				</div>
-			</div>
 
-			<!-- Grid view -->
-			{#if viewMode === 'grid'}
-				<div class="grid gap-4 {gridClass}">
-					{#each molecules as mol, i (mol.id)}
-						<div
-							class={settings.filterMatchesOnly && activeSmarts && !matchStates[i] ? 'hidden' : ''}
-						>
-							<MoleculeBox
-								structureDefinition={mol.structureDefinition}
-								{highlights}
-								width={molSize.width}
-								height={molSize.height}
-								useCoordgen={settings.useCoordgen}
-								explicitHydrogens={settings.explicitHydrogens}
-								bind:hasMatch={matchStates[i]}
-							/>
-						</div>
-					{/each}
-				</div>
+				<!-- Grid tab -->
+				<Tabs.Content value="grid">
+					<div class="grid gap-4 {gridClass}">
+						{#each molecules as mol, i (mol.id)}
+							<div
+								class={settings.filterMatchesOnly && activeSmarts && !matchStates[i]
+									? 'hidden'
+									: ''}
+							>
+								<MoleculeBox
+									structureDefinition={mol.structureDefinition}
+									{highlights}
+									width={molSize.width}
+									height={molSize.height}
+									useCoordgen={settings.useCoordgen}
+									explicitHydrogens={settings.explicitHydrogens}
+									bind:hasMatch={matchStates[i]}
+								/>
+							</div>
+						{/each}
+					</div>
+				</Tabs.Content>
 
-				<!-- Edit view -->
-			{:else}
-				<div class="flex flex-col gap-2">
-					<Textarea
-						class="max-h-[70vh] w-full resize-y overflow-auto font-mono text-sm leading-relaxed whitespace-pre"
-						bind:value={textareaValue}
-						spellcheck={false}
-						autocomplete="off"
-						rows={Math.max(8, textareaValue.split('\n').length + 2)}
-					/>
-					<p class="m-0 text-sm text-muted-foreground">
-						<strong>Format:</strong> SMILES per line or multi-SDF input.
-					</p>
-				</div>
-			{/if}
+				<!-- Edit tab -->
+				<Tabs.Content value="edit">
+					<div class="flex flex-col gap-2">
+						<Textarea
+							class="max-h-[70vh] w-full resize-y overflow-auto font-mono text-sm leading-relaxed whitespace-pre"
+							bind:value={textareaValue}
+							spellcheck={false}
+							autocomplete="off"
+							rows={Math.max(8, textareaValue.split('\n').length + 2)}
+						/>
+						<p class="m-0 text-sm text-muted-foreground">
+							<strong>Format:</strong> SMILES per line or multi-SDF input.
+						</p>
+						{#if isMediumScreen.value}
+							<!-- Pills: md and up -->
+							<div class="flex flex-wrap items-center gap-1.5">
+								<span class="text-sm text-muted-foreground">Start from:</span>
+								{#each Object.entries(SETS) as [key, set]}
+									<Button
+										variant="outline"
+										size="sm"
+										class="rounded-full"
+										onclick={() => loadSet(/** @type {keyof typeof SETS} */ (key))}
+									>
+										{set.label}
+									</Button>
+								{/each}
+							</div>
+						{:else}
+							<!-- Sheet trigger: mobile only -->
+							<Button variant="outline" size="sm" onclick={() => (setsSheetOpen = true)}>
+								<ListFilter size={16} />
+								Start from…
+							</Button>
+						{/if}
+					</div>
+				</Tabs.Content>
+			</Tabs.Root>
 		</section>
 	</div>
 

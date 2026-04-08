@@ -21,7 +21,8 @@ dep: ./src/lib/grammar-smarts/tree-sitter-smarts.wasm
 build-wasm:
 	cd $(TREE_SITTER_DIR) && $(TREE_SITTER) generate && $(TREE_SITTER) build --wasm
 
-./src/lib/grammar-smarts/tree-sitter-smarts.wasm: build-wasm
+./src/lib/grammar-smarts/tree-sitter-smarts.wasm: ./src/lib/grammar-smarts/grammar.js
+	make build-wasm
 
 format:
 	npx prettier --write .
