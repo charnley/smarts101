@@ -85,9 +85,11 @@
 </script>
 
 <div
-	class="mx-auto my-5 flex max-w-[600px] flex-row overflow-hidden rounded-[var(--radius)] border border-border bg-card"
+	class="mx-auto my-5 flex max-w-[600px] flex-col overflow-hidden rounded-[var(--radius)] border border-border bg-card sm:flex-row"
 >
-	<div class="flex min-w-[200px] flex-1 flex-col justify-center gap-2 border-r border-border p-4">
+	<div
+		class="flex flex-1 flex-col justify-center gap-2 border-b border-border p-4 sm:border-r sm:border-b-0"
+	>
 		{#each entries as entry, i (entry.id)}
 			{@const color = palette[i % palette.length]}
 			<div class="flex items-center gap-2">
@@ -109,7 +111,7 @@
 			</div>
 		{/each}
 	</div>
-	<div class="flex shrink-0 items-center justify-center p-2">
+	<div class="flex items-center justify-center p-2">
 		<StructureRenderer
 			structureDefinition={smiles}
 			{highlights}
