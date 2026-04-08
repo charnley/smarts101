@@ -10,17 +10,17 @@
 	<h1>About...</h1>
 
 	<p>
-		This is a weekend project by <a href="https://github.com/charnley">Jimmy</a> and <a href="https://github.com/leftStone">Denis</a>, built to help visualize SMARTS reactions across multiple molecules simultaneously.
-		The goal is to do for SMARTS what regex101.com does for regular expressions, making it easier to explore matches and understand how SMARTS patterns work.
-		We hope you find it useful.
-		This is still a work in progress.
+		This is a weekend project by <a href="https://github.com/charnley">Jimmy</a> and
+		<a href="https://github.com/leftStone">Denis</a>, built to help visualize SMARTS reactions
+		across multiple molecules simultaneously. The goal is to do for SMARTS what regex101.com does
+		for regular expressions, making it easier to explore matches and understand how SMARTS patterns
+		work. We hope you find it useful. This is still a work in progress.
 	</p>
 
 	<p>
-		Have feature requests, found a bug, or ran into an issue? Please open an issue or even better, submit a pull request.
-		 <a
-			href="https://github.com/charnley/smarts101">https://github.com/charnley/smarts101</a
-		>.
+		Have feature requests, found a bug, or ran into an issue? Please open an issue or even better,
+		submit a pull request.
+		<a href="https://github.com/charnley/smarts101">https://github.com/charnley/smarts101</a>.
 	</p>
 
 	<h2>FAQ</h2>

@@ -31,45 +31,34 @@
 		SMARTS (SMiles ARbitrary Target Specification) is a language for describing molecular patterns
 		and properties. It extends the SMILES notation to allow expressive queries over chemical
 		structures, making it possible to search, filter, and classify molecules based on substructure
-		patterns.
-		In the SMILES language we have <strong>atoms</strong> and <strong>bonds</strong>. The same is
-		true in SMARTS, which is further extended with <strong>property filters</strong> and
+		patterns. In the SMILES language we have <strong>atoms</strong> and <strong>bonds</strong>. The
+		same is true in SMARTS, which is further extended with <strong>property filters</strong> and
 		<strong>logical operators</strong>.
 	</p>
 
 	<p>
-		The simplest SMARTS patterns match individual atoms.
-		Either as bracket or non-bracket. Non-bracket follows SMILES notation.
-		Atoms are specified inside square brackets <code>[ ]</code>
+		The simplest SMARTS patterns match individual atoms. Either as bracket or non-bracket.
+		Non-bracket follows SMILES notation. Atoms are specified inside square brackets <code>[ ]</code>
 		and can carry multiple constraints joined by logical operators.
 	</p>
 
 	<HeadingAnchor level="h2">Atomic Identity</HeadingAnchor>
 
 	<p>
-	Any element symbol in brackets
-	matches that element with the given aromaticity.
-
-	Lower case atom means explicit aromatic, and capptetilzied means explicitly aliphatic (not-aromatic) atom.
-	Or by the atomic number (<code>#&lt;n&gt;</code>), which matches regardless of aromaticity.
-
-
+		Any element symbol in brackets matches that element with the given aromaticity. Lower case atom
+		means explicit aromatic, and capptetilzied means explicitly aliphatic (not-aromatic) atom. Or by
+		the atomic number (<code>#&lt;n&gt;</code>), which matches regardless of aromaticity.
 	</p>
 	<p>
+		A number pre-fixed on the atom designates the isotope.
 
-	A number pre-fixed on the atom designates the isotope.
-
-			<code>[35Cl]</code> matches chlorine-35.
-			<!-- A bare number without an element, e.g. <code>[13]</code>, is a valid isotope-only query that matches any atom with that mass number. -->
+		<code>[35Cl]</code> matches chlorine-35.
+		<!-- A bare number without an element, e.g. <code>[13]</code>, is a valid isotope-only query that matches any atom with that mass number. -->
 	</p>
 
-	<p>Aromaticity atomic queries works for 
-		Boron <code>b</code>,
-		Carbon <code>c</code>,
-		Nitrogen <code>n</code>,
-		Oxygen <code>o</code>,
-		Phosphorus <code>p</code>, and
-		Sulfur <code>s</code>.
+	<p>
+		Aromaticity atomic queries works for Boron <code>b</code>, Carbon <code>c</code>, Nitrogen
+		<code>n</code>, Oxygen <code>o</code>, Phosphorus <code>p</code>, and Sulfur <code>s</code>.
 	</p>
 
 	<ul>
@@ -122,9 +111,15 @@
 
 	<p><code>H</code> without explicit count defaults to 1.</p>
 
-	<p>Example: <code>[CH3]</code> matches a carbon with exactly 3 attached hydrogens, and <code>[Ch2]</code> means exactly 2 implicit hydrogens.</p>
+	<p>
+		Example: <code>[CH3]</code> matches a carbon with exactly 3 attached hydrogens, and
+		<code>[Ch2]</code> means exactly 2 implicit hydrogens.
+	</p>
 
-	<p>In practise you would use the different queries of explit and implicit hydrogens when you load molecules from MolBlock/SDF format. </p>
+	<p>
+		In practise you would use the different queries of explit and implicit hydrogens when you load
+		molecules from MolBlock/SDF format.
+	</p>
 
 	<SmartsDemo smiles="CCCC=O" smarts={['[*H0]', '[*H1]', '[*H2]', '[*H3]']} />
 
@@ -138,15 +133,17 @@
 			<code>d&lt;n&gt;</code> - the number of heavy-atom (non-Hydrogen) neighbors.
 		</li>
 		<li>
-			<code>X&lt;n&gt;</code> - total number of bonds including implicit
-			hydrogens (total Connectivity).
+			<code>X&lt;n&gt;</code> - total number of bonds including implicit hydrogens (total Connectivity).
 		</li>
 		<li>
-			<code>v&lt;n&gt;</code> -  the sum of bond orders of all bonds (total valence).
+			<code>v&lt;n&gt;</code> - the sum of bond orders of all bonds (total valence).
 		</li>
 	</ul>
 
-	<p>Without explicit number <code>D</code>, <code>d</code>, <code>X</code> and <code>v</code> defaults to exactly 1.</p>
+	<p>
+		Without explicit number <code>D</code>, <code>d</code>, <code>X</code> and <code>v</code> defaults
+		to exactly 1.
+	</p>
 
 	<SmartsDemo smiles="CC(=O)Oc1ccccc1C(=O)O" smarts={['[d1]', '[X1]', '[D3]']} />
 
@@ -168,15 +165,24 @@
 		</li>
 	</ul>
 
-	<p>Bare <code>[R,r,k,x]</code> (no numbers) for all four are "greater than zero" ring connections, and 
-		all support range queries (e.g. <code>[k&#123;5-6&#125;]</code>).</p>
+	<p>
+		Bare <code>[R,r,k,x]</code> (no numbers) for all four are "greater than zero" ring connections,
+		and all support range queries (e.g. <code>[k&#123;5-6&#125;]</code>).
+	</p>
 
+	<p>
+		<code>[R2]</code> matches an atom that is in exactly 2 rings (e.g. a ring fusion atom).
+		<code>[r5]</code> matches an atom whose smallest containing ring has exactly 5 members.
+		<code>[k5]</code> matches an atom that belongs to a ring of exactly 5 members (unlike
+		<code>r5</code>, which checks the minimum size).
+	</p>
 
-	<p><code>[R2]</code> matches an atom that is in exactly 2 rings (e.g. a ring fusion atom).
-	<code>[r5]</code> matches an atom whose smallest containing ring has exactly 5 members.
-	<code>[k5]</code> matches an atom that belongs to a ring of exactly 5 members (unlike <code>r5</code>, which checks the minimum size).</p>
-
-	<p>Want to go deeper into finding rings? <a href="https://www.rdkit.org/docs/RDKit_Book.html#ring-finding-and-sssr">https://www.rdkit.org/docs/RDKit_Book.html#ring-finding-and-sssr</a> </p>
+	<p>
+		Want to go deeper into finding rings? <a
+			href="https://www.rdkit.org/docs/RDKit_Book.html#ring-finding-and-sssr"
+			>https://www.rdkit.org/docs/RDKit_Book.html#ring-finding-and-sssr</a
+		>
+	</p>
 
 	<SmartsDemo smiles="c1ccc2c(c1)cc1ccc3cccc4ccc2c1c34" smarts={['[x2]', '[R2]', '[R3]']} />
 
@@ -189,20 +195,20 @@
 			<code>+&lt;n&gt;</code> - positive formal charge.
 		</li>
 		<li>
-			<code>-&lt;n&gt;</code> - negative formal charge. 
+			<code>-&lt;n&gt;</code> - negative formal charge.
 		</li>
 	</ul>
 
-	<p>Bare <code>+</code> means <code>+1</code>, and <code>++</code> is the same as <code>+2</code>.
-		Equivalent for <code>-</code> and <code>--</code>.</p>
+	<p>
+		Bare <code>+</code> means <code>+1</code>, and <code>++</code> is the same as <code>+2</code>.
+		Equivalent for <code>-</code> and <code>--</code>.
+	</p>
 
 	<SmartsDemo smiles="CCC([N-2])CC([NH-])CC([NH3+])CC(N)CC" smarts={['[*;+]', '[N-1]', '[--]']} />
 
 	<HeadingAnchor level="h2">Heteroatom Neighbors</HeadingAnchor>
 
-	<p>
-		Match atoms based on the number of heteroatom neighbors (non-C, non-H).
-	</p>
+	<p>Match atoms based on the number of heteroatom neighbors (non-C, non-H).</p>
 
 	<ul>
 		<li>
@@ -222,7 +228,8 @@
 	<HeadingAnchor level="h2">Hybridization</HeadingAnchor>
 
 	<p>
-		The <code>^</code> matches atoms by hybridization state. It requires a digit and does not have a default value.
+		The <code>^</code> matches atoms by hybridization state. It requires a digit and does not have a default
+		value.
 	</p>
 
 	<ul>
@@ -240,7 +247,7 @@
 
 	<p>
 		Atom and bond primitives can be combined using logical operators to build complex queries:
-		Operator priority, lowest to highest: 
+		Operator priority, lowest to highest:
 	</p>
 
 	<ul>
@@ -257,8 +264,9 @@
 	<p>Example; <code>[!C]</code> matches any non-carbon atom.</p>
 
 	<p>
-		No operator between two primitives is equivalent to an implicit <code>&amp;</code>.
-		So <code>[CH3]</code> is the same as <code>[C&amp;H3]</code>.
+		No operator between two primitives is equivalent to an implicit <code>&amp;</code>. So
+		<code>[CH3]</code>
+		is the same as <code>[C&amp;H3]</code>.
 	</p>
 
 	<SmartsDemo smiles="OCN(C)C(=O)CN" smarts={['[O,N;!H0]']} />
@@ -267,9 +275,7 @@
 
 	<!-- unless specified, bonds are "any", you can combine bonds with logival operators -->
 
-	<p>
-		Bonds between atoms can also be constrained.
-	</p>
+	<p>Bonds between atoms can also be constrained.</p>
 
 	<ul>
 		<li><code>-</code> - single bond</li>
@@ -316,10 +322,17 @@
 	/>
 
 	<p>
-		The <code>@?</code> and <code>@@?</code> "unspecified chirality" tokens appear in the original Daylight specification but are not supported in RDKit and will cause a parse error.
+		The <code>@?</code> and <code>@@?</code> "unspecified chirality" tokens appear in the original Daylight
+		specification but are not supported in RDKit and will cause a parse error.
 	</p>
 
-	<p>Stereochemistry is a big topic, read more about it at <a href="https://www.rdkit.org/docs/RDKit_Book.html#stereochemistry"> https://www.rdkit.org/docs/RDKit_Book.html#stereochemistry</a></p>
+	<p>
+		Stereochemistry is a big topic, read more about it at <a
+			href="https://www.rdkit.org/docs/RDKit_Book.html#stereochemistry"
+		>
+			https://www.rdkit.org/docs/RDKit_Book.html#stereochemistry</a
+		>
+	</p>
 
 	<HeadingAnchor>Recursive SMARTS</HeadingAnchor>
 
@@ -328,8 +341,8 @@
 	</p>
 
 	<p>
-		These expressions behave like atomic primitives and can be combined with other primitives using logical operators.
-		For example;
+		These expressions behave like atomic primitives and can be combined with other primitives using
+		logical operators. For example;
 	</p>
 
 	<ul>
@@ -444,7 +457,8 @@
 	<HeadingAnchor>Need more</HeadingAnchor>
 
 	<p>
-		No better option than reading <a href="https://www.rdkit.org/docs/RDKit_Book.html">https://www.rdkit.org/docs/RDKit_Book.html</a>.
+		No better option than reading <a href="https://www.rdkit.org/docs/RDKit_Book.html"
+			>https://www.rdkit.org/docs/RDKit_Book.html</a
+		>.
 	</p>
-
 </div>
