@@ -117,7 +117,7 @@
 	</p>
 
 	<p>
-		In practise you would use the different queries of explit and implicit hydrogens when you load
+		In practise you would use the different queries of explicit and implicit hydrogens when you load
 		molecules from MolBlock/SDF format.
 	</p>
 
@@ -155,8 +155,8 @@
 		</li>
 		<li>
 			<!-- <code>r&lt;n&gt;</code> - minimum ring size the atom is part of. -->
-			<code>r&lt;n&gt;</code> - smallest ring size containing this atom (SSSR minimum). Bare
-			<code>r</code> matches any ring atom.
+			<code>r&lt;n&gt;</code> - smallest ring size containing this atom.
+			Size of smallest set of smallest rings (SSSR) minimum.
 		</li>
 		<li>
 			<code>k&lt;n&gt;</code> - ring membership by exact ring size.
