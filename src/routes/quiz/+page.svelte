@@ -16,15 +16,14 @@
 	/** @type {QuizQuestion[]} */
 	const questions = [
 		{
-			description: 'An aliphatic carbon attached to an aliphatic oxygen with any bond.',
+			description: 'Aliphatic Carbon and Oyxgen atoms connected with any bond.',
 			smiles: 'CC(=O)Oc1ccccc1C(=O)O',
 			referenceSMARTS: 'C~O',
 		},
 		{
-			description: 'An aromatic six-membered ring carbon.',
-			smiles: 'c3ccc3Cc1ccc(Cc2ccccccc2)cc1O',
-			// TODO enforce that the expression only matches single carbons and not the whole ring of carbons together
-			referenceSMARTS: '[c;r6]',
+			description: 'Carbon in six-membered ring',
+			smiles: 'C3CCC3CC1CCC(CC2CCCcCC2)C(Cc4ccccc4)C1',
+			referenceSMARTS: '[#6;r6]',
 		},
 		{
 			description: 'An atom which is not in any ring and is not an oxygen.',

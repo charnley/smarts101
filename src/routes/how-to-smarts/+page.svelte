@@ -46,7 +46,7 @@
 
 	<p>
 		Any element symbol in brackets matches that element with the given aromaticity. Lower case atom
-		means explicit aromatic, and capptetilzied means explicitly aliphatic (not-aromatic) atom. Or by
+		means explicit aromatic, and capitalized means explicitly aliphatic (not-aromatic) atom. Or by
 		the atomic number (<code>#&lt;n&gt;</code>), which matches regardless of aromaticity.
 	</p>
 	<p>
@@ -65,7 +65,7 @@
 		<li>
 			<code>[C]</code> - Explicit aliphatic (non-aromatic) carbon.
 		</li>
-		<li><code>[c]</code> - Excplicit aromatic carbon.</li>
+		<li><code>[c]</code> - Explicit aromatic carbon.</li>
 		<li>
 			<code>[#6]</code>
 			matches both <code>C</code> and <code>c</code>.
@@ -155,7 +155,8 @@
 		</li>
 		<li>
 			<!-- <code>r&lt;n&gt;</code> - minimum ring size the atom is part of. -->
-			<code>r&lt;n&gt;</code> - number/size of smallest set of smallest rings (SSSR)
+			<code>r&lt;n&gt;</code> - smallest ring size containing this atom (SSSR minimum). Bare
+			<code>r</code> matches any ring atom.
 		</li>
 		<li>
 			<code>k&lt;n&gt;</code> - ring membership by exact ring size.
@@ -291,7 +292,9 @@
 
 	<p>
 		An unspecified bond in a SMARTS pattern matches either a single or aromatic bond.
-		<code>CC</code> is the same as <code>C~C</code>.
+		<code>CC</code> is the same as <code>C-C</code>, and <code>cc</code> is the same as
+		<code>c:c</code>.
+		<code>[#6][#6]</code> will match both aromatic and single bonds.
 	</p>
 
 	<p>
