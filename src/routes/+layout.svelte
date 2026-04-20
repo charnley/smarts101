@@ -42,7 +42,7 @@
 <ModeWatcher />
 
 <div class="layout-root">
-	<header class="sticky top-0 z-20 flex h-16 shrink-0 items-center bg-background">
+	<header class="sticky top-0 z-20 flex h-16 shrink-0 items-center bg-background/30 backdrop-blur-md">
 		<div class="mx-auto flex w-full max-w-[1200px] items-center px-4">
 			<!-- Left: hamburger (mobile) + title -->
 			<div class="flex items-center gap-2">
@@ -55,7 +55,7 @@
 				>
 					<MenuIcon class="size-5" />
 				</Button>
-				<span class="font-bold">SMARTS 101</span>
+				<span class="font-bold bg-primary text-primary-foreground px-1">SMARTS 101</span>
 			</div>
 
 			<!-- Center: nav links (desktop only) -->
