@@ -155,8 +155,8 @@
 		</li>
 		<li>
 			<!-- <code>r&lt;n&gt;</code> - minimum ring size the atom is part of. -->
-			<code>r&lt;n&gt;</code> - smallest ring size containing this atom.
-			Size of smallest set of smallest rings (SSSR) minimum.
+			<code>r&lt;n&gt;</code> - smallest ring size containing this atom. Size of smallest set of smallest
+			rings (SSSR) minimum.
 		</li>
 		<li>
 			<code>k&lt;n&gt;</code> - ring membership by exact ring size.

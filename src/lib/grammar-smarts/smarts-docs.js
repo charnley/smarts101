@@ -324,8 +324,10 @@ export const NODE_DOCS = {
 	recursive_query: {
 		title: 'Recursive SMARTS $(...)',
 		description:
-			'Defines an atomic environment as a sub-SMARTS starting from the atom of interest. Can be nested and combined with other primitives using logical operators.',
-		example: '[$([OH]c1ccccc1)]  — phenolic OH',
+			'Matches atoms that belong to a substructure defined by the inner SMARTS pattern. ' +
+			'The query atom must be part of a match of the inner pattern within the molecule. ' +
+			'Expand to inspect the inner pattern.',
+		example: '[$(c1ccccc1)]  — atom that is part of a benzene ring',
 	},
 
 	// ── Separators ────────────────────────────────────────────────────────────
@@ -575,8 +577,10 @@ function nodeToEntry(node, text, src) {
 	// ── recursive_query ─────────────────────────────────────────────────────
 	if (type === 'recursive_query') {
 		const doc = NODE_DOCS['recursive_query'];
-		// Surface any errors inside the $(...) body as children
-		const children = walkChainChildren(node, src).filter((e) => e.type === 'ERROR');
+		// Walk the inner smarts node fully so its atoms/bonds/branches appear
+		// as indented children in the explainer panel.
+		const smartsChild = node.children.find((c) => c.isNamed && c.type === 'smarts');
+		const children = smartsChild ? walkChainChildren(smartsChild, src) : [];
 		return {
 			type,
 			text,
