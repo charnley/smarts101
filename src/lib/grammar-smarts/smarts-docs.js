@@ -1,16 +1,4 @@
 /**
- * SMARTS node documentation and tree-walker for the regex101-style explainer.
- *
- * Exports:
- *   NODE_DOCS   – human-readable docs for every grammar node type
- *   buildExplainer(rootNode, src) – builds an ExplainerEntry[] from a parsed tree
- */
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Types (JSDoc only, no runtime cost)
-// ─────────────────────────────────────────────────────────────────────────────
-
-/**
  * @typedef {{
  *   title: string,
  * }} NodeDoc
