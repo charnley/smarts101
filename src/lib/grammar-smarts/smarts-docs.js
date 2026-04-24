@@ -20,8 +20,8 @@
 export const NODE_DOCS = {
 	// ── Top-level ────────────────────────────────────────────────────────────
 	source_file: { title: 'Source file' },
-	smarts: { title: 'SMARTS expression' },
-	reaction: { title: 'Reaction SMARTS' },
+	smarts: { title: 'expression' },
+	reaction: { title: 'Reaction' },
 
 	// ── Structure ────────────────────────────────────────────────────────────
 	chain: { title: 'Chain' },
@@ -33,9 +33,9 @@ export const NODE_DOCS = {
 	simple_atom: { title: 'Simple atom' },
 	simple_atom_aliphatic: { title: 'Aliphatic atom' },
 	simple_atom_aromatic: { title: 'Aromatic atom' },
-	simple_atom_wildcard: { title: 'Wildcard atom (*)' },
-	simple_atom_query_A: { title: 'Aliphatic query (A)' },
-	simple_atom_query_a: { title: 'Aromatic query (a)' },
+	simple_atom_wildcard: { title: 'Wildcard' },
+	simple_atom_query_A: { title: 'Aliphatic wildcard' },
+	simple_atom_query_a: { title: 'Aromatic wildcard' },
 
 	// ── Bracketed atom ────────────────────────────────────────────────────────
 	bracketed_atom: { title: 'Atom' },
