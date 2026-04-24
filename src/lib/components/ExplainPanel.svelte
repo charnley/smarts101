@@ -83,7 +83,6 @@
 			class={['flex items-center gap-1.5 rounded px-1 py-0.5', active && 'bg-primary/10']
 				.filter(Boolean)
 				.join(' ')}
-			title={entry.doc.description}
 		>
 			<span class="w-3 shrink-0"></span>
 			<code class="text-xs text-muted-foreground">{entry.text}</code>
@@ -98,7 +97,6 @@
 				.filter(Boolean)
 				.join(' ')}
 			style="padding-left: {depth * 14 + 4}px"
-			title={entry.doc.description}
 			onclick={() => toggle(entry.startIndex)}
 		>
 			<span class="flex shrink-0 items-center gap-1">
@@ -130,7 +128,6 @@
 				.filter(Boolean)
 				.join(' ')}
 			style="padding-left: {depth * 14 + 4 + 18}px"
-			title={entry.doc.description}
 		>
 			<code
 				class={[
