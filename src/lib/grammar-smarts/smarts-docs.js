@@ -44,40 +44,37 @@ export const NODE_DOCS = {
 
 	// ── Atom expression combinators ───────────────────────────────────────────
 	atom_expr_and_im: { title: 'Implicit AND (adjacency)' },
-	atom_expr_and_hi: { title: 'High-precedence AND (&)' },
-	atom_expr_and_lo: { title: 'Low-precedence AND (;)' },
-	atom_expr_or: { title: 'OR (,)' },
-	atom_expr_not: { title: 'NOT (!)' },
+	atom_expr_and_hi: { title: 'High-precedence AND' },
+	atom_expr_and_lo: { title: 'Low-precedence AND' },
+	atom_expr_or: { title: 'OR' },
+	atom_expr_not: { title: 'NOT' },
 
 	// ── Atom primitives ───────────────────────────────────────────────────────
-	primitive_wildcard: { title: 'Wildcard primitive (*)' },
-	primitive_aromatic: { title: 'Aromatic primitive (a)' },
-	primitive_aliphatic: { title: 'Aliphatic primitive (A)' },
 	primitive_element: { title: 'Element symbol' },
-	primitive_atomic_num: { title: 'Atomic number (#n)' },
-	primitive_hybridization: { title: 'Hybridization (^n)' },
-	primitive_degree: { title: 'Degree (Dn)' },
-	primitive_nonH_degree: { title: 'Non-H degree (dn)' },
-	primitive_total_h: { title: 'Total H count (Hn)' },
-	primitive_implicit_h: { title: 'Implicit H count (hn)' },
-	primitive_ring_membership: { title: 'Ring membership (Rn)' },
-	primitive_ring_size: { title: 'Ring size (rn)' },
-	primitive_ring_size_ex: { title: 'Exact ring size (kn)' },
-	primitive_valence: { title: 'Valence (vn)' },
-	primitive_connectivity: { title: 'Connectivity (Xn)' },
-	primitive_ring_bond: { title: 'Ring bond count (xn)' },
-	primitive_hetero_nbr: { title: 'Heteroatom neighbours (zn)' },
-	primitive_aliph_hetero_nbr: { title: 'Aliphatic heteroatom neighbours (Zn)' },
-	primitive_charge_pos: { title: 'Positive charge (+)' },
-	primitive_charge_neg: { title: 'Negative charge (-)' },
-	primitive_chirality: { title: 'Chirality (@ / @@)' },
+	primitive_atomic_num: { title: 'Atomic number' },
+	primitive_hybridization: { title: 'Hybridization' },
+	primitive_degree: { title: 'Degree' },
+	primitive_nonH_degree: { title: 'Non-H degree' },
+	primitive_total_h: { title: 'Total H count' },
+	primitive_implicit_h: { title: 'Implicit H count' },
+	primitive_ring_membership: { title: 'Ring membership' },
+	primitive_ring_size: { title: 'Ring size' },
+	primitive_ring_size_ex: { title: 'Exact ring size' },
+	primitive_valence: { title: 'Valence' },
+	primitive_connectivity: { title: 'Connectivity' },
+	primitive_ring_bond: { title: 'Ring bond count' },
+	primitive_hetero_nbr: { title: 'Heteroatom neighbours' },
+	primitive_aliph_hetero_nbr: { title: 'Aliphatic heteroatom neighbours' },
+	primitive_charge_pos: { title: 'Positive charge' },
+	primitive_charge_neg: { title: 'Negative charge' },
+	primitive_chirality: { title: 'Chirality' },
 
 	// ── Bonds ─────────────────────────────────────────────────────────────────
 	bond_primitive: { title: 'Bond' },
-	bond_expr_and_lo: { title: 'Bond low-AND (;)' },
-	bond_expr_or: { title: 'Bond OR (,)' },
-	bond_expr_and_hi: { title: 'Bond high-AND (&)' },
-	bond_expr_not: { title: 'Bond NOT (!)' },
+	bond_expr_and_lo: { title: 'Bond low-AND' },
+	bond_expr_or: { title: 'Bond OR' },
+	bond_expr_and_hi: { title: 'Bond high-AND' },
+	bond_expr_not: { title: 'Bond NOT' },
 	bond_expr_and_im: { title: 'Bond implicit AND' },
 
 	// ── Ring closure ──────────────────────────────────────────────────────────
@@ -87,8 +84,8 @@ export const NODE_DOCS = {
 	recursive_query: { title: 'Recursive' },
 
 	// ── Separators ────────────────────────────────────────────────────────────
-	fragment_separator: { title: 'Fragment separator (.)' },
-	reaction_separator_gt: { title: 'Reaction arrow (>)' },
+	fragment_separator: { title: 'Fragment' },
+	reaction_separator_gt: { title: 'Reaction' },
 
 	// ── Error ─────────────────────────────────────────────────────────────────
 	ERROR: { title: 'Parse error' },
@@ -121,17 +118,15 @@ function simpleAtomSubtype(text) {
 
 /** @type {Record<string, NodeDoc>} */
 const BOND_DOCS = {
-	'-': { title: 'Single bond (-)' },
-	'=': { title: 'Double bond (=)' },
-	'#': { title: 'Triple bond (#)' },
-	':': { title: 'Aromatic bond (:)' },
-	'~': { title: 'Any bond (~)' },
-	'@': { title: 'Ring bond (@)' },
-	'/': { title: 'Directional bond up (/)' },
-	'\\': { title: 'Directional bond down (\\)' },
-	'/?': { title: 'Directional bond up or unspecified (/?)' },
-	'\\?': { title: 'Directional bond down or unspecified (\\?)' },
-	$: { title: 'Quadruple bond ($)' },
+	'-': { title: 'Single bond' },
+	'=': { title: 'Double bond' },
+	'#': { title: 'Triple bond' },
+	':': { title: 'Aromatic bond' },
+	'~': { title: 'Any bond' },
+	'@': { title: 'Ring bond' },
+	'/': { title: 'Directional bond up' },
+	'\\': { title: 'Directional bond down' },
+	$: { title: 'Quadruple bond' },
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -152,22 +147,6 @@ const RECURSE_TYPES = new Set([
 ]);
 
 /**
- * Node types that produce a leaf ExplainerEntry directly.
- */
-const LEAF_TYPES = new Set([
-	'simple_atom',
-	'ring_closure',
-	'bond_primitive',
-	'bond_expr',
-	'bond_expr_and_lo',
-	'bond_expr_or',
-	'bond_expr_and_hi',
-	'bond_expr_not',
-	'bond_expr_and_im',
-	'ERROR',
-]);
-
-/**
  * Return an ERROR ExplainerEntry for a node, or null if not an error.
  * @param {import('web-tree-sitter').Node} node
  * @param {string} src
@@ -182,26 +161,6 @@ function errorEntry(node, src) {
 		endIndex: node.endIndex,
 		doc: NODE_DOCS['ERROR'],
 	};
-}
-
-/**
- * Walk the children of a bracketed_atom to produce child ExplainerEntries
- * (isotope, atom expression primitives, atom_map).
- *
- * @param {import('web-tree-sitter').Node} bracketedNode
- * @param {string} src
- * @returns {ExplainerEntry[]}
- */
-function walkBracketedAtomChildren(bracketedNode, src) {
-	/** @type {ExplainerEntry[]} */
-	const entries = [];
-	for (const child of bracketedNode.children) {
-		if (!child.isNamed) continue; // skip '[', ']' punctuation
-		const childText = src.slice(child.startIndex, child.endIndex);
-		const entry = nodeToEntry(child, childText, src);
-		if (entry) entries.push(entry);
-	}
-	return entries;
 }
 
 /**
@@ -501,8 +460,6 @@ export function buildExplainer(rootNode, src) {
 				}
 				entries.push(...walkChainChildren(part, src));
 			}
-		} else if (child.type === 'smarts') {
-			entries.push(...walkChainChildren(child, src));
 		} else {
 			entries.push(...walkChainChildren(child, src));
 		}
