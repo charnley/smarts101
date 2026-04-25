@@ -90,10 +90,10 @@
 		</div>
 	{:else if hasChildren}
 		<button
-			class={[
-				'flex w-full cursor-pointer flex-wrap items-baseline gap-x-1.5 gap-y-0.5 rounded px-1 py-0.5 text-left hover:bg-muted',
-				active && 'bg-primary/10',
-			]
+		class={[
+			'flex w-full min-w-0 cursor-pointer items-center gap-x-1.5 rounded px-1 py-0.5 text-left hover:bg-muted',
+			active && 'bg-primary/10',
+		]
 				.filter(Boolean)
 				.join(' ')}
 			style="padding-left: {depth * 14 + 4}px"
@@ -107,12 +107,12 @@
 				{/if}
 				<code
 					class={[
-						'max-w-[10rem] overflow-hidden text-xs text-ellipsis whitespace-nowrap',
+						'max-w-[5rem] overflow-hidden text-xs text-ellipsis whitespace-nowrap',
 						entry.type === 'ERROR' ? 'error' : '',
 					].join(' ')}>{entry.text}</code
 				>
 			</span>
-			<span class="text-xs text-muted-foreground">{entry.doc.title}</span>
+			<span class="min-w-0 truncate text-xs text-muted-foreground">{entry.doc.title}</span>
 		</button>
 		{#if open}
 			{#each entry.children ?? [] as child}
@@ -121,21 +121,21 @@
 		{/if}
 	{:else}
 		<div
-			class={[
-				'flex w-full flex-wrap items-baseline gap-x-1.5 gap-y-0.5 rounded px-1 py-0.5 hover:bg-muted',
-				active && 'bg-primary/10',
-			]
+		class={[
+			'flex w-full min-w-0 items-center gap-x-1.5 rounded px-1 py-0.5 hover:bg-muted',
+			active && 'bg-primary/10',
+		]
 				.filter(Boolean)
 				.join(' ')}
 			style="padding-left: {depth * 14 + 4 + 18}px"
 		>
 			<code
-				class={[
-					'max-w-[10rem] overflow-hidden text-xs text-ellipsis whitespace-nowrap',
-					entry.type === 'ERROR' ? 'error' : '',
-				].join(' ')}>{entry.text}</code
+class={[
+				'max-w-[5rem] overflow-hidden text-xs text-ellipsis whitespace-nowrap',
+				entry.type === 'ERROR' ? 'error' : '',
+			].join(' ')}>{entry.text}</code
 			>
-			<span class="text-xs text-muted-foreground">{entry.doc.title}</span>
+			<span class="min-w-0 truncate text-xs text-muted-foreground">{entry.doc.title}</span>
 		</div>
 	{/if}
 {/snippet}
