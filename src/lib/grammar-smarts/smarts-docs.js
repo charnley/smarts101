@@ -1,20 +1,6 @@
 /**
- * SMARTS node documentation and tree-walker for the regex101-style explainer.
- *
- * Exports:
- *   NODE_DOCS   – human-readable docs for every grammar node type
- *   buildExplainer(rootNode, src) – builds an ExplainerEntry[] from a parsed tree
- */
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Types (JSDoc only, no runtime cost)
-// ─────────────────────────────────────────────────────────────────────────────
-
-/**
  * @typedef {{
  *   title: string,
- *   description: string,
- *   example?: string
  * }} NodeDoc
  */
 
@@ -30,324 +16,79 @@
  * }} ExplainerEntry
  */
 
-// ─────────────────────────────────────────────────────────────────────────────
-// NODE_DOCS
-// ─────────────────────────────────────────────────────────────────────────────
-
 /** @type {Record<string, NodeDoc>} */
 export const NODE_DOCS = {
 	// ── Top-level ────────────────────────────────────────────────────────────
-	source_file: {
-		title: 'Source file',
-		description:
-			'The root of the parse tree. Contains either a plain SMARTS expression or a reaction SMARTS.',
-	},
-	smarts: {
-		title: 'SMARTS expression',
-		description: 'A molecular pattern made of one or more dot-separated fragments.',
-		example: '[OH]c1ccccc1',
-	},
-	reaction: {
-		title: 'Reaction SMARTS',
-		description: 'A reaction query with reactants, agents, and products separated by >.',
-		example: 'C(=O)O.OCC>>C(=O)OCC.O',
-	},
+	source_file: { title: 'Source file' },
+	smarts: { title: 'expression' },
+	reaction: { title: 'Reaction' },
 
 	// ── Structure ────────────────────────────────────────────────────────────
-	chain: {
-		title: 'Chain',
-		description: 'A linear sequence of atoms connected by explicit or implicit bonds.',
-		example: 'CCO',
-	},
-	atom: {
-		title: 'Atom',
-		description: 'An atom with optional ring-closure digits and branches attached to it.',
-		example: 'C(=O)',
-	},
-	branch: {
-		title: 'Branch',
-		description:
-			'A sub-chain in parentheses that diverges from the main chain and reconnects at the same atom.',
-		example: 'C(=O)O',
-	},
-	component_group: {
-		title: 'Component group',
-		description:
-			'Zero-level parentheses that restrict all contained atoms to match within the same molecular component.',
-		example: '(C.C)',
-	},
+	chain: { title: 'Chain' },
+	atom: { title: 'Atom' },
+	branch: { title: 'Branch' },
+	component_group: { title: 'Component group' },
 
 	// ── Simple atoms (outside brackets) ──────────────────────────────────────
-	simple_atom: {
-		title: 'Simple atom',
-		description:
-			'An unbracketed atom from the organic subset or a query primitive (*, A, a). Matches any atom of that element regardless of charge or hydrogen count.',
-		example: 'C  c  Cl  *',
-	},
-	// subtypes — used by buildExplainer to give a finer title
-	simple_atom_aliphatic: {
-		title: 'Aliphatic atom',
-		description:
-			'Unbracketed aliphatic organic-subset atom (B C N O P S F Cl Br I). Matches any atom of that element regardless of charge or hydrogen count.',
-		example: 'C  Cl  Br',
-	},
-	simple_atom_aromatic: {
-		title: 'Aromatic atom',
-		description:
-			'Unbracketed aromatic organic-subset atom (b c n o p s). Matches any aromatic atom of that element.',
-		example: 'c  n  o',
-	},
-	simple_atom_wildcard: {
-		title: 'Wildcard atom (*)',
-		description: 'Matches any atom of any element.',
-		example: '*',
-	},
-	simple_atom_query_A: {
-		title: 'Aliphatic query (A)',
-		description: 'Matches any aliphatic (non-aromatic) atom.',
-		example: 'A',
-	},
-	simple_atom_query_a: {
-		title: 'Aromatic query (a)',
-		description: 'Matches any aromatic atom.',
-		example: 'a',
-	},
+	simple_atom: { title: 'Simple atom' },
+	simple_atom_aliphatic: { title: 'Aliphatic atom' },
+	simple_atom_aromatic: { title: 'Aromatic atom' },
+	simple_atom_wildcard: { title: 'Wildcard' },
+	simple_atom_query_A: { title: 'Aliphatic wildcard' },
+	simple_atom_query_a: { title: 'Aromatic wildcard' },
 
 	// ── Bracketed atom ────────────────────────────────────────────────────────
-	bracketed_atom: {
-		title: 'Bracketed atom',
-		description:
-			'An atom expression enclosed in [ ] that can specify multiple properties with logical operators.',
-		example: '[C@@H]  [#6]  [n;H1]',
-	},
-	isotope: {
-		title: 'Isotope',
-		description:
-			'An integer mass prefix inside brackets that restricts the match to a specific isotope.',
-		example: '[35Cl]  [2H]',
-	},
-	atom_map: {
-		title: 'Atom map',
-		description:
-			'A :n label inside brackets that associates an atom across a reaction SMARTS, linking a reactant atom to the corresponding product atom.',
-		example: '[C:1]>>[C:1]O',
-	},
+	bracketed_atom: { title: 'Atom' },
+	isotope: { title: 'Isotope' },
+	atom_map: { title: 'Atom map' },
 
 	// ── Atom expression combinators ───────────────────────────────────────────
-	atom_expr_and_im: {
-		title: 'Implicit AND (adjacency)',
-		description:
-			'Two primitives written next to each other are combined with a high-precedence AND. Both conditions must be true.',
-		example: '[CH2]  — C with exactly 2 hydrogens',
-	},
-	atom_expr_and_hi: {
-		title: 'High-precedence AND (&)',
-		description:
-			'Explicit & operator. Both conditions must be true. Binds more tightly than , and ;.',
-		example: '[X3&H0]  — 3 connections and no hydrogens',
-	},
-	atom_expr_and_lo: {
-		title: 'Low-precedence AND (;)',
-		description:
-			'Semicolon AND operator. Both conditions must be true. Binds less tightly than , so it groups across OR expressions.',
-		example: '[c,n;H1]  — (aromatic C or aromatic N) with exactly 1 H',
-	},
-	atom_expr_or: {
-		title: 'OR (,)',
-		description: 'Comma OR operator. The atom matches if either condition is true.',
-		example: '[C,N]  — aliphatic carbon or aliphatic nitrogen',
-	},
-	atom_expr_not: {
-		title: 'NOT (!)',
-		description: 'Negation. The atom matches only if the following condition is false.',
-		example: '[!C;R]  — not an aliphatic carbon, and in a ring',
-	},
+	atom_expr_and_im: { title: 'Implicit AND (adjacency)' },
+	atom_expr_and_hi: { title: 'High-precedence AND' },
+	atom_expr_and_lo: { title: 'Low-precedence AND' },
+	atom_expr_or: { title: 'OR' },
+	atom_expr_not: { title: 'NOT' },
 
 	// ── Atom primitives ───────────────────────────────────────────────────────
-	primitive_wildcard: {
-		title: 'Wildcard primitive (*)',
-		description: 'Matches any atom inside a bracketed expression.',
-		example: '[*H2]  — any atom with exactly 2 hydrogens',
-	},
-	primitive_aromatic: {
-		title: 'Aromatic primitive (a)',
-		description: 'Matches any aromatic atom.',
-		example: '[a]',
-	},
-	primitive_aliphatic: {
-		title: 'Aliphatic primitive (A)',
-		description: 'Matches any aliphatic (non-aromatic) atom.',
-		example: '[A]',
-	},
-	primitive_element: {
-		title: 'Element symbol',
-		description: 'Matches a specific element. Uppercase = aliphatic, lowercase = aromatic.',
-		example: '[Si]  [Fe]  [as]  [se]',
-	},
-	primitive_atomic_num: {
-		title: 'Atomic number (#n)',
-		description: 'Matches an atom by its atomic number.',
-		example: '[#6]  — any carbon (atomic number 6)',
-	},
-	primitive_hybridization: {
-		title: 'Hybridization (^n)',
-		description: 'Matches atoms with a specific hybridization state (0=s, 1=sp, 2=sp2, 3=sp3…).',
-		example: '[^2]  — sp2 atom',
-	},
-	primitive_degree: {
-		title: 'Degree (Dn)',
-		description:
-			'Matches atoms with exactly n explicit connections (implicit H not counted). D alone means exactly 1.',
-		example: '[D3]  — atom with 3 explicit bonds',
-	},
-	primitive_nonH_degree: {
-		title: 'Non-H degree (dn)',
-		description: 'Matches atoms with exactly n non-hydrogen connections. d alone means exactly 1.',
-		example: '[d2]  — 2 non-H neighbours',
-	},
-	primitive_total_h: {
-		title: 'Total H count (Hn)',
-		description:
-			'Matches atoms with exactly n attached hydrogens (explicit + implicit). H alone means exactly 1.',
-		example: '[H2]  — atom with 2 hydrogens',
-	},
-	primitive_implicit_h: {
-		title: 'Implicit H count (hn)',
-		description: 'Matches atoms with exactly n implicit hydrogens. h alone means at least 1.',
-		example: '[h1]  — atom with 1 implicit hydrogen',
-	},
-	primitive_ring_membership: {
-		title: 'Ring membership (Rn)',
-		description:
-			'R alone matches any ring atom. Rn matches an atom that is in exactly n SSSR rings.',
-		example: '[R]  — in any ring  |  [R2]  — at a ring fusion',
-	},
-	primitive_ring_size: {
-		title: 'Ring size (rn)',
-		description:
-			'Matches an atom whose smallest containing ring has exactly n members. r alone matches any ring atom.',
-		example: '[r5]  — in a 5-membered ring',
-	},
-	primitive_ring_size_ex: {
-		title: 'Exact ring size (kn)',
-		description: 'Matches an atom whose exact ring size is n. k alone matches any ring atom.',
-		example: '[k6]  — in exactly a 6-membered ring',
-	},
-	primitive_valence: {
-		title: 'Valence (vn)',
-		description:
-			'Matches atoms whose total bond order equals n (including implicit H bonds). v alone means exactly 1.',
-		example: '[v4]  — sp3 carbon',
-	},
-	primitive_connectivity: {
-		title: 'Connectivity (Xn)',
-		description:
-			'Matches atoms with exactly n total connections (explicit bonds + implicit H). X alone means exactly 1.',
-		example: '[X4]  — 4 total connections',
-	},
-	primitive_ring_bond: {
-		title: 'Ring bond count (xn)',
-		description: 'Matches atoms with exactly n ring bonds. x alone means at least 1 ring bond.',
-		example: '[x2]  — 2 ring bonds (typical ring atom)',
-	},
-	primitive_hetero_nbr: {
-		title: 'Heteroatom neighbours (zn)',
-		description:
-			'Matches atoms with exactly n heteroatom (non-C, non-H) neighbours. z alone means at least 1.',
-		example: '[z1]  — one heteroatom neighbour',
-	},
-	primitive_aliph_hetero_nbr: {
-		title: 'Aliphatic heteroatom neighbours (Zn)',
-		description: 'Matches atoms with exactly n aliphatic heteroatom neighbours.',
-		example: '[Z1]',
-	},
-	primitive_charge_pos: {
-		title: 'Positive charge (+)',
-		description: '+n matches a specific positive charge; ++ means +2, etc. + alone means +1.',
-		example: '[+]  — charge +1  |  [+2]  — charge +2',
-	},
-	primitive_charge_neg: {
-		title: 'Negative charge (-)',
-		description: '-n matches a specific negative charge; -- means -2, etc. - alone means -1.',
-		example: '[-]  — charge -1  |  [--]  — charge -2',
-	},
-	primitive_chirality: {
-		title: 'Chirality (@ / @@)',
-		description:
-			'@ means anticlockwise (S-like) and @@ means clockwise (R-like) chirality. Append ? to also accept unspecified chirality.',
-		example: '[C@@H]  [C@?H]',
-	},
+	primitive_element: { title: 'Element symbol' },
+	primitive_atomic_num: { title: 'Atomic number' },
+	primitive_hybridization: { title: 'Hybridization' },
+	primitive_degree: { title: 'Degree' },
+	primitive_nonH_degree: { title: 'Non-H degree' },
+	primitive_total_h: { title: 'Total H count' },
+	primitive_implicit_h: { title: 'Implicit H count' },
+	primitive_ring_membership: { title: 'Ring membership' },
+	primitive_ring_size: { title: 'Ring size' },
+	primitive_ring_size_ex: { title: 'Exact ring size' },
+	primitive_valence: { title: 'Valence' },
+	primitive_connectivity: { title: 'Connectivity' },
+	primitive_ring_bond: { title: 'Ring bond count' },
+	primitive_hetero_nbr: { title: 'Heteroatom neighbours' },
+	primitive_aliph_hetero_nbr: { title: 'Aliphatic heteroatom neighbours' },
+	primitive_charge_pos: { title: 'Positive charge' },
+	primitive_charge_neg: { title: 'Negative charge' },
+	primitive_chirality: { title: 'Chirality' },
 
 	// ── Bonds ─────────────────────────────────────────────────────────────────
-	bond_primitive: {
-		title: 'Bond',
-		description:
-			'Specifies the bond type between two atoms. ' +
-			'- single  |  = double  |  # triple  |  : aromatic  |  ~ any  |  @ any ring bond  |  / up  |  \\ down  |  /? up-or-unspecified  |  \\? down-or-unspecified.',
-		example: 'C=O  C:C  C~N',
-	},
-	bond_expr_and_lo: {
-		title: 'Bond low-AND (;)',
-		description: 'Bond must satisfy both conditions. Low precedence.',
-		example: 'C-;@C  — single ring bond',
-	},
-	bond_expr_or: {
-		title: 'Bond OR (,)',
-		description: 'Bond must satisfy either condition.',
-		example: 'C-,=C',
-	},
-	bond_expr_and_hi: {
-		title: 'Bond high-AND (&)',
-		description: 'Bond must satisfy both conditions. High precedence.',
-		example: 'C=&@C',
-	},
-	bond_expr_not: {
-		title: 'Bond NOT (!)',
-		description: 'Negation of the following bond condition.',
-		example: 'C!=C',
-	},
-	bond_expr_and_im: {
-		title: 'Bond implicit AND',
-		description: 'Two bond primitives written next to each other — implicit high-precedence AND.',
-		example: 'C-@C',
-	},
+	bond_primitive: { title: 'Bond' },
+	bond_expr_and_lo: { title: 'Bond low-AND' },
+	bond_expr_or: { title: 'Bond OR' },
+	bond_expr_and_hi: { title: 'Bond high-AND' },
+	bond_expr_not: { title: 'Bond NOT' },
+	bond_expr_and_im: { title: 'Bond implicit AND' },
 
 	// ── Ring closure ──────────────────────────────────────────────────────────
-	ring_closure: {
-		title: 'Ring closure',
-		description:
-			'A digit (1–9) or %nn (10–99) that opens or closes a ring. Two atoms sharing the same label are bonded together. An optional bond symbol before the digit specifies the ring bond type.',
-		example: 'c1ccccc1  — benzene ring  |  C%12CC%12',
-	},
+	ring_closure: { title: 'Ring closure' },
 
 	// ── Recursive SMARTS ──────────────────────────────────────────────────────
-	recursive_query: {
-		title: 'Recursive SMARTS $(...)',
-		description:
-			'Defines an atomic environment as a sub-SMARTS starting from the atom of interest. Can be nested and combined with other primitives using logical operators.',
-		example: '[$([OH]c1ccccc1)]  — phenolic OH',
-	},
+	recursive_query: { title: 'Recursive' },
 
 	// ── Separators ────────────────────────────────────────────────────────────
-	fragment_separator: {
-		title: 'Fragment separator (.)',
-		description:
-			'Separates two disconnected fragments. Both fragments must be present in the same molecule (unless inside component groups).',
-		example: 'C.O  — molecule containing both a carbon and an oxygen fragment',
-	},
-	reaction_separator_gt: {
-		title: 'Reaction arrow (>)',
-		description:
-			'Separates reactants, agents, and products in a reaction SMARTS. The format is reactants > agents > products.',
-		example: 'C>>O',
-	},
+	fragment_separator: { title: 'Fragment' },
+	reaction_separator_gt: { title: 'Reaction' },
 
 	// ── Error ─────────────────────────────────────────────────────────────────
-	ERROR: {
-		title: 'Parse error',
-		description:
-			'This part of the input could not be parsed. Check for invalid characters or incomplete expressions.',
-	},
+	ERROR: { title: 'Parse error' },
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -377,66 +118,15 @@ function simpleAtomSubtype(text) {
 
 /** @type {Record<string, NodeDoc>} */
 const BOND_DOCS = {
-	'-': {
-		title: 'Single bond (-)',
-		description:
-			'Matches an explicit single bond only. Note: an implicit bond (no symbol) matches single OR aromatic, so - is stricter — it will not match aromatic bonds.',
-		example: 'C-C  — explicit single bond between two aliphatic carbons',
-	},
-	'=': {
-		title: 'Double bond (=)',
-		description: 'Matches a double bond.',
-		example: 'C=O  — carbonyl',
-	},
-	'#': {
-		title: 'Triple bond (#)',
-		description: 'Matches a triple bond.',
-		example: 'C#N  — nitrile',
-	},
-	':': {
-		title: 'Aromatic bond (:)',
-		description:
-			'Matches an aromatic bond. Use between aromatic atoms inside or outside brackets. Also used as the ring-bond type prefix in ring closures.',
-		example: 'c:c  — aromatic C–C bond',
-	},
-	'~': {
-		title: 'Any bond (~)',
-		description: 'Wildcard — matches any bond type (single, double, triple, aromatic, etc.).',
-		example: 'C~N  — carbon connected to nitrogen by any bond',
-	},
-	'@': {
-		title: 'Ring bond (@)',
-		description: 'Matches any bond that is part of a ring (i.e. a ring bond).',
-		example: 'C@C  — two ring atoms connected by a ring bond',
-	},
-	'/': {
-		title: 'Directional bond up (/)',
-		description:
-			'Matches a bond with up (/) stereodirection. Used for E/Z double-bond stereo queries.',
-		example: 'F/C=C/F  — E-difluoroethylene',
-	},
-	'\\': {
-		title: 'Directional bond down (\\)',
-		description:
-			'Matches a bond with down (\\) stereodirection. Used for E/Z double-bond stereo queries.',
-		example: 'F/C=C\\F  — Z-difluoroethylene',
-	},
-	'/?': {
-		title: 'Directional bond up or unspecified (/?)',
-		description:
-			'Matches a bond with up (/) stereodirection OR with unspecified direction. Useful when stereo may or may not be defined.',
-		example: 'F/?C=C/?F',
-	},
-	'\\?': {
-		title: 'Directional bond down or unspecified (\\?)',
-		description: 'Matches a bond with down (\\) stereodirection OR with unspecified direction.',
-		example: 'F\\?C=C\\?F',
-	},
-	$: {
-		title: 'Quadruple bond ($)',
-		description: 'Matches a quadruple bond (rare; used for metal complexes).',
-		example: '[Mo]$[Mo]',
-	},
+	'-': { title: 'Single bond' },
+	'=': { title: 'Double bond' },
+	'#': { title: 'Triple bond' },
+	':': { title: 'Aromatic bond' },
+	'~': { title: 'Any bond' },
+	'@': { title: 'Ring bond' },
+	'/': { title: 'Directional bond up' },
+	'\\': { title: 'Directional bond down' },
+	$: { title: 'Quadruple bond' },
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -457,22 +147,6 @@ const RECURSE_TYPES = new Set([
 ]);
 
 /**
- * Node types that produce a leaf ExplainerEntry directly.
- */
-const LEAF_TYPES = new Set([
-	'simple_atom',
-	'ring_closure',
-	'bond_primitive',
-	'bond_expr',
-	'bond_expr_and_lo',
-	'bond_expr_or',
-	'bond_expr_and_hi',
-	'bond_expr_not',
-	'bond_expr_and_im',
-	'ERROR',
-]);
-
-/**
  * Return an ERROR ExplainerEntry for a node, or null if not an error.
  * @param {import('web-tree-sitter').Node} node
  * @param {string} src
@@ -487,26 +161,6 @@ function errorEntry(node, src) {
 		endIndex: node.endIndex,
 		doc: NODE_DOCS['ERROR'],
 	};
-}
-
-/**
- * Walk the children of a bracketed_atom to produce child ExplainerEntries
- * (isotope, atom expression primitives, atom_map).
- *
- * @param {import('web-tree-sitter').Node} bracketedNode
- * @param {string} src
- * @returns {ExplainerEntry[]}
- */
-function walkBracketedAtomChildren(bracketedNode, src) {
-	/** @type {ExplainerEntry[]} */
-	const entries = [];
-	for (const child of bracketedNode.children) {
-		if (!child.isNamed) continue; // skip '[', ']' punctuation
-		const childText = src.slice(child.startIndex, child.endIndex);
-		const entry = nodeToEntry(child, childText, src);
-		if (entry) entries.push(entry);
-	}
-	return entries;
 }
 
 /**
@@ -575,8 +229,10 @@ function nodeToEntry(node, text, src) {
 	// ── recursive_query ─────────────────────────────────────────────────────
 	if (type === 'recursive_query') {
 		const doc = NODE_DOCS['recursive_query'];
-		// Surface any errors inside the $(...) body as children
-		const children = walkChainChildren(node, src).filter((e) => e.type === 'ERROR');
+		// Walk the inner smarts node fully so its atoms/bonds/branches appear
+		// as indented children in the explainer panel.
+		const smartsChild = node.children.find((c) => c.isNamed && c.type === 'smarts');
+		const children = smartsChild ? walkChainChildren(smartsChild, src) : [];
 		return {
 			type,
 			text,
@@ -804,8 +460,6 @@ export function buildExplainer(rootNode, src) {
 				}
 				entries.push(...walkChainChildren(part, src));
 			}
-		} else if (child.type === 'smarts') {
-			entries.push(...walkChainChildren(child, src));
 		} else {
 			entries.push(...walkChainChildren(child, src));
 		}
