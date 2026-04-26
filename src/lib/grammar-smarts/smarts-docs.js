@@ -532,7 +532,6 @@ export function findSplitAtCursor(rootNode, src, cursorPos) {
 	return null;
 }
 
-
 /**
  * Build a flat-ish list of ExplainerEntry objects from a parsed tree.
  * Entries are in source order. Grouped nodes (bracketed_atom, branch) carry

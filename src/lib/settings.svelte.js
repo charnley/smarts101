@@ -6,6 +6,7 @@ const STORAGE_KEY = 'smarts101-settings';
  * @property {boolean} explicitHydrogens - Keep explicit H atoms when rendering SDF input
  * @property {boolean} useCoordgen    - Use CoordGen layout engine in RDKit
  * @property {boolean} filterMatchesOnly - Only show molecules that match the active SMARTS pattern
+ * @property {boolean} highlightRecursive - Highlight the inner pattern of recursive SMARTS under cursor
  */
 
 /** @type {Settings} */
@@ -14,6 +15,7 @@ const DEFAULTS = {
 	explicitHydrogens: false,
 	useCoordgen: false,
 	filterMatchesOnly: false,
+	highlightRecursive: false,
 };
 
 /**
