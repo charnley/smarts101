@@ -414,6 +414,48 @@ function walkAtomChildren(atomNode, src) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Recursive SMARTS cursor finder
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Walk a node tree and return the deepest `recursive_query` node whose span
+ * contains `cursorPos`, or null if none.
+ *
+ * @param {import('web-tree-sitter').Node} node
+ * @param {number} cursorPos
+ * @returns {import('web-tree-sitter').Node | null}
+ */
+function findDeepestRecursive(node, cursorPos) {
+	if (cursorPos < node.startIndex || cursorPos > node.endIndex) return null;
+
+	// Depth-first: check children first so deepest wins
+	for (const child of node.children) {
+		const found = findDeepestRecursive(child, cursorPos);
+		if (found) return found;
+	}
+
+	if (node.type === 'recursive_query') return node;
+	return null;
+}
+
+/**
+ * Given a parsed tree and cursor position, return the inner SMARTS string of
+ * the deepest `recursive_query` node that contains the cursor, or null.
+ *
+ * @param {import('web-tree-sitter').Node} rootNode
+ * @param {string} src
+ * @param {number} cursorPos
+ * @returns {string | null}
+ */
+export function findRecursiveAtCursor(rootNode, src, cursorPos) {
+	const node = findDeepestRecursive(rootNode, cursorPos);
+	if (!node) return null;
+	const smartsChild = node.children.find((c) => c.isNamed && c.type === 'smarts');
+	if (!smartsChild) return null;
+	return src.slice(smartsChild.startIndex, smartsChild.endIndex);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Public API
 // ─────────────────────────────────────────────────────────────────────────────
 
