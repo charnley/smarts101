@@ -202,22 +202,20 @@ function nodeToEntry(node, text, src) {
 		return { type, text, startIndex: node.startIndex, endIndex: node.endIndex, doc };
 	}
 
-	// ── bond_expr_*: flatten to children if possible ───────────────────────
-	if (type.startsWith('bond_expr')) {
-		const doc = NODE_DOCS[type] ?? NODE_DOCS['bond_primitive'];
-		// If this is a simple wrapper around a single bond_primitive, just show
-		// the primitive to avoid redundant nesting.
-		const namedChildren = node.children.filter(
-			(/** @type {import('web-tree-sitter').Node} */ c) => c.isNamed,
-		);
-		if (namedChildren.length === 1 && namedChildren[0].type === 'bond_primitive') {
-			return nodeToEntry(
-				namedChildren[0],
-				src.slice(namedChildren[0].startIndex, namedChildren[0].endIndex),
-				src,
-			);
-		}
-		return { type, text, startIndex: node.startIndex, endIndex: node.endIndex, doc };
+	// ── bond_expr_*: delegate to walkBondExprChildren ─────────────────────
+	if (type.startsWith('bond_expr') || type === 'bond_expr') {
+		const entries = walkBondExprChildren(node, src);
+		if (entries.length === 1) return entries[0];
+		// multiple entries: find the real combinator type for the doc
+		const doc = NODE_DOCS['bond_primitive'];
+		return {
+			type,
+			text,
+			startIndex: node.startIndex,
+			endIndex: node.endIndex,
+			doc,
+			children: entries.length ? entries : undefined,
+		};
 	}
 
 	// ── ring_closure ────────────────────────────────────────────────────────
@@ -300,35 +298,234 @@ function nodeToEntry(node, text, src) {
 }
 
 /**
- * Walk the children of an atom_expr node, producing flat ExplainerEntries.
- * For compound expressions (and/or/not) we flatten into a list of primitives
- * at this stage to keep the display simple; we iterate later if nesting is needed.
+ * Walk a bond_expr node, producing flat ExplainerEntries with operator prefixes
+ * fused into each leaf — mirroring walkAtomExprChildren for bonds.
+ *
+ * - bond_expr_and_im: flatten, no prefix
+ * - bond_expr_not: fuse opPrefix + '!' into operand text/title
+ * - bond_expr_and_hi (&), bond_expr_and_lo (;), bond_expr_or (,):
+ *     left inherits incoming prefix, right gets operator prefix
  *
  * @param {import('web-tree-sitter').Node} node
  * @param {string} src
+ * @param {string} [opPrefix]
+ * @param {string} [opTitle]
  * @returns {ExplainerEntry[]}
  */
-function walkAtomExprChildren(node, src) {
+function walkBondExprChildren(node, src, opPrefix = '', opTitle = '') {
 	/** @type {ExplainerEntry[]} */
 	const entries = [];
+	const type = node.type;
 
+	// ── bond_expr wrapper (alias node): pass through to actual child ──────────
+	if (type === 'bond_expr') {
+		const inner = node.children.find((c) => c.isNamed);
+		if (!inner) return entries;
+		return walkBondExprChildren(inner, src, opPrefix, opTitle);
+	}
+
+	// ── bond_primitive leaf ───────────────────────────────────────────────────
+	if (type === 'bond_primitive') {
+		const text = src.slice(node.startIndex, node.endIndex);
+		const doc = BOND_DOCS[text] ?? NODE_DOCS['bond_primitive'];
+		entries.push({
+			type,
+			text: opPrefix + text,
+			startIndex: node.startIndex,
+			endIndex: node.endIndex,
+			doc: opPrefix ? { title: opTitle + doc.title } : doc,
+		});
+		return entries;
+	}
+
+	// ── NOT ───────────────────────────────────────────────────────────────────
+	if (type === 'bond_expr_not') {
+		const operand = node.children.find((c) => c.isNamed);
+		if (!operand) return entries;
+		return walkBondExprChildren(operand, src, opPrefix + '!', opTitle + 'NOT ');
+	}
+
+	// ── Implicit AND: flatten, pass prefix to first leaf only ────────────────
+	if (type === 'bond_expr_and_im') {
+		let first = true;
+		for (const child of node.children) {
+			const err = errorEntry(child, src);
+			if (err) {
+				entries.push(err);
+				continue;
+			}
+			if (!child.isNamed) continue;
+			const sub = walkBondExprChildren(
+				child,
+				src,
+				first && opPrefix ? opPrefix : '',
+				first && opTitle ? opTitle : '',
+			);
+			entries.push(...sub);
+			if (sub.length > 0) first = false;
+		}
+		return entries;
+	}
+
+	// ── Binary: and_hi (&), and_lo (;), or (,) ───────────────────────────────
+	const OP_TOKEN = { bond_expr_and_hi: '&', bond_expr_and_lo: ';', bond_expr_or: ',' };
+	const OP_TITLE = {
+		bond_expr_and_hi: 'High-AND ',
+		bond_expr_and_lo: 'Low-AND ',
+		bond_expr_or: 'OR ',
+	};
+	const opTok = OP_TOKEN[/** @type {keyof typeof OP_TOKEN} */ (type)];
+	const opTit = OP_TITLE[/** @type {keyof typeof OP_TITLE} */ (type)];
+
+	if (opTok !== undefined) {
+		const namedChildren = node.children.filter((c) => c.isNamed);
+		const left = namedChildren[0];
+		if (left) entries.push(...walkBondExprChildren(left, src, opPrefix, opTitle));
+		const right = namedChildren[1];
+		if (right) entries.push(...walkBondExprChildren(right, src, opTok, opTit));
+		return entries;
+	}
+
+	// ── Fallback ──────────────────────────────────────────────────────────────
 	for (const child of node.children) {
-		// Always surface ERROR nodes, even unnamed ones
 		const err = errorEntry(child, src);
 		if (err) {
 			entries.push(err);
 			continue;
 		}
+		if (!child.isNamed) continue;
+		entries.push(...walkBondExprChildren(child, src));
+	}
+	return entries;
+}
 
-		if (!child.isNamed) continue; // skip '[', ']', punctuation operators
+/**
+ * Walk the children of an atom_expr node, producing flat ExplainerEntries.
+ *
+ * - atom_expr_and_im (implicit AND): flatten children, no operator prefix
+ * - atom_expr_and_hi (&), atom_expr_and_lo (;), atom_expr_or (,):
+ *     left children flat, right-most primitive prefixed with operator token
+ * - atom_expr_not (!): fuse '!' + operand text into one entry, title = "NOT <operand title>"
+ *
+ * @param {import('web-tree-sitter').Node} node
+ * @param {string} src
+ * @param {string} [opPrefix]   operator token to prepend to the first leaf emitted
+ * @param {string} [opTitle]    operator label to prepend to the first leaf's title
+ * @returns {ExplainerEntry[]}
+ */
+function walkAtomExprChildren(node, src, opPrefix = '', opTitle = '') {
+	/** @type {ExplainerEntry[]} */
+	const entries = [];
+
+	const type = node.type;
+
+	// ── NOT: fuse '!' with immediate operand ─────────────────────────────────
+	if (type === 'atom_expr_not') {
+		const operand = node.children.find((c) => c.isNamed);
+		if (!operand) return entries;
+		const operandText = src.slice(operand.startIndex, operand.endIndex);
+		if (operand.type.startsWith('atom_expr')) {
+			// Recurse, passing fused prefix
+			return walkAtomExprChildren(operand, src, opPrefix + '!', opTitle + 'NOT ');
+		}
+		const inner = nodeToEntry(operand, operandText, src);
+		if (inner) {
+			entries.push({
+				...inner,
+				text: opPrefix + '!' + inner.text,
+				doc: { title: opTitle + 'NOT ' + inner.doc.title },
+			});
+		}
+		return entries;
+	}
+
+	// ── Implicit AND: just flatten, no operator ───────────────────────────────
+	if (type === 'atom_expr_and_im') {
+		let first = true;
+		for (const child of node.children) {
+			const err = errorEntry(child, src);
+			if (err) {
+				entries.push(err);
+				continue;
+			}
+			if (!child.isNamed) continue;
+			const childText = src.slice(child.startIndex, child.endIndex);
+			if (child.type.startsWith('atom_expr')) {
+				const sub = walkAtomExprChildren(child, src, first ? opPrefix : '', first ? opTitle : '');
+				entries.push(...sub);
+			} else {
+				const entry = nodeToEntry(child, childText, src);
+				if (entry) {
+					if (first && (opPrefix || opTitle)) {
+						entries.push({
+							...entry,
+							text: opPrefix + entry.text,
+							doc: { title: opTitle + entry.doc.title },
+						});
+					} else {
+						entries.push(entry);
+					}
+				}
+			}
+			if (entries.length > 0) first = false;
+		}
+		return entries;
+	}
+
+	// ── Binary: and_hi (&), and_lo (;), or (,) ───────────────────────────────
+	// Tree shape: left _atom_expr  OP  right _atom_expr
+	// Emit left flat (inheriting any incoming opPrefix on first leaf),
+	// then emit right flat with the operator prefixed on its first leaf.
+	const OP_TOKEN = { atom_expr_and_hi: '&', atom_expr_and_lo: ';', atom_expr_or: ',' };
+	const OP_TITLE = {
+		atom_expr_and_hi: 'High-AND ',
+		atom_expr_and_lo: 'Low-AND ',
+		atom_expr_or: 'OR ',
+	};
+	const opTok = OP_TOKEN[/** @type {keyof typeof OP_TOKEN} */ (type)];
+	const opTit = OP_TITLE[/** @type {keyof typeof OP_TITLE} */ (type)];
+
+	if (opTok !== undefined) {
+		const namedChildren = node.children.filter((c) => c.isNamed);
+		// left (inherits incoming prefix)
+		const left = namedChildren[0];
+		if (left) {
+			if (left.type.startsWith('atom_expr')) {
+				entries.push(...walkAtomExprChildren(left, src, opPrefix, opTitle));
+			} else {
+				const e = nodeToEntry(left, src.slice(left.startIndex, left.endIndex), src);
+				if (e)
+					entries.push(
+						opPrefix ? { ...e, text: opPrefix + e.text, doc: { title: opTitle + e.doc.title } } : e,
+					);
+			}
+		}
+		// right (gets this node's operator prefix)
+		const right = namedChildren[1];
+		if (right) {
+			if (right.type.startsWith('atom_expr')) {
+				entries.push(...walkAtomExprChildren(right, src, opTok, opTit));
+			} else {
+				const e = nodeToEntry(right, src.slice(right.startIndex, right.endIndex), src);
+				if (e) entries.push({ ...e, text: opTok + e.text, doc: { title: opTit + e.doc.title } });
+			}
+		}
+		return entries;
+	}
+
+	// ── Fallback: bracketed_atom wrapper, isotope, atom_map, primitives ───────
+	for (const child of node.children) {
+		const err = errorEntry(child, src);
+		if (err) {
+			entries.push(err);
+			continue;
+		}
+		if (!child.isNamed) continue;
 		const childText = src.slice(child.startIndex, child.endIndex);
-
-		// Recurse into nested atom_expr combinators to flatten primitives
 		if (child.type.startsWith('atom_expr')) {
 			entries.push(...walkAtomExprChildren(child, src));
 			continue;
 		}
-
 		const entry = nodeToEntry(child, childText, src);
 		if (entry) entries.push(entry);
 	}
