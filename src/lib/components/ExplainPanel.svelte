@@ -2,7 +2,11 @@
 	import { ScrollArea } from '$lib/components/ui/scroll-area/index.js';
 	import ChevronDown from '@lucide/svelte/icons/chevron-down';
 	import ChevronRight from '@lucide/svelte/icons/chevron-right';
-	import { buildExplainer } from '$lib/grammar-smarts/smarts-docs.js';
+	import {
+		buildExplainer,
+		findRecursiveAtCursor,
+		findSplitAtCursor,
+	} from '$lib/grammar-smarts/smarts-docs.js';
 	import SmartsQueryRenderer from '$lib/components/SmartsQueryRenderer.svelte';
 
 	/**
@@ -46,7 +50,26 @@
 		collapsed = next;
 	}
 
-	/** @param {ExplainerEntry} entry */
+	/** @type {string | null} */
+	let activeRecursiveSmarts = $derived.by(() => {
+		if (!tree || !smarts.trim()) return null;
+		try {
+			return findRecursiveAtCursor(tree.rootNode, smarts, cursorPos);
+		} catch {
+			return null;
+		}
+	});
+
+	/** @type {{ smarts: string, badge: string } | null} */
+	let activeSplit = $derived.by(() => {
+		if (!tree || !smarts.trim() || activeRecursiveSmarts) return null;
+		try {
+			return findSplitAtCursor(tree.rootNode, smarts, cursorPos);
+		} catch {
+			return null;
+		}
+	});
+
 	function isActive(entry) {
 		return cursorPos >= entry.startIndex && cursorPos <= entry.endIndex;
 	}
@@ -54,7 +77,23 @@
 
 <div class="flex h-full flex-col gap-2" bind:this={containerEl}>
 	{#if smarts.trim()}
-		<SmartsQueryRenderer {smarts} width={containerWidth} height={180} />
+		<div class="relative">
+			{#if activeRecursiveSmarts}
+				<span
+					class="absolute top-1 right-1 z-10 rounded bg-primary px-1.5 py-0.5 text-[10px] font-medium text-primary-foreground"
+					>recursive</span
+				>
+				<SmartsQueryRenderer smarts={activeRecursiveSmarts} width={containerWidth} height={180} />
+			{:else if activeSplit}
+				<span
+					class="absolute top-1 right-1 z-10 rounded bg-secondary px-1.5 py-0.5 text-[10px] font-medium text-secondary-foreground"
+					>{activeSplit.badge}</span
+				>
+				<SmartsQueryRenderer smarts={activeSplit.smarts} width={containerWidth} height={180} />
+			{:else}
+				<SmartsQueryRenderer {smarts} width={containerWidth} height={180} />
+			{/if}
+		</div>
 	{/if}
 	{#if entries.length === 0}
 		<p class="px-1 text-xs text-muted-foreground">

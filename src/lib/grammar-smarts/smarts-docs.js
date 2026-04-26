@@ -414,8 +414,123 @@ function walkAtomChildren(atomNode, src) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Public API
+// Recursive SMARTS cursor finder
 // ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Walk a node tree and return the deepest `recursive_query` node whose span
+ * contains `cursorPos`, or null if none.
+ *
+ * @param {import('web-tree-sitter').Node} node
+ * @param {number} cursorPos
+ * @returns {import('web-tree-sitter').Node | null}
+ */
+function findDeepestRecursive(node, cursorPos) {
+	if (cursorPos < node.startIndex || cursorPos > node.endIndex) return null;
+
+	// Depth-first: check children first so deepest wins
+	for (const child of node.children) {
+		const found = findDeepestRecursive(child, cursorPos);
+		if (found) return found;
+	}
+
+	if (node.type === 'recursive_query') return node;
+	return null;
+}
+
+/**
+ * Given a parsed tree and cursor position, return the inner SMARTS string of
+ * the deepest `recursive_query` node that contains the cursor, or null.
+ *
+ * @param {import('web-tree-sitter').Node} rootNode
+ * @param {string} src
+ * @param {number} cursorPos
+ * @returns {string | null}
+ */
+export function findRecursiveAtCursor(rootNode, src, cursorPos) {
+	const node = findDeepestRecursive(rootNode, cursorPos);
+	if (!node) return null;
+	const smartsChild = node.children.find((c) => c.isNamed && c.type === 'smarts');
+	if (!smartsChild) return null;
+	return src.slice(smartsChild.startIndex, smartsChild.endIndex);
+}
+
+/**
+ * Split a `smarts` node by '.' separators, return array of {start,end} spans.
+ * @param {import('web-tree-sitter').Node} smartsNode
+ * @returns {{ start: number, end: number }[]}
+ */
+function fragmentSpans(smartsNode) {
+	/** @type {{ start: number, end: number }[]} */
+	const fragments = [];
+	let fragStart = smartsNode.startIndex;
+	for (const child of smartsNode.children) {
+		if (!child.isNamed && child.type === '.') {
+			fragments.push({ start: fragStart, end: child.startIndex });
+			fragStart = child.endIndex;
+		}
+	}
+	fragments.push({ start: fragStart, end: smartsNode.endIndex });
+	return fragments;
+}
+
+/**
+ * Given a parsed tree and cursor position, return the sub-SMARTS string and
+ * badge label for the fragment/reaction component the cursor is in, or null.
+ *
+ * For fragment splits (`.`): badge is "fragment N/total".
+ * For reaction splits (`>`): badge is "reactant" / "agent" / "product".
+ * For reaction part with fragments: badge is e.g. "reactant · fragment 2/3".
+ *
+ * @param {import('web-tree-sitter').Node} rootNode
+ * @param {string} src
+ * @param {number} cursorPos
+ * @returns {{ smarts: string, badge: string } | null}
+ */
+export function findSplitAtCursor(rootNode, src, cursorPos) {
+	const top = rootNode.children.find((c) => c.isNamed);
+	if (!top) return null;
+
+	if (top.type === 'reaction') {
+		const FIELDS = /** @type {const} */ (['reactants', 'agents', 'products']);
+		for (const field of FIELDS) {
+			const p = top.childForFieldName(field);
+			if (!p || cursorPos < p.startIndex || cursorPos > p.endIndex) continue;
+			// Check for fragments within this reaction part
+			const frags = fragmentSpans(p);
+			if (frags.length > 1) {
+				for (let j = 0; j < frags.length; j++) {
+					const { start, end } = frags[j];
+					if (cursorPos >= start && cursorPos <= end) {
+						return {
+							smarts: src.slice(start, end),
+							badge: `${field} · fragment ${j + 1}/${frags.length}`,
+						};
+					}
+				}
+			}
+			return { smarts: src.slice(p.startIndex, p.endIndex), badge: field };
+		}
+		return null;
+	}
+
+	if (top.type === 'smarts') {
+		const frags = fragmentSpans(top);
+		if (frags.length <= 1) return null;
+		for (let i = 0; i < frags.length; i++) {
+			const { start, end } = frags[i];
+			if (cursorPos >= start && cursorPos <= end) {
+				return {
+					smarts: src.slice(start, end),
+					badge: `fragment ${i + 1}/${frags.length}`,
+				};
+			}
+		}
+		return null;
+	}
+
+	return null;
+}
 
 /**
  * Build a flat-ish list of ExplainerEntry objects from a parsed tree.

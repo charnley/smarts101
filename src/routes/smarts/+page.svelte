@@ -24,6 +24,7 @@
 	import { Parser, Language } from 'web-tree-sitter';
 	import smartsWasmUrl from '$lib/grammar-smarts/tree-sitter-smarts.wasm?url';
 	import coreWasmUrl from 'web-tree-sitter/web-tree-sitter.wasm?url';
+	import { findRecursiveAtCursor } from '$lib/grammar-smarts/smarts-docs.js';
 	import {
 		RNA,
 		DNA,
@@ -182,18 +183,34 @@
 
 	/** Blue that reads well on both light and dark backgrounds */
 	let activeSmartsColor = $derived(mode.current === 'dark' ? '#60a5fa' : '#2563eb');
+	/** Amber for recursive highlight */
+	let recursiveColor = $derived(mode.current === 'dark' ? '#fbbf24' : '#d97706');
 
-	let highlights = $derived(
-		activeSmarts
-			? {
-					definitions: [
-						{ smarts: activeSmarts, color: activeSmartsColor, id: 'query', name: 'Query' },
-					],
-					outline: true,
-					fill: false,
-				}
-			: { definitions: [] },
-	);
+	/** Inner SMARTS of the recursive_query node under the cursor, or null */
+	let activeRecursiveSmarts = $derived.by(() => {
+		if (!smartsTree || !rawSmarts.trim()) return null;
+		try {
+			return findRecursiveAtCursor(smartsTree.rootNode, rawSmarts, cursorPos);
+		} catch {
+			return null;
+		}
+	});
+
+	let highlights = $derived.by(() => {
+		/** @type {{ smarts: string, color: string, id: string, name: string }[]} */
+		const defs = [];
+		if (activeSmarts)
+			defs.push({ smarts: activeSmarts, color: activeSmartsColor, id: 'query', name: 'Query' });
+		if (settings.highlightRecursive && activeRecursiveSmarts) {
+			defs.push({
+				smarts: activeRecursiveSmarts,
+				color: recursiveColor,
+				id: 'recursive',
+				name: 'Recursive',
+			});
+		}
+		return { definitions: defs, outline: true, fill: false };
+	});
 
 	// ── View mode toggle ─────────────────────────────────────────────────────
 	function switchToEdit() {
@@ -506,6 +523,17 @@
 					<Label class="" for="filter-matches">Show only matching molecules</Label>
 					<p class="text-xs text-muted-foreground">
 						Hides molecules that do not match the active SMARTS pattern.
+					</p>
+				</div>
+			</div>
+
+			<!-- Highlight recursive SMARTS -->
+			<div class="flex items-center gap-3">
+				<Checkbox class="" id="highlight-recursive" bind:checked={settings.highlightRecursive} />
+				<div class="flex flex-col gap-0.5">
+					<Label class="" for="highlight-recursive">Highlight active recursive SMARTS</Label>
+					<p class="text-xs text-muted-foreground">
+						Highlights the inner pattern of <code>$(...)</code> under the cursor in molecule views.
 					</p>
 				</div>
 			</div>
