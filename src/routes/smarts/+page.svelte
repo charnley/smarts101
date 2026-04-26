@@ -1,6 +1,5 @@
 <script>
 	import { onMount } from 'svelte';
-	import { performSubstructureSearch } from '$lib/structure-renderer/worker-manager.js';
 	import MoleculeBox from '$lib/components/MoleculeBox.svelte';
 	import { mode } from 'mode-watcher';
 	import { Input } from '$lib/components/ui/input/index.js';
@@ -75,7 +74,7 @@
 		if (list.length === 0) return '';
 		// If any definition looks like a molblock, output as SDF
 		if (list.some((m) => m.structureDefinition.includes('\n'))) {
-			return list.map((m) => m.structureDefinition).join('\n$$$$\n') + '\n$$$$\n';
+			return list.map((m) => m.structureDefinition).join('$$$$') + '$$$$';
 		}
 		return list.map((m) => m.structureDefinition).join('\n');
 	}
@@ -92,8 +91,7 @@
 		if (isSDF(text)) {
 			const molblocks = text
 				.split('$$$$')
-				.map((block) => block.trim())
-				.filter((block) => block.length > 0)
+				.filter((block) => block.trim().length > 0)
 				.map((block) => ({ structureDefinition: block }));
 			return withIds(molblocks);
 		}
