@@ -15,7 +15,7 @@ const DEFAULTS = {
 	explicitHydrogens: false,
 	useCoordgen: false,
 	filterMatchesOnly: false,
-	highlightRecursive: false,
+	highlightRecursive: true,
 };
 
 /**
