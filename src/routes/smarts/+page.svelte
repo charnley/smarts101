@@ -129,11 +129,9 @@
 
 	// ── Explain panel ────────────────────────────────────────────────────────
 	let explainOpen = $state(false);
-	let explainSheetOpen = $state(false);
 
 	function toggleExplain() {
-		if (isMediumScreen.value) explainOpen = !explainOpen;
-		else explainSheetOpen = !explainSheetOpen;
+		explainOpen = !explainOpen;
 	}
 
 	// ── Sets sheet ───────────────────────────────────────────────────────────
@@ -142,19 +140,43 @@
 	// ── Grid layout derived from settings ────────────────────────────────────
 	const COLS_CLASS = {
 		1: 'grid-cols-1',
-		2: 'grid-cols-1 sm:grid-cols-2',
-		3: 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3',
+		2: 'grid-cols-2',
+		3: 'grid-cols-3',
+		4: 'grid-cols-4',
 	};
 	const MOL_SIZE = {
 		1: { width: 560, height: 380 },
 		2: { width: 400, height: 280 },
 		3: { width: 280, height: 200 },
+		4: { width: 220, height: 160 },
 	};
 
-	let gridClass = $derived(
-		COLS_CLASS[/** @type {1|2|3} */ (settings.columnsPerRow)] ?? COLS_CLASS[3],
+	/**
+	 * Effective mol columns = columnsPerRow minus one slot for explain when open.
+	 * Minimum 1.
+	 */
+	let effectiveMolCols = $derived(
+		/** @type {1|2|3} */ (
+			explainOpen ? Math.max(1, settings.columnsPerRow - 1) : settings.columnsPerRow
+		),
 	);
-	let molSize = $derived(MOL_SIZE[/** @type {1|2|3} */ (settings.columnsPerRow)] ?? MOL_SIZE[3]);
+
+	/** When only 1 total column and explain open, hide molecules entirely */
+	let moleculesHidden = $derived(explainOpen && settings.columnsPerRow === 1);
+
+	/**
+	 * CSS grid-template-columns for the content row.
+	 * Explain gets 1fr, molecules get (columnsPerRow-1)fr so proportions match.
+	 * When explain closed: just 1fr (molecules full width).
+	 */
+	let contentRowStyle = $derived(
+		explainOpen && !moleculesHidden
+			? `grid-template-columns: ${settings.columnsPerRow - 1}fr 1fr`
+			: '',
+	);
+
+	let gridClass = $derived(COLS_CLASS[effectiveMolCols] ?? COLS_CLASS[1]);
+	let molSize = $derived(MOL_SIZE[effectiveMolCols] ?? MOL_SIZE[1]);
 
 	// ── State ────────────────────────────────────────────────────────────────
 	let molecules = $state(
@@ -323,172 +345,167 @@
 	/>
 </svelte:head>
 
-<div class="flex items-start gap-4 py-2">
-	<!-- Left column: query input + grid -->
-	<div class="flex min-w-0 flex-1 flex-col gap-6">
-		<!-- Query input -->
-		<section class="flex w-full flex-col gap-2">
-			<div class="flex items-center gap-2">
-				<Tooltip.Provider>
-					<Tooltip.Root open={!!smartsError}>
-						<Tooltip.Trigger class="flex-1" asChild>
-							<SmartsEditor
-								bind:value={rawSmarts}
-								onchange={(v) => {
-									if (debounceTimer) clearTimeout(debounceTimer);
-									debounceTimer = setTimeout(() => {
-										if (parser) smartsTree = rawSmarts.trim() ? parser.parse(rawSmarts) : null;
-										validateAndApply(rawSmarts);
-									}, 350);
-								}}
-								oncursorchange={(pos) => {
-									cursorPos = pos;
-								}}
-								{recursiveRange}
-								highlightRange={explainHighlightRange}
-								{errorRanges}
-								invalid={!!smartsError}
-							/>
-						</Tooltip.Trigger>
-						<Tooltip.Content side="top" sideOffset={4}>
-							{smartsError}
-						</Tooltip.Content>
-					</Tooltip.Root>
-				</Tooltip.Provider>
-				{#if !explainOpen && !explainSheetOpen}
-					<Button variant="outline" onclick={toggleExplain}>
-						<PanelRightOpen size={16} />
-						Explain
-					</Button>
-				{/if}
-			</div>
-		</section>
+<div class="flex flex-col gap-4 py-2">
+	<!-- SMARTS input — full width -->
+	<section class="w-full">
+		<Tooltip.Provider>
+			<Tooltip.Root open={!!smartsError}>
+				<Tooltip.Trigger class="w-full" asChild>
+					<SmartsEditor
+						bind:value={rawSmarts}
+						onchange={(v) => {
+							if (debounceTimer) clearTimeout(debounceTimer);
+							debounceTimer = setTimeout(() => {
+								if (parser) smartsTree = rawSmarts.trim() ? parser.parse(rawSmarts) : null;
+								validateAndApply(rawSmarts);
+							}, 350);
+						}}
+						oncursorchange={(pos) => {
+							cursorPos = pos;
+						}}
+						{recursiveRange}
+						highlightRange={explainHighlightRange}
+						{errorRanges}
+						invalid={!!smartsError}
+					/>
+				</Tooltip.Trigger>
+				<Tooltip.Content side="top" sideOffset={4}>
+					{smartsError}
+				</Tooltip.Content>
+			</Tooltip.Root>
+		</Tooltip.Provider>
+	</section>
 
-		<!-- Grid / Edit section -->
-		<section class="flex w-full flex-col gap-3">
-			<Tabs.Root value={viewMode} onValueChange={onViewModeChange}>
-				<!-- Toolbar: tab list left, settings right -->
-				<div class="flex items-center justify-between">
-					<Tabs.List>
-						<Tabs.Trigger value="grid">View</Tabs.Trigger>
-						<Tabs.Trigger value="edit">Edit Molecules</Tabs.Trigger>
-					</Tabs.List>
-					<Button
-						variant="outline"
-						size="icon-sm"
-						aria-label="Settings"
-						onclick={() => (settingsOpen = true)}
-					>
-						<SettingsIcon size={16} />
-					</Button>
-				</div>
-
-				<!-- Grid tab -->
-				<Tabs.Content value="grid">
-					<div class="grid gap-4 {gridClass}">
-						{#each molecules as mol, i (mol.id)}
-							<div
-								class={settings.filterMatchesOnly && activeSmarts && !matchStates[i]
-									? 'hidden'
-									: ''}
+	<!-- Content row: CSS grid so explain takes exactly 1 column-unit -->
+	<div class={explainOpen && !moleculesHidden ? 'grid gap-4' : 'flex'} style={contentRowStyle}>
+		<!-- Molecules column -->
+		{#if !moleculesHidden}
+			<div class="flex min-w-0 flex-1 flex-col gap-3">
+				<Tabs.Root value={viewMode} onValueChange={onViewModeChange}>
+					<div class="flex items-center justify-between">
+						<div class="flex items-center gap-1">
+							<Tabs.List>
+								<Tabs.Trigger value="grid">View</Tabs.Trigger>
+								<Tabs.Trigger value="edit">Edit Molecules</Tabs.Trigger>
+							</Tabs.List>
+							<Button
+								variant="outline"
+								size="icon-sm"
+								aria-label="Settings"
+								onclick={() => (settingsOpen = true)}
 							>
-								<MoleculeBox
-									structureDefinition={mol.structureDefinition}
-									{highlights}
-									width={molSize.width}
-									height={molSize.height}
-									useCoordgen={settings.useCoordgen}
-									explicitHydrogens={settings.explicitHydrogens}
-									bind:hasMatch={matchStates[i]}
-								/>
-							</div>
-						{/each}
+								<SettingsIcon size={16} />
+							</Button>
+						</div>
+						<div class="flex items-center gap-1">
+							{#if !explainOpen}
+								<Button
+									variant="outline"
+									size="sm"
+									aria-label="Toggle explain"
+									onclick={toggleExplain}
+								>
+									<PanelRightOpen size={16} />
+									Explain
+								</Button>
+							{/if}
+						</div>
 					</div>
-				</Tabs.Content>
 
-				<!-- Edit tab -->
-				<Tabs.Content value="edit">
-					<div class="flex flex-col gap-2">
-						<Textarea
-							class="max-h-[70vh] w-full resize-y overflow-auto font-mono text-sm leading-relaxed whitespace-pre"
-							bind:value={textareaValue}
-							spellcheck={false}
-							autocomplete="off"
-							rows={Math.max(8, textareaValue.split('\n').length + 2)}
-						/>
-						<p class="m-0 text-sm text-muted-foreground">
-							<strong>Format:</strong> SMILES per line or multi-SDF input.
-						</p>
-						{#if isMediumScreen.value}
-							<!-- Pills: md and up -->
-							<div class="flex flex-wrap items-center gap-1.5">
-								<span class="text-sm text-muted-foreground">Start from:</span>
-								{#each Object.entries(SETS) as [key, set]}
-									<Button
-										variant="outline"
-										size="sm"
-										class="rounded-full"
-										onclick={() => loadSet(/** @type {keyof typeof SETS} */ (key))}
-									>
-										{set.label}
-									</Button>
-								{/each}
-							</div>
-						{:else}
-							<!-- Sheet trigger: mobile only -->
-							<Button variant="outline" size="sm" onclick={() => (setsSheetOpen = true)}>
-								<ListFilter size={16} />
-								Start from…
+					<Tabs.Content value="grid">
+						<div class="grid gap-4 {gridClass}">
+							{#each molecules as mol, i (mol.id)}
+								<div
+									class={settings.filterMatchesOnly && activeSmarts && !matchStates[i]
+										? 'hidden'
+										: ''}
+								>
+									<MoleculeBox
+										structureDefinition={mol.structureDefinition}
+										{highlights}
+										width={molSize.width}
+										height={molSize.height}
+										useCoordgen={settings.useCoordgen}
+										explicitHydrogens={settings.explicitHydrogens}
+										bind:hasMatch={matchStates[i]}
+									/>
+								</div>
+							{/each}
+						</div>
+					</Tabs.Content>
+
+					<Tabs.Content value="edit">
+						<div class="flex flex-col gap-2">
+							<Textarea
+								class="max-h-[70vh] w-full resize-y overflow-auto font-mono text-sm leading-relaxed whitespace-pre"
+								bind:value={textareaValue}
+								spellcheck={false}
+								autocomplete="off"
+								rows={Math.max(8, textareaValue.split('\n').length + 2)}
+							/>
+							<p class="m-0 text-sm text-muted-foreground">
+								<strong>Format:</strong> SMILES per line or multi-SDF input.
+							</p>
+							{#if isMediumScreen.value}
+								<div class="flex flex-wrap items-center gap-1.5">
+									<span class="text-sm text-muted-foreground">Start from:</span>
+									{#each Object.entries(SETS) as [key, set]}
+										<Button
+											variant="outline"
+											size="sm"
+											class="rounded-full"
+											onclick={() => loadSet(/** @type {keyof typeof SETS} */ (key))}
+										>
+											{set.label}
+										</Button>
+									{/each}
+								</div>
+							{:else}
+								<Button variant="outline" size="sm" onclick={() => (setsSheetOpen = true)}>
+									<ListFilter size={16} />
+									Start from…
+								</Button>
+							{/if}
+						</div>
+					</Tabs.Content>
+				</Tabs.Root>
+			</div>
+		{/if}
+
+		<!-- Explain panel column -->
+		{#if explainOpen}
+			<div class="flex min-w-0 flex-col gap-2">
+				<div class="flex items-center justify-between">
+					<span class="text-xs font-medium tracking-wide text-muted-foreground uppercase"
+						>Explanation</span
+					>
+					<div class="flex items-center gap-1">
+						{#if moleculesHidden}
+							<Button
+								variant="outline"
+								size="icon-sm"
+								aria-label="Settings"
+								onclick={() => (settingsOpen = true)}
+							>
+								<SettingsIcon size={16} />
 							</Button>
 						{/if}
+						<Button variant="outline" size="sm" aria-label="Toggle explain" onclick={toggleExplain}>
+							<PanelRightClose size={16} />
+							Explain
+						</Button>
 					</div>
-				</Tabs.Content>
-			</Tabs.Root>
-		</section>
-	</div>
-
-	<!-- Explain panel: md and up -->
-	{#if explainOpen}
-		<div class="hidden w-72 shrink-0 flex-col gap-2 md:flex">
-			<div class="flex items-center justify-between">
-				<span class="text-xs font-medium tracking-wide text-muted-foreground uppercase"
-					>Explanation</span
-				>
-				<Button
-					variant="ghost"
-					size="sm"
-					aria-label="Close panel"
-					onclick={() => (explainOpen = false)}
-				>
-					<PanelRightClose size={14} />
-				</Button>
+				</div>
+				<ExplainPanel
+					smarts={rawSmarts}
+					tree={smartsTree}
+					{cursorPos}
+					onhover={(r) => (explainHighlightRange = r)}
+				/>
 			</div>
-			<ExplainPanel
-				smarts={rawSmarts}
-				tree={smartsTree}
-				{cursorPos}
-				onhover={(r) => (explainHighlightRange = r)}
-			/>
-		</div>
-	{/if}
+		{/if}
+	</div>
 </div>
-
-<!-- Explain sheet (mobile, < md) -->
-<Sheet.Root bind:open={explainSheetOpen}>
-	<Sheet.Content side="right" class="flex flex-col" portalProps={{}}>
-		<Sheet.Header class="">
-			<Sheet.Title class="">Explanation</Sheet.Title>
-		</Sheet.Header>
-		<div class="flex min-h-0 flex-1 flex-col p-4">
-			<ExplainPanel
-				smarts={rawSmarts}
-				tree={smartsTree}
-				{cursorPos}
-				onhover={(r) => (explainHighlightRange = r)}
-			/>
-		</div>
-	</Sheet.Content>
-</Sheet.Root>
 
 <!-- Sets sheet (mobile) -->
 <Sheet.Root bind:open={setsSheetOpen}>
@@ -520,9 +537,9 @@
 		</Dialog.Header>
 
 		<div class="flex flex-col gap-6 py-2">
-			<!-- Molecules per row -->
+			<!-- Number of columns -->
 			<div class="flex flex-col gap-2">
-				<Label class="text-sm font-medium">Molecules per row</Label>
+				<Label class="text-sm font-medium">Number of columns</Label>
 				<ToggleGroup.Root
 					type="single"
 					value={String(settings.columnsPerRow)}
@@ -534,6 +551,7 @@
 					<ToggleGroup.Item value="1" variant="outline" size="sm" class="w-10">1</ToggleGroup.Item>
 					<ToggleGroup.Item value="2" variant="outline" size="sm" class="w-10">2</ToggleGroup.Item>
 					<ToggleGroup.Item value="3" variant="outline" size="sm" class="w-10">3</ToggleGroup.Item>
+					<ToggleGroup.Item value="4" variant="outline" size="sm" class="w-10">4</ToggleGroup.Item>
 				</ToggleGroup.Root>
 			</div>
 
