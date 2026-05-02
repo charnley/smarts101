@@ -2,7 +2,7 @@
 	import { onMount } from 'svelte';
 	import MoleculeBox from '$lib/components/MoleculeBox.svelte';
 	import { mode } from 'mode-watcher';
-	import { Input } from '$lib/components/ui/input/index.js';
+	import SmartsEditor from '$lib/components/SmartsEditor.svelte';
 	import { Textarea } from '$lib/components/ui/textarea/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import * as Tabs from '$lib/components/ui/tabs/index.js';
@@ -194,6 +194,41 @@
 		}
 	});
 
+	/**
+	 * Character range of the recursive sub-SMARTS in the raw input, for CM decoration.
+	 * @type {{ from: number, to: number } | null}
+	 */
+	let recursiveRange = $derived.by(() => {
+		if (!smartsTree || !activeRecursiveSmarts) return null;
+		// Find where activeRecursiveSmarts sits in rawSmarts by walking the tree
+		try {
+			const src = rawSmarts;
+			/** @param {import('web-tree-sitter').SyntaxNode} node @returns {{ from: number, to: number } | null} */
+			function findRange(node) {
+				if (node.type === 'recursive_query') {
+					const child = node.namedChildren.find((c) => c.type === 'smarts');
+					if (child && src.slice(child.startIndex, child.endIndex) === activeRecursiveSmarts) {
+						return { from: child.startIndex, to: child.endIndex };
+					}
+				}
+				for (const child of node.namedChildren) {
+					const r = findRange(child);
+					if (r) return r;
+				}
+				return null;
+			}
+			return findRange(smartsTree.rootNode);
+		} catch {
+			return null;
+		}
+	});
+
+	/**
+	 * Highlight range pushed from ExplainPanel hover.
+	 * @type {{ from: number, to: number } | null}
+	 */
+	let explainHighlightRange = $state(null);
+
 	let highlights = $derived.by(() => {
 		/** @type {{ smarts: string, color: string, id: string, name: string }[]} */
 		const defs = [];
@@ -243,27 +278,6 @@
 	// ── Debounced SMARTS validation ──────────────────────────────────────────
 	let debounceTimer = /** @type {ReturnType<typeof setTimeout>|null} */ (null);
 
-	/**
-	 * Called on every keystroke in the SMARTS input.
-	 * Validates the pattern against a known molecule after a short delay.
-	 */
-	/** @param {Event} e */
-	function onSmartsInput(e) {
-		const el = /** @type {HTMLInputElement} */ (e.currentTarget);
-		cursorPos = el.selectionStart ?? 0;
-		if (debounceTimer) clearTimeout(debounceTimer);
-		debounceTimer = setTimeout(() => {
-			if (parser) smartsTree = rawSmarts.trim() ? parser.parse(rawSmarts) : null;
-			validateAndApply(rawSmarts);
-		}, 350);
-	}
-
-	/** @param {Event} e */
-	function onSmartsCursorMove(e) {
-		const el = /** @type {HTMLInputElement} */ (e.currentTarget);
-		cursorPos = el.selectionStart ?? 0;
-	}
-
 	async function validateAndApply(/** @type {string} */ smarts) {
 		const trimmed = smarts.trim();
 		if (!trimmed) {
@@ -303,18 +317,21 @@
 				<Tooltip.Provider>
 					<Tooltip.Root open={!!smartsError}>
 						<Tooltip.Trigger class="flex-1" asChild>
-							<Input
-								class="w-full font-mono text-base"
-								type="text"
-								placeholder="Enter a SMARTS pattern, e.g. [OX2H] for hydroxyl…"
+							<SmartsEditor
 								bind:value={rawSmarts}
-								oninput={onSmartsInput}
-								onclick={onSmartsCursorMove}
-								onkeyup={onSmartsCursorMove}
-								spellcheck={false}
-								autocomplete="off"
-								aria-invalid={!!smartsError || undefined}
-								autofocus
+								onchange={(v) => {
+									if (debounceTimer) clearTimeout(debounceTimer);
+									debounceTimer = setTimeout(() => {
+										if (parser) smartsTree = rawSmarts.trim() ? parser.parse(rawSmarts) : null;
+										validateAndApply(rawSmarts);
+									}, 350);
+								}}
+								oncursorchange={(pos) => {
+									cursorPos = pos;
+								}}
+								{recursiveRange}
+								highlightRange={explainHighlightRange}
+								invalid={!!smartsError}
 							/>
 						</Tooltip.Trigger>
 						<Tooltip.Content side="top" sideOffset={4}>
@@ -430,7 +447,12 @@
 					<PanelRightClose size={14} />
 				</Button>
 			</div>
-			<ExplainPanel smarts={rawSmarts} tree={smartsTree} {cursorPos} />
+			<ExplainPanel
+				smarts={rawSmarts}
+				tree={smartsTree}
+				{cursorPos}
+				onhover={(r) => (explainHighlightRange = r)}
+			/>
 		</div>
 	{/if}
 </div>
@@ -442,7 +464,12 @@
 			<Sheet.Title class="">Explanation</Sheet.Title>
 		</Sheet.Header>
 		<div class="flex min-h-0 flex-1 flex-col p-4">
-			<ExplainPanel smarts={rawSmarts} tree={smartsTree} {cursorPos} />
+			<ExplainPanel
+				smarts={rawSmarts}
+				tree={smartsTree}
+				{cursorPos}
+				onhover={(r) => (explainHighlightRange = r)}
+			/>
 		</div>
 	</Sheet.Content>
 </Sheet.Root>

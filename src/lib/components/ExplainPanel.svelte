@@ -18,9 +18,10 @@
 	 *   smarts: string,
 	 *   tree?: import('web-tree-sitter').Tree | null,
 	 *   cursorPos?: number,
+	 *   onhover?: (range: { from: number, to: number } | null) => void,
 	 * }}
 	 */
-	let { smarts, tree = null, cursorPos = 0 } = $props();
+	let { smarts, tree = null, cursorPos = 0, onhover } = $props();
 
 	/** @type {HTMLDivElement | undefined} */
 	let containerEl = $state();
@@ -122,6 +123,8 @@
 			class={['flex items-center gap-1.5 rounded px-1 py-0.5', active && 'bg-primary/10']
 				.filter(Boolean)
 				.join(' ')}
+			onmouseenter={() => onhover?.({ from: entry.startIndex, to: entry.endIndex })}
+			onmouseleave={() => onhover?.(null)}
 		>
 			<span class="w-3 shrink-0"></span>
 			<code class="text-xs text-muted-foreground">{entry.text}</code>
@@ -137,6 +140,8 @@
 				.join(' ')}
 			style="padding-left: {depth * 14 + 4}px"
 			onclick={() => toggle(entry.startIndex)}
+			onmouseenter={() => onhover?.({ from: entry.startIndex, to: entry.endIndex })}
+			onmouseleave={() => onhover?.(null)}
 		>
 			<span class="flex shrink-0 items-center gap-1">
 				{#if open}
@@ -167,6 +172,8 @@
 				.filter(Boolean)
 				.join(' ')}
 			style="padding-left: {depth * 14 + 4 + 18}px"
+			onmouseenter={() => onhover?.({ from: entry.startIndex, to: entry.endIndex })}
+			onmouseleave={() => onhover?.(null)}
 		>
 			<code
 				class={[
