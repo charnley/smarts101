@@ -206,7 +206,7 @@
 			opacity: '0.3',
 		},
 		'.cm-smarts-recursive': {
-			background: 'rgba(0,0,0,0.08)',
+			background: 'rgba(0,0,0,0.0)',
 			borderRadius: '2px',
 		},
 		'&dark .cm-smarts-recursive': {
