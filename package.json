@@ -20,6 +20,8 @@
 		"build-storybook": "storybook build"
 	},
 	"devDependencies": {
+		"@codemirror/state": "^6.6.0",
+		"@codemirror/view": "^6.41.1",
 		"@icons-pack/svelte-simple-icons": "^7.2.0",
 		"@internationalized/date": "^3.12.0",
 		"@lucide/svelte": "^1.7.0",
@@ -66,6 +68,5 @@
 		"vitest": "^4.1.2",
 		"vitest-browser-svelte": "^2.1.0",
 		"web-tree-sitter": "^0.26.7"
-	},
-	"dependencies": {}
+	}
 }
