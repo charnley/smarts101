@@ -20,6 +20,7 @@
 	 *   oncursorchange?: (pos: number) => void,
 	 *   highlightRange?: HighlightRange,
 	 *   recursiveRange?: HighlightRange,
+	 *   errorRanges?: { from: number, to: number }[],
 	 *   invalid?: boolean,
 	 *   class?: string,
 	 * }}
@@ -30,6 +31,7 @@
 		oncursorchange,
 		highlightRange = null,
 		recursiveRange = null,
+		errorRanges = [],
 		invalid = false,
 		class: cls = '',
 	} = $props();
@@ -43,20 +45,23 @@
 	const dimMark = Decoration.mark({ class: 'cm-smarts-dim' });
 	const recursiveMark = Decoration.mark({ class: 'cm-smarts-recursive' });
 	const hoverMark = Decoration.mark({ class: 'cm-smarts-hover' });
+	const errorMark = Decoration.mark({ class: 'cm-smarts-error' });
 
 	// ── StateEffects ─────────────────────────────────────────────────────────
 	/** @type {import('@codemirror/state').StateEffectType<HighlightRange>} */
 	const setRecursiveEffect = StateEffect.define();
 	/** @type {import('@codemirror/state').StateEffectType<HighlightRange>} */
 	const setHoverEffect = StateEffect.define();
+	/** @type {import('@codemirror/state').StateEffectType<{ from: number, to: number }[]>} */
+	const setErrorsEffect = StateEffect.define();
 
 	// ── StateField holding the two ranges ────────────────────────────────────
 	/**
-	 * @typedef {{ recursive: HighlightRange, hover: HighlightRange }} RangesState
+	 * @typedef {{ recursive: HighlightRange, hover: HighlightRange, errors: { from: number, to: number }[] }} RangesState
 	 */
 	const rangesField = StateField.define({
 		/** @returns {RangesState} */
-		create: () => ({ recursive: null, hover: null }),
+		create: () => ({ recursive: null, hover: null, errors: [] }),
 		/**
 		 * @param {RangesState} val
 		 * @param {import('@codemirror/state').Transaction} tr
@@ -67,6 +72,7 @@
 			for (const e of tr.effects) {
 				if (e.is(setRecursiveEffect)) next = { ...next, recursive: e.value };
 				if (e.is(setHoverEffect)) next = { ...next, hover: e.value };
+				if (e.is(setErrorsEffect)) next = { ...next, errors: e.value };
 			}
 			return next;
 		},
@@ -87,10 +93,17 @@
 			}
 			/** @param {EditorView} view */
 			_build(view) {
-				const { recursive, hover } = view.state.field(rangesField);
+				const { recursive, hover, errors } = view.state.field(rangesField);
 				const docLen = view.state.doc.length;
 				/** @type {import('@codemirror/state').Range<import('@codemirror/view').Decoration>[]} */
 				const ranges = [];
+
+				// Error ranges first (lowest layer)
+				for (const err of errors) {
+					const eFrom = Math.max(0, Math.min(err.from, docLen));
+					const eTo = Math.max(0, Math.min(err.to, docLen));
+					if (eFrom < eTo) ranges.push(errorMark.range(eFrom, eTo));
+				}
 
 				if (recursive) {
 					const rFrom = Math.max(0, Math.min(recursive.from, docLen));
@@ -103,15 +116,12 @@
 				if (hover) {
 					const hFrom = Math.max(0, Math.min(hover.from, docLen));
 					const hTo = Math.max(0, Math.min(hover.to, docLen));
-					if (hFrom < hTo) {
-						// Overlay on top — use inclusive=true
-						ranges.push(hoverMark.range(hFrom, hTo));
-					}
+					if (hFrom < hTo) ranges.push(hoverMark.range(hFrom, hTo));
 				}
 
 				if (ranges.length === 0) return Decoration.none;
 				ranges.sort((a, b) => a.from - b.from || a.to - b.to);
-				return RangeSet.of(ranges, true);
+				return RangeSet.of(ranges);
 			}
 		},
 		{ decorations: (v) => v.decorations },
@@ -196,11 +206,15 @@
 			opacity: '0.3',
 		},
 		'.cm-smarts-recursive': {
-			background: 'rgba(251,191,36,0.28)',
+			background: 'rgba(255,255,255,0.85)',
 			borderRadius: '2px',
 		},
 		'.cm-smarts-hover': {
 			background: 'rgba(96,165,250,0.35)',
+			borderRadius: '2px',
+		},
+		'.cm-smarts-error': {
+			background: 'rgba(239,68,68,0.25)',
 			borderRadius: '2px',
 		},
 	});
@@ -245,6 +259,11 @@
 	// ── Reactive: highlightRange → effect ────────────────────────────────────
 	$effect(() => {
 		view?.dispatch({ effects: setHoverEffect.of(highlightRange ?? null) });
+	});
+
+	// ── Reactive: errorRanges → effect ───────────────────────────────────────
+	$effect(() => {
+		view?.dispatch({ effects: setErrorsEffect.of(errorRanges ?? []) });
 	});
 </script>
 

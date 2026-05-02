@@ -23,7 +23,7 @@
 	import { Parser, Language } from 'web-tree-sitter';
 	import smartsWasmUrl from '$lib/grammar-smarts/tree-sitter-smarts.wasm?url';
 	import coreWasmUrl from 'web-tree-sitter/web-tree-sitter.wasm?url';
-	import { findRecursiveAtCursor } from '$lib/grammar-smarts/smarts-docs.js';
+	import { findRecursiveAtCursor, buildExplainer } from '$lib/grammar-smarts/smarts-docs.js';
 	import {
 		RNA,
 		DNA,
@@ -199,8 +199,7 @@
 	 * @type {{ from: number, to: number } | null}
 	 */
 	let recursiveRange = $derived.by(() => {
-		if (!smartsTree || !activeRecursiveSmarts) return null;
-		// Find where activeRecursiveSmarts sits in rawSmarts by walking the tree
+		if (!settings.highlightRecursive || !smartsTree || !activeRecursiveSmarts) return null;
 		try {
 			const src = rawSmarts;
 			/** @param {import('web-tree-sitter').SyntaxNode} node @returns {{ from: number, to: number } | null} */
@@ -208,7 +207,8 @@
 				if (node.type === 'recursive_query') {
 					const child = node.namedChildren.find((c) => c.type === 'smarts');
 					if (child && src.slice(child.startIndex, child.endIndex) === activeRecursiveSmarts) {
-						return { from: child.startIndex, to: child.endIndex };
+						// Include the full $(...) span
+						return { from: node.startIndex, to: node.endIndex };
 					}
 				}
 				for (const child of node.namedChildren) {
@@ -228,6 +228,21 @@
 	 * @type {{ from: number, to: number } | null}
 	 */
 	let explainHighlightRange = $state(null);
+
+	/** @type {{ from: number, to: number }[]} */
+	let errorRanges = $derived.by(() => {
+		if (!smartsTree || !rawSmarts.trim()) return [];
+		try {
+			/** @param {import('$lib/grammar-smarts/smarts-docs.js').ExplainerEntry} e @returns {{ from: number, to: number }[]} */
+			const flatten = (e) => [
+				...(e.type === 'ERROR' ? [{ from: e.startIndex, to: e.endIndex }] : []),
+				...(e.children ?? []).flatMap(flatten),
+			];
+			return buildExplainer(smartsTree.rootNode, rawSmarts).flatMap(flatten);
+		} catch {
+			return [];
+		}
+	});
 
 	let highlights = $derived.by(() => {
 		/** @type {{ smarts: string, color: string, id: string, name: string }[]} */
@@ -331,6 +346,7 @@
 								}}
 								{recursiveRange}
 								highlightRange={explainHighlightRange}
+								{errorRanges}
 								invalid={!!smartsError}
 							/>
 						</Tooltip.Trigger>
