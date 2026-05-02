@@ -206,11 +206,23 @@
 			opacity: '0.3',
 		},
 		'.cm-smarts-recursive': {
-			background: 'rgba(255,255,255,0.85)',
+			background: 'rgba(0,0,0,0.08)',
+			borderRadius: '2px',
+		},
+		'&dark .cm-smarts-recursive': {
+			background: 'rgba(251,191,36,0.25)',
 			borderRadius: '2px',
 		},
 		'.cm-smarts-hover': {
-			background: 'rgba(96,165,250,0.35)',
+			background: 'rgba(37,99,235,0.35)',
+			borderRadius: '2px',
+		},
+		'&dark .cm-smarts-hover': {
+			background: 'rgba(96,165,250,0.5)',
+			borderRadius: '2px',
+		},
+		'&dark .cm-smarts-hover': {
+			background: 'rgba(96,165,250,0.5)',
 			borderRadius: '2px',
 		},
 		'.cm-smarts-error': {

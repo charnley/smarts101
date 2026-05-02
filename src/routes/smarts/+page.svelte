@@ -349,7 +349,7 @@
 	<!-- SMARTS input — full width -->
 	<section class="sticky top-16 z-10 w-full bg-background/95 pt-2 pb-2 backdrop-blur-sm">
 		<Tooltip.Provider>
-			<Tooltip.Root open={!!smartsError}>
+			<Tooltip.Root open={false}>
 				<Tooltip.Trigger class="w-full" asChild>
 					<SmartsEditor
 						bind:value={rawSmarts}
