@@ -1,4 +1,4 @@
-.PHONY: build format dev build-wasm
+.PHONY: build format dev build-wasm build-docker start-docker
 
 TREE_SITTER ?= npx tree-sitter
 TREE_SITTER_DIR = ./src/lib/grammar-smarts
@@ -40,3 +40,11 @@ dev: dep
 
 start-storybook:
 	npx storybook dev -p 6006
+
+# Docker
+
+build-docker:
+	docker build -f docker/Dockerfile -t smarts101 .
+
+start-docker:
+	docker run -p 8080:80 smarts101
