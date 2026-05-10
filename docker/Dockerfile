@@ -1,7 +1,6 @@
 FROM rockylinux/rockylinux:10 AS builder
 
 RUN dnf install -y nodejs nodejs-npm python3 make gcc-c++ && dnf clean all
-
 RUN npm install -g pnpm
 
 WORKDIR /app
@@ -12,13 +11,9 @@ RUN CI=true pnpm install --frozen-lockfile --ignore-scripts && \
 
 COPY . .
 
-# Build wasm grammar first
-RUN cd src/lib/grammar-smarts && npx tree-sitter generate && npx tree-sitter build --wasm
+RUN make build-wasm
+RUN make build-site
 
-# Build site
-RUN npx vite build
-
-# Stage 2: Serve
 FROM nginx:alpine
 
 COPY --from=builder /app/build /usr/share/nginx/html
