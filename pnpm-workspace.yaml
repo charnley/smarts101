@@ -1,3 +1,6 @@
+allowBuilds:
+  esbuild: true
+  tree-sitter-cli: true
 onlyBuiltDependencies:
   - esbuild
   - tree-sitter-cli
