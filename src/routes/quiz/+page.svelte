@@ -22,7 +22,7 @@
 		},
 		{
 			description: 'Carbon in six-membered ring',
-			smiles: 'C3CCC3CC1CCC(CC2CCCcCC2)C(Cc4ccccc4)C1',
+			smiles: 'C3CCC3CC1COC(CC2CCCcCC2)C(Cc4cnccc4)C1',
 			referenceSMARTS: '[#6;r6]',
 		},
 		{
