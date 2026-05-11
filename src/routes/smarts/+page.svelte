@@ -19,7 +19,6 @@
 	import { settings } from '$lib/settings.svelte.js';
 	import { isMediumScreen } from '$lib/breakpoints.svelte.js';
 	import { validateSmarts } from '$lib/rdkit/utils.js';
-	import * as Tooltip from '$lib/components/ui/tooltip/index.js';
 	import { Parser, Language } from 'web-tree-sitter';
 	import smartsWasmUrl from '$lib/grammar-smarts/tree-sitter-smarts.wasm?url';
 	import coreWasmUrl from 'web-tree-sitter/web-tree-sitter.wasm?url';
@@ -348,32 +347,23 @@
 <div class="flex flex-col gap-4 py-2">
 	<!-- SMARTS input — full width -->
 	<section class="sticky top-16 z-10 w-full bg-background/95 pt-2 pb-2 backdrop-blur-sm">
-		<Tooltip.Provider>
-			<Tooltip.Root open={false}>
-				<Tooltip.Trigger class="w-full" asChild>
-					<SmartsEditor
-						bind:value={rawSmarts}
-						onchange={(v) => {
-							if (debounceTimer) clearTimeout(debounceTimer);
-							debounceTimer = setTimeout(() => {
-								if (parser) smartsTree = rawSmarts.trim() ? parser.parse(rawSmarts) : null;
-								validateAndApply(rawSmarts);
-							}, 350);
-						}}
-						oncursorchange={(pos) => {
-							cursorPos = pos;
-						}}
-						{recursiveRange}
-						highlightRange={explainHighlightRange}
-						{errorRanges}
-						invalid={!!smartsError}
-					/>
-				</Tooltip.Trigger>
-				<Tooltip.Content side="top" sideOffset={4}>
-					{smartsError}
-				</Tooltip.Content>
-			</Tooltip.Root>
-		</Tooltip.Provider>
+		<SmartsEditor
+			bind:value={rawSmarts}
+			onchange={(v) => {
+				if (debounceTimer) clearTimeout(debounceTimer);
+				debounceTimer = setTimeout(() => {
+					if (parser) smartsTree = rawSmarts.trim() ? parser.parse(rawSmarts) : null;
+					validateAndApply(rawSmarts);
+				}, 350);
+			}}
+			oncursorchange={(pos) => {
+				cursorPos = pos;
+			}}
+			{recursiveRange}
+			highlightRange={explainHighlightRange}
+			{errorRanges}
+			invalid={!!smartsError}
+		/>
 	</section>
 
 	<!-- Content row: CSS grid so explain takes exactly 1 column-unit -->

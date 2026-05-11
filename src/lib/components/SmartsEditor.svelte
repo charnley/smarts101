@@ -180,7 +180,7 @@
 			outline: 'none',
 		},
 		'.cm-content': {
-			padding: '4px 12px',
+			padding: '8px 12px',
 			caretColor: 'currentColor',
 			minHeight: '2.25rem',
 			alignItems: 'flex-start',
