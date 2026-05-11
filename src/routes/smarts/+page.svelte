@@ -398,14 +398,18 @@
 							</Button>
 						</div>
 						<div class="flex items-center gap-1">
-							{#if !explainOpen}
+							{#if !explainOpen || moleculesHidden}
 								<Button
 									variant="outline"
 									size="sm"
 									aria-label="Toggle explain"
 									onclick={toggleExplain}
 								>
-									<PanelRightOpen size={16} />
+									{#if explainOpen}
+										<PanelRightClose size={16} />
+									{:else}
+										<PanelRightOpen size={16} />
+									{/if}
 									Explain
 								</Button>
 							{/if}
@@ -474,22 +478,12 @@
 
 		<!-- Explain panel column -->
 		{#if explainOpen}
-			<div class="flex min-w-0 flex-col gap-2">
+			<div class="flex min-w-0 flex-1 flex-col gap-2">
 				<div class="flex items-center justify-between">
 					<span class="text-xs font-medium tracking-wide text-muted-foreground uppercase"
 						>Explanation</span
 					>
 					<div class="flex items-center gap-1">
-						{#if moleculesHidden}
-							<Button
-								variant="outline"
-								size="icon-sm"
-								aria-label="Settings"
-								onclick={() => (settingsOpen = true)}
-							>
-								<SettingsIcon size={16} />
-							</Button>
-						{/if}
 						<Button variant="outline" size="sm" aria-label="Toggle explain" onclick={toggleExplain}>
 							<PanelRightClose size={16} />
 							Explain
