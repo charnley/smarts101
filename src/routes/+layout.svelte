@@ -10,9 +10,9 @@
 	import Moon from '@lucide/svelte/icons/moon';
 	import MenuIcon from '@lucide/svelte/icons/menu';
 	import BookOpenIcon from '@lucide/svelte/icons/book-open';
+	import PencilIcon from '@lucide/svelte/icons/pencil';
 	import BookOpenCheckIcon from '@lucide/svelte/icons/book-open-check';
 	import InfoIcon from '@lucide/svelte/icons/info';
-	import FlaskConicalIcon from '@lucide/svelte/icons/flask-conical';
 	import { SiGithub } from '@icons-pack/svelte-simple-icons';
 
 	let { children } = $props();
@@ -20,7 +20,7 @@
 	let menuOpen = $state(false);
 
 	const navItems = [
-		{ title: 'Query', url: '/smarts', icon: FlaskConicalIcon },
+		{ title: 'Write', url: '/smarts', icon: PencilIcon },
 		{ title: 'Learn', url: '/how-to-smarts', icon: BookOpenIcon },
 		{ title: 'Quiz', url: '/quiz', icon: BookOpenCheckIcon },
 		{ title: 'About', url: '/about', icon: InfoIcon },
