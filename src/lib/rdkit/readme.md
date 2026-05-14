@@ -27,11 +27,11 @@ Build takes ~10 min.
 
 ## Optional features
 
-| Flag | Adds |
-|---|---|
-| `-DRDK_BUILD_MINIMAL_LIB_RXN=ON` | `get_rxn()` + `run_reactants()` — SMIRKS reactions |
-| `-DRDK_BUILD_MINIMAL_LIB_MCS=ON` | Maximum common substructure |
-| `-DRDK_BUILD_MINIMAL_LIB_MOLZIP=ON` | MolZip / fragment linking |
+| Flag                                | Adds                                               |
+| ----------------------------------- | -------------------------------------------------- |
+| `-DRDK_BUILD_MINIMAL_LIB_RXN=ON`    | `get_rxn()` + `run_reactants()` — SMIRKS reactions |
+| `-DRDK_BUILD_MINIMAL_LIB_MCS=ON`    | Maximum common substructure                        |
+| `-DRDK_BUILD_MINIMAL_LIB_MOLZIP=ON` | MolZip / fragment linking                          |
 
 ### Generate TypeScript types from bindings
 

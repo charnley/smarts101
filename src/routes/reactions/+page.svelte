@@ -71,7 +71,9 @@
 <div class="flex h-screen flex-col overflow-hidden">
 	<!-- header -->
 	<div class="border-b px-4 py-3">
-		<h1 class="text-sm font-semibold">Reaction debug <span class="text-muted-foreground font-normal">/ reactions</span></h1>
+		<h1 class="text-sm font-semibold">
+			Reaction debug <span class="font-normal text-muted-foreground">/ reactions</span>
+		</h1>
 	</div>
 
 	<div class="flex flex-1 overflow-hidden">
@@ -79,15 +81,15 @@
 		<div class="flex w-72 shrink-0 flex-col gap-4 overflow-y-auto border-r p-4">
 			<div class="flex flex-col gap-1">
 				<label class="text-xs font-medium">rxnSmarts</label>
-				<Input
-					bind:value={rxnSmarts}
-					placeholder="[OH:1]c>>[Br:1]c"
-					class="font-mono text-xs"
-				/>
+				<Input bind:value={rxnSmarts} placeholder="[OH:1]c>>[Br:1]c" class="font-mono text-xs" />
 			</div>
 
 			<div class="flex flex-col gap-1">
-				<label class="text-xs font-medium">Targets <span class="text-muted-foreground">(one reaction run per line, use <code>.</code> to separate multiple reactants)</span></label>
+				<label class="text-xs font-medium"
+					>Targets <span class="text-muted-foreground"
+						>(one reaction run per line, use <code>.</code> to separate multiple reactants)</span
+					></label
+				>
 				<Textarea
 					bind:value={targetsRaw}
 					rows={10}
@@ -96,32 +98,34 @@
 				/>
 			</div>
 
-			<div class="text-muted-foreground text-xs">
+			<div class="text-xs text-muted-foreground">
 				{targets.length} target{targets.length !== 1 ? 's' : ''}
 				{#if running}· running…{/if}
 			</div>
 
 			{#if error}
-				<p class="text-destructive text-xs">{error}</p>
+				<p class="text-xs text-destructive">{error}</p>
 			{/if}
 		</div>
 
 		<!-- right panel: results -->
 		<div class="flex-1 overflow-y-auto p-4">
 			{#if results.length === 0 && !running}
-				<p class="text-muted-foreground text-sm">No results.</p>
+				<p class="text-sm text-muted-foreground">No results.</p>
 			{/if}
 
 			<div class="flex flex-col gap-6">
 				{#each results as result (result.smiles)}
 					<div class="rounded border">
 						<!-- target header -->
-						<div class="bg-muted flex items-center gap-2 border-b px-3 py-2">
+						<div class="flex items-center gap-2 border-b bg-muted px-3 py-2">
 							<code class="text-xs">{result.smiles}</code>
 							{#if result.products.length === 0}
-								<span class="text-muted-foreground text-xs">— no reaction</span>
+								<span class="text-xs text-muted-foreground">— no reaction</span>
 							{:else}
-								<span class="text-muted-foreground text-xs">→ {result.products.length} outcome{result.products.length !== 1 ? 's' : ''}</span>
+								<span class="text-xs text-muted-foreground"
+									>→ {result.products.length} outcome{result.products.length !== 1 ? 's' : ''}</span
+								>
 							{/if}
 						</div>
 
@@ -129,21 +133,17 @@
 							<div class="flex flex-wrap gap-4 p-3">
 								<!-- reactant -->
 								<div class="flex flex-col items-center gap-1">
-									<span class="text-muted-foreground text-xs">reactant</span>
-									<StructureRenderer
-										structureDefinition={result.smiles}
-										width={180}
-										height={140}
-									/>
+									<span class="text-xs text-muted-foreground">reactant</span>
+									<StructureRenderer structureDefinition={result.smiles} width={180} height={140} />
 								</div>
 
-								<div class="text-muted-foreground flex items-center text-lg">→</div>
+								<div class="flex items-center text-lg text-muted-foreground">→</div>
 
 								<!-- product sets -->
 								{#each result.products as productSet, i}
 									<div class="flex flex-col gap-1">
 										{#if result.products.length > 1}
-											<span class="text-muted-foreground text-xs">outcome {i + 1}</span>
+											<span class="text-xs text-muted-foreground">outcome {i + 1}</span>
 										{/if}
 										<div class="flex gap-2">
 											{#each productSet as productSmiles}
@@ -153,14 +153,14 @@
 														width={180}
 														height={140}
 													/>
-													<code class="text-muted-foreground text-xs">{productSmiles}</code>
+													<code class="text-xs text-muted-foreground">{productSmiles}</code>
 												</div>
 											{/each}
 										</div>
 									</div>
 
 									{#if i < result.products.length - 1}
-										<div class="text-muted-foreground flex items-center text-xs">|</div>
+										<div class="flex items-center text-xs text-muted-foreground">|</div>
 									{/if}
 								{/each}
 							</div>
