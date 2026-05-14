@@ -6,10 +6,12 @@
 // @ts-nocheck
 import RDKitWorker from './worker/rdkit.worker.js?worker';
 import RDKitSearchWorker from './worker/substructuresearch-rdkit-worker.js?worker';
+import RDKitReactionWorker from './worker/reaction-rdkit-worker.js?worker';
 
 // ── Pool sizes (tune as needed) ─────────────────────────────────────────────
 const RENDER_POOL_SIZE = 2;
 const SEARCH_POOL_SIZE = 2;
+const REACTION_POOL_SIZE = 1;
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // Generic WorkerPool
@@ -175,6 +177,11 @@ const searchPool = new WorkerPool('RDKit-Search', RDKitSearchWorker, SEARCH_POOL
 	format: 'flat',
 });
 
+const reactionPool = new WorkerPool('RDKit-Reaction', RDKitReactionWorker, REACTION_POOL_SIZE, {
+	sendInit: false,
+	format: 'flat',
+});
+
 // Eagerly warm up the render pool (browser only — Workers are not available in SSR/Node)
 if (typeof window !== 'undefined') {
 	renderPool.init().catch((e) => console.error('[WorkerManager] Render pool init failed:', e));
@@ -211,8 +218,18 @@ export const performSubstructureSearchAsync = (
 /** Legacy alias used by playground/page.svelte */
 export const performSubstructureSearch = performSubstructureSearchAsync;
 
+/**
+ * Run a reaction (rxnSmarts / SMIRKS) against a list of target SMILES.
+ * @param {string} rxnSmarts
+ * @param {string[]} smilesList
+ * @returns {Promise<{ success: boolean, results: Array<{ smiles: string, products: string[][] }>, error?: string }>}
+ */
+export const performReactionAsync = (rxnSmarts, smilesList) =>
+	reactionPool.send('react', { rxnSmarts, smilesList });
+
 /** Terminate all pools (call on page teardown if needed) */
 export const terminateAll = () => {
 	renderPool.terminate();
 	searchPool.terminate();
+	reactionPool.terminate();
 };
