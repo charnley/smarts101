@@ -2,19 +2,16 @@
 	import { onMount } from 'svelte';
 	import { Textarea } from '$lib/components/ui/textarea/index.js';
 	import { Input } from '$lib/components/ui/input/index.js';
-	import { Button } from '$lib/components/ui/button/index.js';
-	import StructureRenderer from '$lib/structure-renderer/StructureRenderer.svelte';
+	import MolCarousel from '$lib/components/MolCarousel.svelte';
 	import { runReaction } from '$lib/structure-renderer/reaction-runner.js';
 
 	/**
-	 * @typedef {Object} ReactionResult
-	 * @property {string} smiles
-	 * @property {string[][]} products
+	 * @typedef {{ reactants: string[], products: string[] }} Slide
+	 * @typedef {{ smiles: string, slides: Slide[] }} ReactionResult
 	 */
 
-	// ── State ──────────────────────────────────────────────────────────────
 	let rxnSmarts = $state('[C:1]=[C:2].[C:3]=[*:4][*:5]=[C:6]>>[C:1]1[C:2][C:3][*:4]=[*:5][C:6]1');
-	let targetsRaw = $state('OC=C.C=CC(N)=C\nOC=C.C=CC=C');
+	let targetsRaw = $state('OC=C.C=CC(N)=C\nOC=C.C=CC=C\nCC');
 
 	/** @type {ReactionResult[]} */
 	let results = $state([]);
@@ -24,7 +21,6 @@
 	/** @type {ReturnType<typeof setTimeout>|null} */
 	let debounce = null;
 
-	// ── Derived ─────────────────────────────────────────────────────────
 	const targets = $derived(
 		targetsRaw
 			.split('\n')
@@ -32,19 +28,14 @@
 			.filter(Boolean),
 	);
 
-	// ── Auto-run on input change ─────────────────────────────────────────
 	$effect(() => {
-		// track reactive inputs
 		const _rxn = rxnSmarts;
 		const _targets = targets;
-
 		if (debounce) clearTimeout(debounce);
 		debounce = setTimeout(() => run(_rxn, _targets), 400);
 	});
 
-	onMount(() => {
-		run(rxnSmarts, targets);
-	});
+	onMount(() => run(rxnSmarts, targets));
 
 	/**
 	 * @param {string} rxn
@@ -58,7 +49,18 @@
 		running = true;
 		error = null;
 		try {
-			results = await runReaction(rxn, smilesList);
+			const raw = await runReaction(rxn, smilesList);
+			results = raw.map((r) => {
+				const reactants = r.smiles.split('.').filter(Boolean);
+				// r.products: string[][] — outer = outcomes, inner = product fragments
+				// Each outcome becomes one slide; reactants are the same for all outcomes
+				/** @type {Slide[]} */
+				const slides =
+					r.products.length > 0
+						? r.products.map((/** @type {string[]} */ prods) => ({ reactants, products: prods }))
+						: [{ reactants, products: [] }];
+				return { smiles: r.smiles, slides };
+			});
 		} catch (e) {
 			error = e instanceof Error ? e.message : String(e);
 			results = [];
@@ -69,7 +71,6 @@
 </script>
 
 <div class="flex h-screen flex-col overflow-hidden">
-	<!-- header -->
 	<div class="border-b px-4 py-3">
 		<h1 class="text-sm font-semibold">
 			Reaction debug <span class="font-normal text-muted-foreground">/ reactions</span>
@@ -77,7 +78,7 @@
 	</div>
 
 	<div class="flex flex-1 overflow-hidden">
-		<!-- left panel: inputs -->
+		<!-- left panel -->
 		<div class="flex w-72 shrink-0 flex-col gap-4 overflow-y-auto border-r p-4">
 			<div class="flex flex-col gap-1">
 				<label class="text-xs font-medium">rxnSmarts</label>
@@ -85,11 +86,12 @@
 			</div>
 
 			<div class="flex flex-col gap-1">
-				<label class="text-xs font-medium"
-					>Targets <span class="text-muted-foreground"
-						>(one reaction run per line, use <code>.</code> to separate multiple reactants)</span
-					></label
-				>
+				<label class="text-xs font-medium">
+					Targets
+					<span class="font-normal text-muted-foreground">
+						— one run per line, <code>.</code> separates reactant slots
+					</span>
+				</label>
 				<Textarea
 					bind:value={targetsRaw}
 					rows={10}
@@ -100,7 +102,7 @@
 
 			<div class="text-xs text-muted-foreground">
 				{targets.length} target{targets.length !== 1 ? 's' : ''}
-				{#if running}· running…{/if}
+				{#if running}<span class="animate-pulse"> · running…</span>{/if}
 			</div>
 
 			{#if error}
@@ -108,64 +110,15 @@
 			{/if}
 		</div>
 
-		<!-- right panel: results -->
-		<div class="flex-1 overflow-y-auto p-4">
+		<!-- right panel -->
+		<div class="flex-1 overflow-y-auto p-6">
 			{#if results.length === 0 && !running}
 				<p class="text-sm text-muted-foreground">No results.</p>
 			{/if}
 
-			<div class="flex flex-col gap-6">
+			<div class="flex flex-wrap gap-4">
 				{#each results as result (result.smiles)}
-					<div class="rounded border">
-						<!-- target header -->
-						<div class="flex items-center gap-2 border-b bg-muted px-3 py-2">
-							<code class="text-xs">{result.smiles}</code>
-							{#if result.products.length === 0}
-								<span class="text-xs text-muted-foreground">— no reaction</span>
-							{:else}
-								<span class="text-xs text-muted-foreground"
-									>→ {result.products.length} outcome{result.products.length !== 1 ? 's' : ''}</span
-								>
-							{/if}
-						</div>
-
-						{#if result.products.length > 0}
-							<div class="flex flex-wrap gap-4 p-3">
-								<!-- reactant -->
-								<div class="flex flex-col items-center gap-1">
-									<span class="text-xs text-muted-foreground">reactant</span>
-									<StructureRenderer structureDefinition={result.smiles} width={180} height={140} />
-								</div>
-
-								<div class="flex items-center text-lg text-muted-foreground">→</div>
-
-								<!-- product sets -->
-								{#each result.products as productSet, i}
-									<div class="flex flex-col gap-1">
-										{#if result.products.length > 1}
-											<span class="text-xs text-muted-foreground">outcome {i + 1}</span>
-										{/if}
-										<div class="flex gap-2">
-											{#each productSet as productSmiles}
-												<div class="flex flex-col items-center gap-1">
-													<StructureRenderer
-														structureDefinition={productSmiles}
-														width={180}
-														height={140}
-													/>
-													<code class="text-xs text-muted-foreground">{productSmiles}</code>
-												</div>
-											{/each}
-										</div>
-									</div>
-
-									{#if i < result.products.length - 1}
-										<div class="flex items-center text-xs text-muted-foreground">|</div>
-									{/if}
-								{/each}
-							</div>
-						{/if}
-					</div>
+					<MolCarousel slides={result.slides} />
 				{/each}
 			</div>
 		</div>

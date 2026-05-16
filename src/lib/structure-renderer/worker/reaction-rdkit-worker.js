@@ -26,7 +26,7 @@ const initializeRDKit = async () => {
  *
  * @param {string} rxnSmarts - Reaction SMARTS (SMIRKS), e.g. "[OH:1]c>>[Br:1]c"
  * @param {string[]} smilesList
- * @returns {{ success: boolean, results: Array<{ smiles: string, products: string[][] }>, error?: string }}
+ * @returns {Promise<{ success: boolean, results: Array<{ smiles: string, products: string[][] }>, error?: string }>}
  */
 const performReaction = async (rxnSmarts, smilesList) => {
 	const ok = await initializeRDKit();
