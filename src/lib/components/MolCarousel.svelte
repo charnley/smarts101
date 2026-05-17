@@ -1,6 +1,7 @@
 <script>
 	import StructureRenderer from '$lib/structure-renderer/StructureRenderer.svelte';
 	import { Button } from '$lib/components/ui/button/index.js';
+	import { Badge } from '$lib/components/ui/badge/index.js';
 	import ChevronLeft from '@lucide/svelte/icons/chevron-left';
 	import ChevronRight from '@lucide/svelte/icons/chevron-right';
 
@@ -96,31 +97,24 @@
 	{/if}
 
 	<!-- top-left: reactant/product toggle -->
-	<button
-		onclick={toggleView}
-		class="absolute top-2 left-2 cursor-pointer rounded-full bg-muted px-1.5 py-0.5 text-xs leading-none text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
-		title="Toggle reactant / product"
+	<Badge variant="secondary" onclick={toggleView} class="absolute top-2 left-2 cursor-pointer"
+		>{view}</Badge
 	>
-		{view}
-	</button>
 
 	<!-- top-right: outcome badge -->
 	{#if totalOutcomes > 1 && view === 'product'}
-		<span
-			class="absolute top-2 right-2 rounded-full bg-muted px-1.5 py-0.5 text-xs leading-none text-muted-foreground"
+		<Badge variant="outline" onclick={toggleView} class="absolute top-2 right-2"
+			>{outcomeIndex + 1}/{totalOutcomes}</Badge
 		>
-			outcome {outcomeIndex + 1}/{totalOutcomes}
-		</span>
 	{/if}
 
 	<!-- bottom-right: fragment badge -->
 	{#if totalFragments > 1}
-		<button
+		<Badge
+			variant="secondary"
 			onclick={cycleFragment}
-			class="absolute right-2 bottom-2 cursor-pointer rounded-full bg-muted px-1.5 py-0.5 text-xs leading-none text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
-			title="Click to cycle fragments"
+			class="absolute right-2 bottom-2 cursor-pointer"
+			>fragment {fragmentIndex + 1}/{totalFragments}</Badge
 		>
-			fragment {fragmentIndex + 1}/{totalFragments}
-		</button>
 	{/if}
 </div>
