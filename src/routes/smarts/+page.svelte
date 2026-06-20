@@ -1,6 +1,8 @@
 <script>
 	import { onMount } from 'svelte';
 	import MoleculeBox from '$lib/components/MoleculeBox.svelte';
+	import MolCarousel from '$lib/components/MolCarousel.svelte';
+	import { runReaction } from '$lib/structure-renderer/reaction-runner.js';
 	import { mode } from 'mode-watcher';
 	import SmartsEditor from '$lib/components/SmartsEditor.svelte';
 	import { Textarea } from '$lib/components/ui/textarea/index.js';
@@ -22,7 +24,11 @@
 	import { Parser, Language } from 'web-tree-sitter';
 	import smartsWasmUrl from '$lib/grammar-smarts/tree-sitter-smarts.wasm?url';
 	import coreWasmUrl from 'web-tree-sitter/web-tree-sitter.wasm?url';
-	import { findRecursiveAtCursor, buildExplainer } from '$lib/grammar-smarts/smarts-docs.js';
+	import {
+		findRecursiveAtCursor,
+		buildExplainer,
+		findFragmentSpanAtCursor,
+	} from '$lib/grammar-smarts/smarts-docs.js';
 	import {
 		RNA,
 		DNA,
@@ -197,8 +203,124 @@
 
 	let rawSmarts = $state('');
 	let smartsError = $state(/** @type {string|null} */ (null));
+	/** The validated full SMARTS (plain mode only) */
+	let validatedSmarts = $state('');
+
+	/** True when tree-sitter sees a reaction node at root */
+	let isReaction = $derived(
+		!!smartsTree && smartsTree.rootNode.children.find((c) => c.isNamed)?.type === 'reaction',
+	);
+
+	/** Fragment under cursor — used for highlight and part detection */
+	let cursorFragment = $derived.by(() => {
+		if (!smartsTree || !isReaction || !rawSmarts.trim()) return null;
+		try {
+			return findFragmentSpanAtCursor(smartsTree.rootNode, rawSmarts, cursorPos);
+		} catch {
+			return null;
+		}
+	});
+
+	/** Which reaction part the cursor is on — null means on separator or outside */
+	let cursorPart = $derived.by(() => {
+		if (!isReaction || !cursorFragment) return null;
+		const b = cursorFragment.badge;
+		if (b.startsWith('products')) return /** @type {'product'} */ ('product');
+		if (b.startsWith('reactants')) return /** @type {'reactant'} */ ('reactant');
+		return null;
+	});
+
+	/** 0-based reactant fragment index from cursor position */
+	let cursorReactantFragmentIndex = $derived.by(() => {
+		if (!cursorFragment || !cursorFragment.badge.startsWith('reactants')) return null;
+		const m = cursorFragment.badge.match(/fragment (\d+)\/\d+/);
+		return m ? parseInt(m[1]) - 1 : 0;
+	});
+
+	/** Shared reactant fragment index for all carousels — stays when cursor leaves reactant side */
+	let carouselReactantFragmentIndex = $state(0);
+
+	$effect(() => {
+		if (cursorReactantFragmentIndex !== null)
+			carouselReactantFragmentIndex = cursorReactantFragmentIndex;
+	});
+
+	/** 0-based product fragment index from cursor position */
+	let cursorProductFragmentIndex = $derived.by(() => {
+		if (!cursorFragment || !cursorFragment.badge.startsWith('products')) return null;
+		const m = cursorFragment.badge.match(/fragment (\d+)\/\d+/);
+		return m ? parseInt(m[1]) - 1 : 0;
+	});
+
+	/** Shared product fragment index for all carousels — stays when cursor leaves product side */
+	let carouselProductFragmentIndex = $state(0);
+
+	$effect(() => {
+		if (cursorProductFragmentIndex !== null)
+			carouselProductFragmentIndex = cursorProductFragmentIndex;
+	});
+
+	/** Active highlight SMARTS — reactant fragment under cursor only */
+	let cursorHighlightSmarts = $derived.by(() => {
+		if (!isReaction || !cursorFragment) return '';
+		const b = cursorFragment.badge;
+		if (b.startsWith('reactants')) return cursorFragment.smarts;
+		return '';
+	});
+
 	/** The validated SMARTS that gets passed down to renderers */
-	let activeSmarts = $state('');
+	let activeSmarts = $derived(isReaction ? cursorHighlightSmarts : validatedSmarts);
+	/**
+	 * @typedef {{ reactants: string[], products: string[] }} ReactionSlide
+	 * @typedef {{ smarts: string, slides: ReactionSlide[] }} ReactionEntry
+	 */
+	/** @type {ReactionEntry[]} */
+	let reactionResults = $state([]);
+	let reactionRunning = $state(false);
+
+	/** @type {ReturnType<typeof setTimeout>|null} */
+	let reactionDebounce = null;
+
+	$effect(() => {
+		const _rxn = rawSmarts;
+		const _mols = molecules;
+		const _isReaction = isReaction;
+		if (!_isReaction) {
+			reactionResults = [];
+			return;
+		}
+		if (reactionDebounce) clearTimeout(reactionDebounce);
+		reactionDebounce = setTimeout(() => runReactionMode(_rxn, _mols), 400);
+	});
+
+	/**
+	 * @param {string} rxn
+	 * @param {{ structureDefinition: string }[]} mols
+	 */
+	async function runReactionMode(rxn, mols) {
+		if (!rxn.trim() || mols.length === 0) {
+			reactionResults = [];
+			return;
+		}
+		reactionRunning = true;
+		try {
+			const smilesList = mols.map((m) => m.structureDefinition);
+			const raw = await runReaction(rxn, smilesList);
+			reactionResults = raw.map((r) => {
+				const reactants = r.smiles.split('.').filter(Boolean);
+				/** @type {ReactionSlide[]} */
+				const slides =
+					r.products.length > 0
+						? r.products.map((/** @type {string[]} */ prods) => ({ reactants, products: prods }))
+						: [{ reactants, products: [] }];
+				return { smarts: r.smiles, slides };
+			});
+		} catch {
+			reactionResults = [];
+		} finally {
+			reactionRunning = false;
+		}
+	}
 
 	/** Blue that reads well on both light and dark backgrounds */
 	let activeSmartsColor = $derived(mode.current === 'dark' ? '#60a5fa' : '#2563eb');
@@ -228,7 +350,6 @@
 				if (node.type === 'recursive_query') {
 					const child = node.namedChildren.find((c) => c.type === 'smarts');
 					if (child && src.slice(child.startIndex, child.endIndex) === activeRecursiveSmarts) {
-						// Include the full $(...) span
 						return { from: node.startIndex, to: node.endIndex };
 					}
 				}
@@ -242,6 +363,28 @@
 		} catch {
 			return null;
 		}
+	});
+
+	/**
+	 * Unified editor dim+highlight range with priority:
+	 * 1. Inner recursive $(...) under cursor → amber
+	 * 2. Reaction fragment under cursor → blue (reactant) / green (product)
+	 * @type {{ from: number, to: number, color: 'recursive' | 'reactant' | 'product' } | null}
+	 */
+	let editorHighlightRange = $derived.by(() => {
+		// Priority 1: recursive
+		if (settings.highlightRecursive && recursiveRange) {
+			return {
+				from: recursiveRange.from,
+				to: recursiveRange.to,
+				color: /** @type {'recursive'} */ ('recursive'),
+			};
+		}
+		// Priority 2: reaction fragment
+		if (isReaction && cursorFragment && cursorPart) {
+			return { from: cursorFragment.from, to: cursorFragment.to, color: cursorPart };
+		}
+		return null;
 	});
 
 	/**
@@ -318,20 +461,26 @@
 		const trimmed = smarts.trim();
 		if (!trimmed) {
 			smartsError = null;
-			activeSmarts = '';
+			validatedSmarts = '';
+			return;
+		}
+		// In reaction mode, don't validate the full rxnSMARTS as a plain SMARTS
+		if (isReaction) {
+			smartsError = null;
+			validatedSmarts = '';
 			return;
 		}
 		const { valid, errors } = await validateSmarts(trimmed);
 		if (valid) {
 			smartsError = null;
-			activeSmarts = trimmed;
+			validatedSmarts = trimmed;
 		} else {
 			const raw = errors[0] ?? '';
 			const posMatch = raw.match(/position\s+(\d+)/i);
 			smartsError = posMatch
 				? `Check for mistakes around position ${posMatch[1]}`
 				: 'Invalid SMARTS';
-			activeSmarts = '';
+			validatedSmarts = '';
 		}
 	}
 </script>
@@ -359,7 +508,7 @@
 			oncursorchange={(pos) => {
 				cursorPos = pos;
 			}}
-			{recursiveRange}
+			dimHighlightRange={editorHighlightRange}
 			highlightRange={explainHighlightRange}
 			{errorRanges}
 			invalid={!!smartsError}
@@ -408,23 +557,43 @@
 
 					<Tabs.Content value="grid">
 						<div class="grid gap-4 {gridClass}">
-							{#each molecules as mol, i (mol.id)}
-								<div
-									class={settings.filterMatchesOnly && activeSmarts && !matchStates[i]
-										? 'hidden'
-										: ''}
-								>
-									<MoleculeBox
-										structureDefinition={mol.structureDefinition}
-										{highlights}
-										width={molSize.width}
-										height={molSize.height}
-										useCoordgen={settings.useCoordgen}
-										explicitHydrogens={settings.explicitHydrogens}
-										bind:hasMatch={matchStates[i]}
-									/>
-								</div>
-							{/each}
+							{#if isReaction}
+								{#each reactionResults as entry (entry.smarts)}
+								<MolCarousel
+									slides={entry.slides}
+									{highlights}
+									width={molSize.width}
+									height={molSize.height}
+									bind:reactantFragmentIndex={carouselReactantFragmentIndex}
+									bind:productFragmentIndex={carouselProductFragmentIndex}
+								/>
+								{/each}
+								{#if reactionRunning}
+									<p class="col-span-full animate-pulse text-xs text-muted-foreground">running…</p>
+								{:else if reactionResults.length === 0}
+									<p class="col-span-full text-xs text-muted-foreground">
+										No results — molecules must match all reactant fragments.
+									</p>
+								{/if}
+							{:else}
+								{#each molecules as mol, i (mol.id)}
+									<div
+										class={settings.filterMatchesOnly && activeSmarts && !matchStates[i]
+											? 'hidden'
+											: ''}
+									>
+										<MoleculeBox
+											structureDefinition={mol.structureDefinition}
+											{highlights}
+											width={molSize.width}
+											height={molSize.height}
+											useCoordgen={settings.useCoordgen}
+											explicitHydrogens={settings.explicitHydrogens}
+											bind:hasMatch={matchStates[i]}
+										/>
+									</div>
+								{/each}
+							{/if}
 						</div>
 					</Tabs.Content>
 

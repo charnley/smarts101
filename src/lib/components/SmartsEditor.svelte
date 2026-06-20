@@ -11,6 +11,7 @@
 
 	/**
 	 * @typedef {{ from: number, to: number } | null} HighlightRange
+	 * @typedef {'recursive' | 'reactant' | 'product'} DimColor
 	 */
 
 	/**
@@ -19,7 +20,7 @@
 	 *   onchange?: (v: string) => void,
 	 *   oncursorchange?: (pos: number) => void,
 	 *   highlightRange?: HighlightRange,
-	 *   recursiveRange?: HighlightRange,
+	 *   dimHighlightRange?: ({ from: number, to: number, color: DimColor }) | null,
 	 *   errorRanges?: { from: number, to: number }[],
 	 *   invalid?: boolean,
 	 *   class?: string,
@@ -30,7 +31,7 @@
 		onchange,
 		oncursorchange,
 		highlightRange = null,
-		recursiveRange = null,
+		dimHighlightRange = null,
 		errorRanges = [],
 		invalid = false,
 		class: cls = '',
@@ -44,24 +45,26 @@
 	// ── Decoration marks ────────────────────────────────────────────────────
 	const dimMark = Decoration.mark({ class: 'cm-smarts-dim' });
 	const recursiveMark = Decoration.mark({ class: 'cm-smarts-recursive' });
+	const reactantMark = Decoration.mark({ class: 'cm-smarts-reactant' });
+	const productMark = Decoration.mark({ class: 'cm-smarts-product' });
 	const hoverMark = Decoration.mark({ class: 'cm-smarts-hover' });
 	const errorMark = Decoration.mark({ class: 'cm-smarts-error' });
 
 	// ── StateEffects ─────────────────────────────────────────────────────────
-	/** @type {import('@codemirror/state').StateEffectType<HighlightRange>} */
-	const setRecursiveEffect = StateEffect.define();
+	/** @type {import('@codemirror/state').StateEffectType<{ from: number, to: number, color: DimColor } | null>} */
+	const setDimHighlightEffect = StateEffect.define();
 	/** @type {import('@codemirror/state').StateEffectType<HighlightRange>} */
 	const setHoverEffect = StateEffect.define();
 	/** @type {import('@codemirror/state').StateEffectType<{ from: number, to: number }[]>} */
 	const setErrorsEffect = StateEffect.define();
 
-	// ── StateField holding the two ranges ────────────────────────────────────
+	// ── StateField holding the ranges ────────────────────────────────────────
 	/**
-	 * @typedef {{ recursive: HighlightRange, hover: HighlightRange, errors: { from: number, to: number }[] }} RangesState
+	 * @typedef {{ dimHighlight: { from: number, to: number, color: DimColor } | null, hover: HighlightRange, errors: { from: number, to: number }[] }} RangesState
 	 */
 	const rangesField = StateField.define({
 		/** @returns {RangesState} */
-		create: () => ({ recursive: null, hover: null, errors: [] }),
+		create: () => ({ dimHighlight: null, hover: null, errors: [] }),
 		/**
 		 * @param {RangesState} val
 		 * @param {import('@codemirror/state').Transaction} tr
@@ -70,7 +73,7 @@
 		update(val, tr) {
 			let next = val;
 			for (const e of tr.effects) {
-				if (e.is(setRecursiveEffect)) next = { ...next, recursive: e.value };
+				if (e.is(setDimHighlightEffect)) next = { ...next, dimHighlight: e.value };
 				if (e.is(setHoverEffect)) next = { ...next, hover: e.value };
 				if (e.is(setErrorsEffect)) next = { ...next, errors: e.value };
 			}
@@ -93,7 +96,7 @@
 			}
 			/** @param {EditorView} view */
 			_build(view) {
-				const { recursive, hover, errors } = view.state.field(rangesField);
+				const { dimHighlight, hover, errors } = view.state.field(rangesField);
 				const docLen = view.state.doc.length;
 				/** @type {import('@codemirror/state').Range<import('@codemirror/view').Decoration>[]} */
 				const ranges = [];
@@ -105,11 +108,17 @@
 					if (eFrom < eTo) ranges.push(errorMark.range(eFrom, eTo));
 				}
 
-				if (recursive) {
-					const rFrom = Math.max(0, Math.min(recursive.from, docLen));
-					const rTo = Math.max(0, Math.min(recursive.to, docLen));
+				if (dimHighlight) {
+					const rFrom = Math.max(0, Math.min(dimHighlight.from, docLen));
+					const rTo = Math.max(0, Math.min(dimHighlight.to, docLen));
+					const mark =
+						dimHighlight.color === 'recursive'
+							? recursiveMark
+							: dimHighlight.color === 'product'
+								? productMark
+								: reactantMark;
 					if (rFrom > 0) ranges.push(dimMark.range(0, rFrom));
-					if (rFrom < rTo) ranges.push(recursiveMark.range(rFrom, rTo));
+					if (rFrom < rTo) ranges.push(mark.range(rFrom, rTo));
 					if (rTo < docLen) ranges.push(dimMark.range(rTo, docLen));
 				}
 
@@ -206,11 +215,12 @@
 			opacity: '0.3',
 		},
 		'.cm-smarts-recursive': {
-			background: 'rgba(0,0,0,0.0)',
 			borderRadius: '2px',
 		},
-		'&dark .cm-smarts-recursive': {
-			background: 'rgba(251,191,36,0.25)',
+		'.cm-smarts-reactant': {
+			borderRadius: '2px',
+		},
+		'.cm-smarts-product': {
 			borderRadius: '2px',
 		},
 		'.cm-smarts-hover': {
@@ -263,9 +273,9 @@
 		}
 	});
 
-	// ── Reactive: recursiveRange → effect ────────────────────────────────────
+	// ── Reactive: dimHighlightRange → effect ─────────────────────────────────
 	$effect(() => {
-		view?.dispatch({ effects: setRecursiveEffect.of(recursiveRange ?? null) });
+		view?.dispatch({ effects: setDimHighlightEffect.of(dimHighlightRange ?? null) });
 	});
 
 	// ── Reactive: highlightRange → effect ────────────────────────────────────
