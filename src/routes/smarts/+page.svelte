@@ -274,11 +274,7 @@
 
 	/** The validated SMARTS that gets passed down to renderers */
 	let activeSmarts = $derived(isReaction ? cursorHighlightSmarts : validatedSmarts);
-	/**
-	 * @typedef {{ reactants: string[], products: string[] }} ReactionSlide
-	 * @typedef {{ smarts: string, slides: ReactionSlide[] }} ReactionEntry
-	 */
-	/** @type {ReactionEntry[]} */
+	/** @type {import('$lib/structure-renderer/reaction-runner.js').ReactionEntry[]} */
 	let reactionResults = $state([]);
 	let reactionRunning = $state(false);
 
@@ -309,16 +305,7 @@
 		reactionRunning = true;
 		try {
 			const smilesList = mols.map((m) => m.structureDefinition);
-			const raw = await runReaction(rxn, smilesList);
-			reactionResults = raw.map((r) => {
-				const reactants = r.smiles.split('.').filter(Boolean);
-				/** @type {ReactionSlide[]} */
-				const slides =
-					r.products.length > 0
-						? r.products.map((/** @type {string[]} */ prods) => ({ reactants, products: prods }))
-						: [{ reactants, products: [] }];
-				return { smarts: r.smiles, slides };
-			});
+			reactionResults = await runReaction(rxn, smilesList);
 		} catch {
 			reactionResults = [];
 		} finally {

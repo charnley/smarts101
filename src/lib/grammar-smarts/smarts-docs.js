@@ -739,64 +739,6 @@ export function findFragmentSpanAtCursor(rootNode, src, cursorPos) {
 }
 
 /**
- * Given a parsed tree and cursor position, return the sub-SMARTS string and
- * badge label for the fragment/reaction component the cursor is in, or null.
- *
- * For fragment splits (`.`): badge is "fragment N/total".
- * For reaction splits (`>`): badge is "reactant" / "agent" / "product".
- * For reaction part with fragments: badge is e.g. "reactant · fragment 2/3".
- *
- * @param {import('web-tree-sitter').Node} rootNode
- * @param {string} src
- * @param {number} cursorPos
- * @returns {{ smarts: string, badge: string } | null}
- */
-export function findSplitAtCursor(rootNode, src, cursorPos) {
-	const top = rootNode.children.find((c) => c.isNamed);
-	if (!top) return null;
-
-	if (top.type === 'reaction') {
-		const FIELDS = /** @type {const} */ (['reactants', 'agents', 'products']);
-		for (const field of FIELDS) {
-			const p = top.childForFieldName(field);
-			if (!p || cursorPos < p.startIndex || cursorPos > p.endIndex) continue;
-			// Check for fragments within this reaction part
-			const frags = fragmentSpans(p);
-			if (frags.length > 1) {
-				for (let j = 0; j < frags.length; j++) {
-					const { start, end } = frags[j];
-					if (cursorPos >= start && cursorPos <= end) {
-						return {
-							smarts: src.slice(start, end),
-							badge: `${field} · fragment ${j + 1}/${frags.length}`,
-						};
-					}
-				}
-			}
-			return { smarts: src.slice(p.startIndex, p.endIndex), badge: field };
-		}
-		return null;
-	}
-
-	if (top.type === 'smarts') {
-		const frags = fragmentSpans(top);
-		if (frags.length <= 1) return null;
-		for (let i = 0; i < frags.length; i++) {
-			const { start, end } = frags[i];
-			if (cursorPos >= start && cursorPos <= end) {
-				return {
-					smarts: src.slice(start, end),
-					badge: `fragment ${i + 1}/${frags.length}`,
-				};
-			}
-		}
-		return null;
-	}
-
-	return null;
-}
-
-/**
  * Build a flat-ish list of ExplainerEntry objects from a parsed tree.
  * Entries are in source order. Grouped nodes (bracketed_atom, branch) carry
  * a `children` array.
@@ -845,36 +787,4 @@ export function buildExplainer(rootNode, src) {
 	}
 
 	return entries;
-}
-
-/**
- * Returns reaction fragment info when the tree root is a reaction node.
- * Returns null for plain SMARTS.
- *
- * @param {import('web-tree-sitter').Node} rootNode
- * @param {string} src
- * @returns {{
- *   reactantFragments: { smarts: string, start: number, end: number }[],
- *   productFragments:  { smarts: string, start: number, end: number }[],
- * } | null}
- */
-export function getReactionFragments(rootNode, src) {
-	const top = rootNode.children.find((c) => c.isNamed);
-	if (!top || top.type !== 'reaction') return null;
-
-	/** @param {string} field @returns {{ smarts: string, start: number, end: number }[]} */
-	function fragmentsForField(field) {
-		const node = top.childForFieldName(field);
-		if (!node) return [];
-		return fragmentSpans(node).map(({ start, end }) => ({
-			smarts: src.slice(start, end),
-			start,
-			end,
-		}));
-	}
-
-	return {
-		reactantFragments: fragmentsForField('reactants'),
-		productFragments: fragmentsForField('products'),
-	};
 }

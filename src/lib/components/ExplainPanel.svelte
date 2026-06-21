@@ -5,7 +5,7 @@
 	import {
 		buildExplainer,
 		findRecursiveAtCursor,
-		findSplitAtCursor,
+		findFragmentSpanAtCursor,
 	} from '$lib/grammar-smarts/smarts-docs.js';
 	import SmartsQueryRenderer from '$lib/components/SmartsQueryRenderer.svelte';
 
@@ -61,11 +61,11 @@
 		}
 	});
 
-	/** @type {{ smarts: string, badge: string } | null} */
-	let activeSplit = $derived.by(() => {
+	/** @type {{ smarts: string, badge: string, from: number, to: number } | null} */
+	let activeFragment = $derived.by(() => {
 		if (!tree || !smarts.trim() || activeRecursiveSmarts) return null;
 		try {
-			return findSplitAtCursor(tree.rootNode, smarts, cursorPos);
+			return findFragmentSpanAtCursor(tree.rootNode, smarts, cursorPos);
 		} catch {
 			return null;
 		}
@@ -85,12 +85,12 @@
 					>recursive</span
 				>
 				<SmartsQueryRenderer smarts={activeRecursiveSmarts} width={containerWidth} height={180} />
-			{:else if activeSplit}
+			{:else if activeFragment}
 				<span
 					class="absolute top-1 right-1 z-10 rounded bg-secondary px-1.5 py-0.5 text-[10px] font-medium text-secondary-foreground"
-					>{activeSplit.badge}</span
+					>{activeFragment.badge}</span
 				>
-				<SmartsQueryRenderer smarts={activeSplit.smarts} width={containerWidth} height={180} />
+				<SmartsQueryRenderer smarts={activeFragment.smarts} width={containerWidth} height={180} />
 			{:else}
 				<SmartsQueryRenderer {smarts} width={containerWidth} height={180} />
 			{/if}

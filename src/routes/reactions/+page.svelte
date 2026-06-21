@@ -5,16 +5,12 @@
 	import MolCarousel from '$lib/components/MolCarousel.svelte';
 	import { runReaction } from '$lib/structure-renderer/reaction-runner.js';
 
-	/**
-	 * @typedef {{ reactants: string[], products: string[] }} Slide
-	 * @typedef {{ smiles: string, slides: Slide[] }} ReactionResult
-	 */
-
 	let rxnSmarts = $state('[C:1]=[C:2].[C:3]=[*:4][*:5]=[C:6]>>[C:1]1[C:2][C:3][*:4]=[*:5][C:6]1');
 	let targetsRaw = $state('OC=C.C=CC(N)=C\nOC=C.C=CC=C\nCC');
 
-	/** @type {ReactionResult[]} */
+	/** @type {import('$lib/structure-renderer/reaction-runner.js').ReactionEntry[]} */
 	let results = $state([]);
+
 	let running = $state(false);
 	let error = $state(/** @type {string|null} */ (null));
 
@@ -49,18 +45,7 @@
 		running = true;
 		error = null;
 		try {
-			const raw = await runReaction(rxn, smilesList);
-			results = raw.map((r) => {
-				const reactants = r.smiles.split('.').filter(Boolean);
-				// r.products: string[][] — outer = outcomes, inner = product fragments
-				// Each outcome becomes one slide; reactants are the same for all outcomes
-				/** @type {Slide[]} */
-				const slides =
-					r.products.length > 0
-						? r.products.map((/** @type {string[]} */ prods) => ({ reactants, products: prods }))
-						: [{ reactants, products: [] }];
-				return { smiles: r.smiles, slides };
-			});
+			results = await runReaction(rxn, smilesList);
 		} catch (e) {
 			error = e instanceof Error ? e.message : String(e);
 			results = [];
@@ -117,7 +102,7 @@
 			{/if}
 
 			<div class="flex flex-wrap gap-4">
-				{#each results as result (result.smiles)}
+				{#each results as result (result.smarts)}
 					<MolCarousel slides={result.slides} />
 				{/each}
 			</div>
