@@ -5,7 +5,7 @@
 	import ChevronLeft from '@lucide/svelte/icons/chevron-left';
 	import ChevronRight from '@lucide/svelte/icons/chevron-right';
 	import CircleXIcon from '@lucide/svelte/icons/circle-x';
-	import ChevronsRightIcon from '@lucide/svelte/icons/chevrons-right'
+	import ChevronsRightIcon from '@lucide/svelte/icons/chevrons-right';
 
 	/**
 	 * @typedef {{ reactants: string[], products: string[] }} Slide
@@ -77,7 +77,7 @@
 	class="relative flex flex-col gap-1 overflow-hidden rounded-lg border border-border bg-card p-2 transition-shadow duration-150"
 >
 	<div class="flex items-center gap-1">
-		<div class="flex-1 flex flex-col items-center gap-0.5">
+		<div class="flex flex-1 flex-col items-center gap-0.5">
 			{#if !reactantSmiles}
 				<div
 					class="flex items-center justify-center"
@@ -87,14 +87,15 @@
 					<CircleXIcon size={32} class="text-muted-foreground/40" />
 				</div>
 			{:else}
-				<StructureRenderer structureDefinition={reactantSmiles} width={molWidth} {height} {highlights} />
+				<StructureRenderer
+					structureDefinition={reactantSmiles}
+					width={molWidth}
+					{height}
+					{highlights}
+				/>
 			{/if}
 			{#if reactantTotalFragments > 1}
-				<Badge
-					variant="secondary"
-					onclick={cycleReactantFragment}
-					class="cursor-pointer text-xs"
-				>
+				<Badge variant="secondary" onclick={cycleReactantFragment} class="cursor-pointer text-xs">
 					fragment {displayedReactantFragmentIndex + 1}/{reactantTotalFragments}
 				</Badge>
 			{/if}
@@ -102,7 +103,7 @@
 
 		<ChevronsRightIcon size={30} class="shrink-0 text-muted-foreground/80" />
 
-		<div class="flex-1 flex flex-col items-center gap-0.5">
+		<div class="flex flex-1 flex-col items-center gap-0.5">
 			{#if !productSmiles}
 				<div
 					class="flex items-center justify-center"
@@ -120,11 +121,7 @@
 				/>
 			{/if}
 			{#if productTotalFragments > 1}
-				<Badge
-					variant="secondary"
-					onclick={cycleProductFragment}
-					class="cursor-pointer text-xs"
-				>
+				<Badge variant="secondary" onclick={cycleProductFragment} class="cursor-pointer text-xs">
 					fragment {displayedProductFragmentIndex + 1}/{productTotalFragments}
 				</Badge>
 			{/if}

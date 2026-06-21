@@ -563,14 +563,14 @@
 						<div class="grid gap-4 {gridClass}">
 							{#if isReaction}
 								{#each reactionResults as entry (entry.smarts)}
-								<MolCarousel
-									slides={entry.slides}
-									{highlights}
-									width={molSize.width}
-									height={molSize.height}
-									bind:reactantFragmentIndex={carouselReactantFragmentIndex}
-									bind:productFragmentIndex={carouselProductFragmentIndex}
-								/>
+									<MolCarousel
+										slides={entry.slides}
+										{highlights}
+										width={molSize.width}
+										height={molSize.height}
+										bind:reactantFragmentIndex={carouselReactantFragmentIndex}
+										bind:productFragmentIndex={carouselProductFragmentIndex}
+									/>
 								{/each}
 								{#if reactionRunning}
 									<p class="col-span-full animate-pulse text-xs text-muted-foreground">running…</p>
