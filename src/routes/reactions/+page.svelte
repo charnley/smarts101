@@ -2,7 +2,7 @@
 	import { onMount } from 'svelte';
 	import { Textarea } from '$lib/components/ui/textarea/index.js';
 	import { Input } from '$lib/components/ui/input/index.js';
-	import MolCarousel from '$lib/components/MolCarousel.svelte';
+	import ReactionCard from '$lib/components/ReactionCard.svelte';
 	import { runReaction } from '$lib/structure-renderer/reaction-runner.js';
 
 	let rxnSmarts = $state('[C:1]=[C:2].[C:3]=[*:4][*:5]=[C:6]>>[C:1]1[C:2][C:3][*:4]=[*:5][C:6]1');
@@ -103,7 +103,7 @@
 
 			<div class="flex flex-wrap gap-4">
 				{#each results as result (result.smarts)}
-					<MolCarousel slides={result.slides} />
+					<ReactionCard slides={result.slides} />
 				{/each}
 			</div>
 		</div>

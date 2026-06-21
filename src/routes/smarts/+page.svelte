@@ -1,7 +1,7 @@
 <script>
 	import { onMount } from 'svelte';
 	import MoleculeBox from '$lib/components/MoleculeBox.svelte';
-	import MolCarousel from '$lib/components/MolCarousel.svelte';
+	import ReactionCard from '$lib/components/ReactionCard.svelte';
 	import { runReaction } from '$lib/structure-renderer/reaction-runner.js';
 	import { mode } from 'mode-watcher';
 	import SmartsEditor from '$lib/components/SmartsEditor.svelte';
@@ -550,7 +550,7 @@
 						<div class="grid gap-4 {gridClass}">
 							{#if isReaction}
 								{#each reactionResults as entry (entry.smarts)}
-									<MolCarousel
+									<ReactionCard
 										slides={entry.slides}
 										{highlights}
 										width={molSize.width}
