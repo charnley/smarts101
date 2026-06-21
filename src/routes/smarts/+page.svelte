@@ -161,13 +161,17 @@
 	 * Minimum 1.
 	 */
 	let effectiveMolCols = $derived(
-		/** @type {1|2|3} */ (
-			explainOpen ? Math.max(1, settings.columnsPerRow - 1) : settings.columnsPerRow
+		/** @type {1|2|3|4} */ (
+			isReaction
+				? 1
+				: explainOpen
+					? Math.max(1, settings.columnsPerRow - 1)
+					: settings.columnsPerRow
 		),
 	);
 
 	/** When only 1 total column and explain open, hide molecules entirely */
-	let moleculesHidden = $derived(explainOpen && settings.columnsPerRow === 1);
+	let moleculesHidden = $derived(explainOpen && settings.columnsPerRow === 1 && !isReaction);
 
 	/**
 	 * CSS grid-template-columns for the content row.
@@ -176,7 +180,7 @@
 	 */
 	let contentRowStyle = $derived(
 		explainOpen && !moleculesHidden
-			? `grid-template-columns: ${settings.columnsPerRow - 1}fr 1fr`
+			? `grid-template-columns: ${Math.max(1, settings.columnsPerRow - 1)}fr 1fr`
 			: '',
 	);
 
