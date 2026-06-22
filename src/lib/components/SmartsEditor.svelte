@@ -11,7 +11,7 @@
 
 	/**
 	 * @typedef {{ from: number, to: number } | null} HighlightRange
-	 * @typedef {'recursive' | 'reactant' | 'product'} DimColor
+	 * @typedef {'recursive' | 'reactant' | 'product'} FocusColor
 	 */
 
 	/**
@@ -20,7 +20,7 @@
 	 *   onchange?: (v: string) => void,
 	 *   oncursorchange?: (pos: number) => void,
 	 *   highlightRange?: HighlightRange,
-	 *   dimHighlightRange?: ({ from: number, to: number, color: DimColor }) | null,
+	 *   focusOnSection?: ({ from: number, to: number, color: FocusColor } | null),
 	 *   errorRanges?: { from: number, to: number }[],
 	 *   invalid?: boolean,
 	 *   class?: string,
@@ -31,7 +31,7 @@
 		onchange,
 		oncursorchange,
 		highlightRange = null,
-		dimHighlightRange = null,
+		focusOnSection = null,
 		errorRanges = [],
 		invalid = false,
 		class: cls = '',
@@ -51,8 +51,8 @@
 	const errorMark = Decoration.mark({ class: 'cm-smarts-error' });
 
 	// ── StateEffects ─────────────────────────────────────────────────────────
-	/** @type {import('@codemirror/state').StateEffectType<{ from: number, to: number, color: DimColor } | null>} */
-	const setDimHighlightEffect = StateEffect.define();
+	/** @type {import('@codemirror/state').StateEffectType<{ from: number, to: number, color: FocusColor } | null>} */
+	const setFocusOnSectionEffect = StateEffect.define();
 	/** @type {import('@codemirror/state').StateEffectType<HighlightRange>} */
 	const setHoverEffect = StateEffect.define();
 	/** @type {import('@codemirror/state').StateEffectType<{ from: number, to: number }[]>} */
@@ -60,11 +60,11 @@
 
 	// ── StateField holding the ranges ────────────────────────────────────────
 	/**
-	 * @typedef {{ dimHighlight: { from: number, to: number, color: DimColor } | null, hover: HighlightRange, errors: { from: number, to: number }[] }} RangesState
+	 * @typedef {{ focusOnSection: { from: number, to: number, color: FocusColor } | null, hover: HighlightRange, errors: { from: number, to: number }[] }} RangesState
 	 */
 	const rangesField = StateField.define({
 		/** @returns {RangesState} */
-		create: () => ({ dimHighlight: null, hover: null, errors: [] }),
+		create: () => ({ focusOnSection: null, hover: null, errors: [] }),
 		/**
 		 * @param {RangesState} val
 		 * @param {import('@codemirror/state').Transaction} tr
@@ -73,7 +73,7 @@
 		update(val, tr) {
 			let next = val;
 			for (const e of tr.effects) {
-				if (e.is(setDimHighlightEffect)) next = { ...next, dimHighlight: e.value };
+				if (e.is(setFocusOnSectionEffect)) next = { ...next, focusOnSection: e.value };
 				if (e.is(setHoverEffect)) next = { ...next, hover: e.value };
 				if (e.is(setErrorsEffect)) next = { ...next, errors: e.value };
 			}
@@ -96,7 +96,7 @@
 			}
 			/** @param {EditorView} view */
 			_build(view) {
-				const { dimHighlight, hover, errors } = view.state.field(rangesField);
+				const { focusOnSection, hover, errors } = view.state.field(rangesField);
 				const docLen = view.state.doc.length;
 				/** @type {import('@codemirror/state').Range<import('@codemirror/view').Decoration>[]} */
 				const ranges = [];
@@ -108,13 +108,13 @@
 					if (eFrom < eTo) ranges.push(errorMark.range(eFrom, eTo));
 				}
 
-				if (dimHighlight) {
-					const rFrom = Math.max(0, Math.min(dimHighlight.from, docLen));
-					const rTo = Math.max(0, Math.min(dimHighlight.to, docLen));
+				if (focusOnSection) {
+					const rFrom = Math.max(0, Math.min(focusOnSection.from, docLen));
+					const rTo = Math.max(0, Math.min(focusOnSection.to, docLen));
 					const mark =
-						dimHighlight.color === 'recursive'
+						focusOnSection.color === 'recursive'
 							? recursiveMark
-							: dimHighlight.color === 'product'
+							: focusOnSection.color === 'product'
 								? productMark
 								: reactantMark;
 					if (rFrom > 0) ranges.push(dimMark.range(0, rFrom));
@@ -231,10 +231,6 @@
 			background: 'rgba(96,165,250,0.5)',
 			borderRadius: '2px',
 		},
-		'&dark .cm-smarts-hover': {
-			background: 'rgba(96,165,250,0.5)',
-			borderRadius: '2px',
-		},
 		'.cm-smarts-error': {
 			background: 'rgba(239,68,68,0.25)',
 			borderRadius: '2px',
@@ -273,9 +269,9 @@
 		}
 	});
 
-	// ── Reactive: dimHighlightRange → effect ─────────────────────────────────
+	// ── Reactive: focusOnSection → effect ─────────────────────────────────────
 	$effect(() => {
-		view?.dispatch({ effects: setDimHighlightEffect.of(dimHighlightRange ?? null) });
+		view?.dispatch({ effects: setFocusOnSectionEffect.of(focusOnSection ?? null) });
 	});
 
 	// ── Reactive: highlightRange → effect ────────────────────────────────────

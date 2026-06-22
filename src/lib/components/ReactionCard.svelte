@@ -53,7 +53,10 @@
 	const reactantSmiles = $derived(reactantMols[displayedReactantFragmentIndex] ?? '');
 	const productSmiles = $derived(productMols[displayedProductFragmentIndex] ?? '');
 
-	const molWidth = $derived(Math.floor((width - 60) / 2));
+	// 30px chevron + 30px gap between the two sides
+	const SIDE_GAP = 60;
+
+	const molWidth = $derived(Math.floor((width - SIDE_GAP) / 2));
 
 	function prevOutcome() {
 		if (outcomeIndex > 0) outcomeIndex--;
@@ -110,7 +113,7 @@
 					style:width="{molWidth}px"
 					style:height="{height}px"
 				>
-					<CircleXIcon size={32} class="" />
+					<CircleXIcon size={32} class="text-muted-foreground/40" />
 				</div>
 			{:else}
 				<StructureRenderer

@@ -279,7 +279,7 @@
 	let reactionRunning = $state(false);
 
 	/** @type {ReturnType<typeof setTimeout>|null} */
-	let reactionDebounce = null;
+	let reactionDebounceTimer = null;
 
 	$effect(() => {
 		const _rxn = rawSmarts;
@@ -289,8 +289,8 @@
 			reactionResults = [];
 			return;
 		}
-		if (reactionDebounce) clearTimeout(reactionDebounce);
-		reactionDebounce = setTimeout(() => runReactionMode(_rxn, _mols), 400);
+		if (reactionDebounceTimer) clearTimeout(reactionDebounceTimer);
+		reactionDebounceTimer = setTimeout(() => runReactionMode(_rxn, _mols), 400);
 	});
 
 	/**
@@ -298,10 +298,6 @@
 	 * @param {{ structureDefinition: string }[]} mols
 	 */
 	async function runReactionMode(rxn, mols) {
-		if (!rxn.trim() || mols.length === 0) {
-			reactionResults = [];
-			return;
-		}
 		reactionRunning = true;
 		try {
 			const smilesList = mols.map((m) => m.structureDefinition);
@@ -362,7 +358,7 @@
 	 * 2. Reaction fragment under cursor → blue (reactant) / green (product)
 	 * @type {{ from: number, to: number, color: 'recursive' | 'reactant' | 'product' } | null}
 	 */
-	let editorHighlightRange = $derived.by(() => {
+	let focusOnSection = $derived.by(() => {
 		// Priority 1: recursive
 		if (settings.highlightRecursive && recursiveRange) {
 			return {
@@ -499,7 +495,7 @@
 			oncursorchange={(pos) => {
 				cursorPos = pos;
 			}}
-			dimHighlightRange={editorHighlightRange}
+			{focusOnSection}
 			highlightRange={explainHighlightRange}
 			{errorRanges}
 			invalid={!!smartsError}

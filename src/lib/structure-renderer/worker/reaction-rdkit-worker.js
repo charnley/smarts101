@@ -70,19 +70,19 @@ const performReaction = async (rxnSmarts, smilesList) => {
 				const molList = molListList.get(i);
 				if (!molList) continue;
 				/** @type {string[]} */
-				const set = [];
+				const productSet = [];
 				for (let j = 0; j < molList.size(); j++) {
 					const product = molList.at(j);
 					if (product) {
 						try {
-							set.push(product.get_smiles());
+							productSet.push(product.get_smiles());
 						} finally {
 							product.delete();
 						}
 					}
 				}
 				molList.delete();
-				if (set.length > 0) products.push(set);
+				if (productSet.length > 0) products.push(productSet);
 			}
 
 			results.push({ smiles, products });
