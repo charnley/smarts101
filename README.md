@@ -2,8 +2,8 @@
 
 ![Screenshot](static/screenshots/hero.png)
 
-Static-file web application for interactively creating SMARTS queries and reactions, with live results.
-regex101.com for SMARTS — interactively build, test and debug substructure queries.
+Interactively build, test and debug SMARTS queries and reactions. Static-file web application with live results.
+Like [regex101.com](https://regex101.com) but for SMARTS. 
 
 ## Features
 
@@ -48,9 +48,9 @@ sudo apt install emscripten
 
 | Package                                                                                                               | Purpose                                                        |
 | --------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
-| [rdkit](https://www.rdkit.org/)                                                                                       | RDKit WASM — molecule rendering and SMARTS substructure search |
+| [rdkit](https://www.rdkit.org/)                                                                                       | RDKit WASM molecule rendering and SMARTS substructure search |
 | [paper.js](https://paperjs.org/)                                                                                      | Vector graphics for highlight outlines                         |
-| [tree-sitter](https://tree-sitter.github.io/)                                                                         | SMARTS grammar — powers the syntax explain panel               |
+| [tree-sitter](https://tree-sitter.github.io/)                                                                         | SMARTS grammar powers the syntax explain panel               |
 | [codemirror](https://codemirror.net/)                                                                                 | Code editor with syntax highlighting and inline error markers  |
 | [sveltekit](https://svelte.dev/docs/kit) + [svelte](https://svelte.dev/)                                              | Web framework, compiles to a static website                    |
 | [tailwindcss](https://tailwindcss.com/) + [shadcn-svelte](https://shadcn-svelte.com/) + [lucide](https://lucide.dev/) | UI Components                                                  |
