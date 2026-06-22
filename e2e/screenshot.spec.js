@@ -5,7 +5,7 @@ const OUT_DIR = 'static/screenshots';
 
 const CONFIGS = {
 	desktop: { width: 960, height: 800, columns: '2' },
-	mobile: { width: 390, height: 844, columns: '1' },
+	mobile: { width: 390, height: 800, columns: '1' },
 };
 
 /**
