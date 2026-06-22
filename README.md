@@ -1,6 +1,6 @@
 # SMARTS 101
 
-![Screenshot](static/screenshots/hero.png)]
+![Screenshot](static/screenshots/hero.png)
 
 Static-file web application for interactively creating SMARTS queries and reactions, with live results.
 regex101.com for SMARTS — interactively build, test and debug substructure queries.
