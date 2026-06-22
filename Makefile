@@ -1,5 +1,6 @@
-.PHONY: build format dev build-wasm build-docker start-docker
+.PHONY: build format dev build-wasm build-docker start-docker readme-hero
 
+PORT=5173
 TREE_SITTER ?= npx tree-sitter
 TREE_SITTER_DIR = ./src/lib/grammar-smarts
 
@@ -36,7 +37,7 @@ test:
 # Start
 
 dev: dep
-	pnpm run dev
+	vite dev --force --host 0.0.0.0 --port ${PORT}
 
 start-storybook:
 	npx storybook dev -p 6006
@@ -48,3 +49,13 @@ build-docker:
 
 start-docker:
 	docker run -p 8080:80 smarts101
+
+# Screenshot
+
+readme-hero:
+	npx playwright test e2e/screenshot.spec.js
+	magick static/screenshots/_desktop.png static/screenshots/_mobile.png \
+		-background '#f4f4f4' -gravity center +smush 40 \
+		-bordercolor '#f4f4f4' -border 40 \
+		static/screenshots/hero.png
+	rm -f static/screenshots/_desktop.png static/screenshots/_mobile.png

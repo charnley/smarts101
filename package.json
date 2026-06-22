@@ -16,6 +16,7 @@
 		"test:grammar": "vitest run --project server src/lib/grammar-smarts/grammar.tests.js",
 		"test": "npm run test:unit -- --run && npm run test:e2e",
 		"test:e2e": "playwright test",
+		"screenshot": "playwright test e2e/screenshot.spec.js",
 		"storybook": "storybook dev -p 6006",
 		"build-storybook": "storybook build"
 	},
