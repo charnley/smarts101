@@ -1,18 +1,17 @@
 # SMARTS 101
 
-> regex101.com for SMARTS — interactively build, test and debug substructure queries.
-
-[![Screenshot](static/screenshots/hero.png)](https://smarts101.charnley.fyi)
+![Screenshot](static/screenshots/hero.png)]
 
 Static-file web application for interactively creating SMARTS queries and reactions, with live results.
+regex101.com for SMARTS — interactively build, test and debug substructure queries.
 
 ## Features
 
-- **Live matching** — write SMARTS patterns and see highlighted matches across multiple molecules in real-time
-- **Reactions ** — query reactions with separate reactant/product highlights and per-fragment
-- **SMARTS syntax explanation** — tree-sitter powered breakdown atom, bond, and recursive expression
-- **Molecule examples** — druglike compounds, amino acids, peptides, RNA/DNA bases, ChEMBL, macrocycles examples
-- and self-hostable (no backend, no data storage)
+- **Quires** write SMARTS patterns and see highlighted matches across multiple molecules in real-time
+- **Reactions** query reactions with separate reactant/product highlights and per-fragment
+- **Syntax explanation** tree-sitter powered breakdown atom, bond, and recursive expression
+- **Molecule examples** druglike compounds, amino acids, peptides, RNA/DNA bases, ChEMBL, macrocycles examples
+- and **self-hostable** (no backend, no data storage)
 
 ## Quick Start
 
