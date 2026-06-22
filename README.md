@@ -46,11 +46,11 @@ sudo apt install emscripten
 
 ## Technical Overview
 
-| Package | Purpose |
-|---|---|
-| [rdkit](https://www.rdkit.org/) | RDKit WASM — molecule rendering and SMARTS substructure search |
-| [paper.js](https://paperjs.org/) | Vector graphics for highlight outlines |
-| [tree-sitter](https://tree-sitter.github.io/) | SMARTS grammar — powers the syntax explain panel |
-| [codemirror](https://codemirror.net/) | Code editor with syntax highlighting and inline error markers |
-| [sveltekit](https://svelte.dev/docs/kit) + [svelte](https://svelte.dev/) | Web framework, compiles to a static website |
-| [tailwindcss](https://tailwindcss.com/) + [shadcn-svelte](https://shadcn-svelte.com/) + [lucide](https://lucide.dev/) | UI Components |
+| Package                                                                                                               | Purpose                                                        |
+| --------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| [rdkit](https://www.rdkit.org/)                                                                                       | RDKit WASM — molecule rendering and SMARTS substructure search |
+| [paper.js](https://paperjs.org/)                                                                                      | Vector graphics for highlight outlines                         |
+| [tree-sitter](https://tree-sitter.github.io/)                                                                         | SMARTS grammar — powers the syntax explain panel               |
+| [codemirror](https://codemirror.net/)                                                                                 | Code editor with syntax highlighting and inline error markers  |
+| [sveltekit](https://svelte.dev/docs/kit) + [svelte](https://svelte.dev/)                                              | Web framework, compiles to a static website                    |
+| [tailwindcss](https://tailwindcss.com/) + [shadcn-svelte](https://shadcn-svelte.com/) + [lucide](https://lucide.dev/) | UI Components                                                  |

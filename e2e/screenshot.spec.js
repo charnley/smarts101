@@ -19,10 +19,9 @@ async function setupPage(page, config) {
 
 	// Wait for initial molecule render
 	await page.waitForSelector('.sr-shell', { timeout: 30000 });
-	await page.waitForFunction(
-		() => !document.querySelector('.sr-shell.is-rendering'),
-		{ timeout: 30000 },
-	);
+	await page.waitForFunction(() => !document.querySelector('.sr-shell.is-rendering'), {
+		timeout: 30000,
+	});
 
 	// Open Settings dialog and set number of columns
 	await page.getByLabel('Settings').click();
@@ -39,10 +38,9 @@ async function setupPage(page, config) {
 
 	// Wait for highlight render
 	await page.waitForTimeout(600);
-	await page.waitForFunction(
-		() => !document.querySelector('.sr-shell.is-rendering'),
-		{ timeout: 30000 },
-	);
+	await page.waitForFunction(() => !document.querySelector('.sr-shell.is-rendering'), {
+		timeout: 30000,
+	});
 	await page.waitForTimeout(300);
 }
 
