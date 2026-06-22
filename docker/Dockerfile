@@ -6,13 +6,12 @@ RUN npm install -g pnpm
 WORKDIR /app
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-RUN CI=true pnpm install --frozen-lockfile --ignore-scripts && \
-    pnpm rebuild esbuild tree-sitter-cli
+RUN CI=true pnpm install
 
 COPY . .
 
 RUN make build-wasm
-RUN make build-site
+RUN make build
 
 FROM nginx:alpine
 

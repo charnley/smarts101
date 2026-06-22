@@ -1381,7 +1381,14 @@ var initRDKitModule = (() => {
 				var arg = setattr ? stream : node;
 				setattr ??= node.node_ops.setattr;
 				FS.checkOpExists(setattr, 63);
-				setattr(arg, attr);
+				try {
+					setattr(arg, attr);
+				} catch (e) {
+					if (e instanceof RangeError) {
+						throw new FS.ErrnoError(22);
+					}
+					throw e;
+				}
 			},
 			chrdev_stream_ops: {
 				open(stream) {
@@ -2451,6 +2458,7 @@ var initRDKitModule = (() => {
 			return ptr ? UTF8ArrayToString(HEAPU8, ptr, maxBytesToRead, ignoreNul) : '';
 		};
 		var SYSCALLS = {
+			currentUmask: 18,
 			calculateAt(dirfd, path, allowEmpty) {
 				if (PATH.isAbs(path)) {
 					return path;
@@ -2552,7 +2560,8 @@ var initRDKitModule = (() => {
 						return stream.flags;
 					case 4: {
 						var arg = syscallGetVarargI();
-						stream.flags |= arg;
+						var mask = 289792;
+						stream.flags = (stream.flags & ~mask) | (arg & mask);
 						return 0;
 					}
 					case 12: {
@@ -2603,6 +2612,9 @@ var initRDKitModule = (() => {
 				path = SYSCALLS.getStr(path);
 				path = SYSCALLS.calculateAt(dirfd, path);
 				var mode = varargs ? syscallGetVarargI() : 0;
+				if (flags & 64) {
+					mode &= ~SYSCALLS.currentUmask;
+				}
 				return FS.open(path, flags, mode).fd;
 			} catch (e) {
 				if (typeof FS == 'undefined' || !(e.name === 'ErrnoError')) throw e;
@@ -4460,7 +4472,7 @@ var initRDKitModule = (() => {
 			offset = bigintToI53Checked(offset);
 			newOffset >>>= 0;
 			try {
-				if (isNaN(offset)) return 61;
+				if (isNaN(offset)) return 22;
 				var stream = SYSCALLS.getStreamFromFD(fd);
 				FS.llseek(stream, offset, whence);
 				HEAP64[(newOffset >>> 3) >>> 0] = BigInt(stream.position);
@@ -4550,7 +4562,7 @@ var initRDKitModule = (() => {
 			L: ___syscall_fstat64,
 			K: ___syscall_newfstatat,
 			M: ___syscall_openat,
-			B: __abort_js,
+			C: __abort_js,
 			w: __embind_register_bigint,
 			R: __embind_register_bool,
 			l: __embind_register_class,
@@ -4584,7 +4596,7 @@ var initRDKitModule = (() => {
 			G: __tzset_js,
 			O: _clock_time_get,
 			t: _emscripten_date_now,
-			C: _emscripten_resize_heap,
+			B: _emscripten_resize_heap,
 			I: _environ_get,
 			J: _environ_sizes_get,
 			u: _fd_close,

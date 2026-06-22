@@ -672,8 +672,9 @@ function fragmentSpans(smartsNode) {
 }
 
 /**
- * Given a parsed tree and cursor position, return the sub-SMARTS string and
- * badge label for the fragment/reaction component the cursor is in, or null.
+ * Given a parsed tree and cursor position, return the sub-SMARTS string,
+ * badge label, and character span for the fragment/reaction component the
+ * cursor is in, or null.
  *
  * For fragment splits (`.`): badge is "fragment N/total".
  * For reaction splits (`>`): badge is "reactant" / "agent" / "product".
@@ -682,9 +683,9 @@ function fragmentSpans(smartsNode) {
  * @param {import('web-tree-sitter').Node} rootNode
  * @param {string} src
  * @param {number} cursorPos
- * @returns {{ smarts: string, badge: string } | null}
+ * @returns {{ smarts: string, badge: string, from: number, to: number } | null}
  */
-export function findSplitAtCursor(rootNode, src, cursorPos) {
+export function findFragmentSpanAtCursor(rootNode, src, cursorPos) {
 	const top = rootNode.children.find((c) => c.isNamed);
 	if (!top) return null;
 
@@ -693,7 +694,6 @@ export function findSplitAtCursor(rootNode, src, cursorPos) {
 		for (const field of FIELDS) {
 			const p = top.childForFieldName(field);
 			if (!p || cursorPos < p.startIndex || cursorPos > p.endIndex) continue;
-			// Check for fragments within this reaction part
 			const frags = fragmentSpans(p);
 			if (frags.length > 1) {
 				for (let j = 0; j < frags.length; j++) {
@@ -702,11 +702,18 @@ export function findSplitAtCursor(rootNode, src, cursorPos) {
 						return {
 							smarts: src.slice(start, end),
 							badge: `${field} · fragment ${j + 1}/${frags.length}`,
+							from: start,
+							to: end,
 						};
 					}
 				}
 			}
-			return { smarts: src.slice(p.startIndex, p.endIndex), badge: field };
+			return {
+				smarts: src.slice(p.startIndex, p.endIndex),
+				badge: field,
+				from: p.startIndex,
+				to: p.endIndex,
+			};
 		}
 		return null;
 	}
@@ -720,6 +727,8 @@ export function findSplitAtCursor(rootNode, src, cursorPos) {
 				return {
 					smarts: src.slice(start, end),
 					badge: `fragment ${i + 1}/${frags.length}`,
+					from: start,
+					to: end,
 				};
 			}
 		}

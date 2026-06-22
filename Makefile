@@ -16,9 +16,6 @@ node_modules:
 build: dep
 	pnpm run build
 
-build-site:
-	npx vite build
-
 dep: ./src/lib/grammar-smarts/tree-sitter-smarts.wasm
 
 build-wasm:
