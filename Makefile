@@ -37,7 +37,7 @@ test:
 # Start
 
 dev: dep
-	vite dev --force --host 0.0.0.0 --port ${PORT}
+	npx vite dev --force --host 0.0.0.0 --port ${PORT}
 
 start-storybook:
 	npx storybook dev -p 6006
