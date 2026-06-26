@@ -13,7 +13,8 @@
 	import * as Sheet from '$lib/components/ui/sheet/index.js';
 	import { Checkbox } from '$lib/components/ui/checkbox/index.js';
 	import { Label } from '$lib/components/ui/label/index.js';
-	import SettingsIcon from '@lucide/svelte/icons/settings';
+    import SettingsIcon from '@lucide/svelte/icons/settings';
+    import CircleQuestionMarkIcon from '@lucide/svelte/icons/circle-question-mark';
 	import ListFilter from '@lucide/svelte/icons/list-filter';
 	import PanelRightOpen from '@lucide/svelte/icons/panel-right-open';
 	import PanelRightClose from '@lucide/svelte/icons/panel-right-close';
@@ -513,6 +514,7 @@
 							<Tabs.List>
 								<Tabs.Trigger value="grid">View</Tabs.Trigger>
 								<Tabs.Trigger value="edit">Edit Molecules</Tabs.Trigger>
+								<Tabs.Trigger value="gen">Smarter Generation</Tabs.Trigger>
 							</Tabs.List>
 							<Button
 								variant="outline"
@@ -521,7 +523,15 @@
 								onclick={() => (settingsOpen = true)}
 							>
 								<SettingsIcon size={16} />
-							</Button>
+                            </Button>
+                            <Button
+								variant="outline"
+								size="icon-sm"
+								aria-label="Settings"
+								onclick={() => (settingsOpen = true)}
+							>
+                                <CircleQuestionMarkIcon size={16} />
+                            </Button>
 						</div>
 						<div class="flex items-center gap-1">
 							{#if !explainOpen || moleculesHidden}
