@@ -1,6 +1,6 @@
 FROM debian:trixie AS deps
 RUN apt-get update 
-RUN apt-get install -y cmake git python3 g++ nodejs wget xz-utils libboost-dev libeigen3-dev
+RUN apt-get install -y cmake git python3 g++ nodejs wget xz-utils libboost-dev libeigen3-dev nlohmann-json3-dev
 
 WORKDIR /opt
 RUN git clone https://github.com/emscripten-core/emsdk.git
@@ -9,10 +9,11 @@ RUN ./emsdk install latest && ./emsdk activate latest
 RUN echo "source /opt/emsdk/emsdk_env.sh > /dev/null 2>&1" >>~/.bashrc
 SHELL ["/bin/bash", "-c", "-l"]
 
-# Copy debian boost into emscripten sysroot
+# Copy debian boost + nlohmann into emscripten sysroot
 RUN EM_CACHE=$(em-config CACHE) \
     && mkdir -p ${EM_CACHE}/sysroot/include ${EM_CACHE}/sysroot/lib/cmake \
     && cp -r /usr/include/boost ${EM_CACHE}/sysroot/include/ \
+    && cp -r /usr/include/nlohmann ${EM_CACHE}/sysroot/include/ \
     && cp -r /usr/lib/x86_64-linux-gnu/cmake/Boost-* ${EM_CACHE}/sysroot/lib/cmake/ \
     && cp -r /usr/lib/x86_64-linux-gnu/cmake/boost_headers-* ${EM_CACHE}/sysroot/lib/cmake/ \
     && find ${EM_CACHE}/sysroot/lib/cmake -name "*.cmake" \
