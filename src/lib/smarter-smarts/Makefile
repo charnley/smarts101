@@ -5,7 +5,9 @@ CC = em++
 CFLAGS = -std=c++20 -O3 -Wall \
          -s MODULARIZE=1 -s EXPORT_ES6=1 \
          -s EXPORT_NAME='initSmarterSmartsModule' \
-         -s ALLOW_MEMORY_GROWTH=1 --bind
+         -s ALLOW_MEMORY_GROWTH=1 --bind \
+         --emit-tsd smarter-smarts.d.ts
+
 
 LDRDKIT = -I $(RDBASE)/Code -I $(RDBASE)/External \
           -I $(RDBASE)/External/RingFamilies/RingDecomposerLib/src/RingDecomposerLib \

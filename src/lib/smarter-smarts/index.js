@@ -1,3 +1,5 @@
+export { default as SmarterSmartsWorker } from './smarter-smarts.worker.js?worker';
+
 import initSmarterSmartsModule from './smarter-smarts.js';
 import wasmUrl from './smarter-smarts.wasm?url';
 
@@ -17,7 +19,7 @@ export async function getSmarterSmartsModule() {
     return _initPromise;
 }
 
-export async function getAtomProperties(smiles) {
+export async function getAtomsProperties(smiles) {
     const mod = await getSmarterSmartsModule();
-    return JSON.parse(mod.get_atom_properties(smiles));
+    return JSON.parse(mod.getAtomsProperties(smiles));
 }
