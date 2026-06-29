@@ -23,3 +23,18 @@ export async function getAtomsProperties(smiles) {
     const mod = await getSmarterSmartsModule();
     return JSON.parse(mod.getAtomsProperties(smiles));
 }
+
+/**
+ * Create a SmartsSearcher instance and load molecule list.
+ * @param {string[]} smilesList - array of SMILES strings
+ * @returns {Promise<{searcher: any, mod: any}>}
+ */
+export async function createSearcher(smilesList) {
+    const mod = await getSmarterSmartsModule();
+    const searcher = new mod.SmartsSearcher();
+    const resp = JSON.parse(searcher.load(JSON.stringify(smilesList)));
+    if (!resp.ok) {
+        throw new Error(resp.error || 'Failed to load molecules');
+    }
+    return { searcher, mod };
+}
