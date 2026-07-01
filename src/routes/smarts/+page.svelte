@@ -20,6 +20,7 @@
 	import PanelRightOpen from '@lucide/svelte/icons/panel-right-open';
 	import PanelRightClose from '@lucide/svelte/icons/panel-right-close';
 	import ExplainPanel from '$lib/components/ExplainPanel.svelte';
+	import GeneratePanel from '$lib/components/GeneratePanel.svelte';
 	import { settings } from '$lib/settings.svelte.js';
 	import { isMediumScreen } from '$lib/breakpoints.svelte.js';
 	import { validateSmarts } from '$lib/rdkit/utils.js';
@@ -202,8 +203,8 @@
 	 */
 	let matchStates = $state(DEFAULT_MOLECULES.map(() => false));
 
-	/** 'grid' shows the molecule cards; 'edit' shows the textarea editor */
-	let viewMode = $state(/** @type {'grid' | 'edit'} */ ('grid'));
+	/** 'grid' shows the molecule cards; 'edit' shows the textarea editor; 'gen' shows the generator */
+	let viewMode = $state(/** @type {'grid' | 'edit' | 'gen'} */ ('grid'));
 
 	/** Raw text in the textarea editor — synced from molecules when entering edit mode */
 	let textareaValue = $state('');
@@ -433,6 +434,17 @@
 	function onViewModeChange(v) {
 		if (v === 'edit') switchToEdit();
 		else if (v === 'grid') switchToGrid();
+		else if (v === 'gen') viewMode = 'gen';
+	}
+
+	/** @param {string[]} smiles */
+	function copyGenerated(smiles) {
+		if (smiles.length === 0) return;
+		const list = withIds(smiles.map((s) => ({ structureDefinition: s })));
+		molecules = list;
+		matchStates = list.map(() => false);
+		textareaValue = toTextarea(list);
+		viewMode = 'grid';
 	}
 
 	// ── Load a named molecule set ─────────────────────────────────────────────
@@ -657,6 +669,10 @@
 							{/if}
 						</div>
 					</Tabs.Content>
+
+					<Tabs.Content value="gen">
+						<GeneratePanel smarts={rawSmarts} oncopy={copyGenerated} />
+					</Tabs.Content>
 				</Tabs.Root>
 			</div>
 		{/if}
@@ -809,7 +825,8 @@
 				<p class="">
 					Smarter SMARTS is a tool that helps you write accurate SMARTS patterns by showing the
 					distinct molecules your pattern actually matches, filtered for unique atom environments in
-					the 100K smallest Chembl molecules. Developed by Noel O'Boyle as described in
+					the 100K smallest Chembl molecules and stopping with 200 results. Developed by Noel
+					O'Boyle as described in
 					<a
 						href="https://baoilleach.blogspot.com/2018/11/smarts-for-dummies.html"
 						target="_blank"
