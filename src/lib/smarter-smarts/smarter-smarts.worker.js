@@ -15,18 +15,18 @@ const BATCH_SIZE = 10000;
  * @returns {{smiles: string, name: string}[]}
  */
 function parseCSV(text) {
-    const molecules = [];
-    const lines = text.trim().split('\n');
-    for (const line of lines) {
-        const comma = line.indexOf(',');
-        if (comma === -1) continue;
-        const name = line.slice(0, comma);
-        const smiles = line.slice(comma + 1);
-        if (smiles) {
-            molecules.push({ smiles, name });
-        }
-    }
-    return molecules;
+	const molecules = [];
+	const lines = text.trim().split('\n');
+	for (const line of lines) {
+		const comma = line.indexOf(',');
+		if (comma === -1) continue;
+		const name = line.slice(0, comma);
+		const smiles = line.slice(comma + 1);
+		if (smiles) {
+			molecules.push({ smiles, name });
+		}
+	}
+	return molecules;
 }
 
 /** @type {any} */
@@ -38,94 +38,94 @@ let total = 0;
 let currentSmarts = null;
 
 async function init() {
-    try {
-        const allMolecules = parseCSV(csvText);
+	try {
+		const allMolecules = parseCSV(csvText);
 
-        moleculeNames = allMolecules;
-        const smilesList = allMolecules.map((m) => m.smiles);
+		moleculeNames = allMolecules;
+		const smilesList = allMolecules.map((m) => m.smiles);
 
-        const { searcher: s } = await createSearcher(smilesList);
-        searcher = s;
-        total = smilesList.length;
+		const { searcher: s } = await createSearcher(smilesList);
+		searcher = s;
+		total = smilesList.length;
 
-        const pre = JSON.parse(searcher.preload());
-        console.log('[worker] molecules preloaded:', JSON.stringify(pre));
+		const pre = JSON.parse(searcher.preload());
+		console.log('[worker] molecules preloaded:', JSON.stringify(pre));
 
-        self.postMessage({ type: 'ready', totalMolecules: total });
-    } catch (err) {
-        self.postMessage({
-            type: 'error',
-            message: err instanceof Error ? err.message : String(err),
-        });
-    }
+		self.postMessage({ type: 'ready', totalMolecules: total });
+	} catch (err) {
+		self.postMessage({
+			type: 'error',
+			message: err instanceof Error ? err.message : String(err),
+		});
+	}
 }
 
 async function doSearch(smarts, startIdx) {
-    if (!searcher) return;
+	if (!searcher) return;
 
-    if (startIdx === 0) {
-        const resp = JSON.parse(searcher.initSearch(smarts));
-        if (!resp.ok) {
-            self.postMessage({ type: 'error', message: resp.error || 'Invalid SMARTS' });
-            return;
-        }
-        currentSmarts = smarts;
-    }
+	if (startIdx === 0) {
+		const resp = JSON.parse(searcher.initSearch(smarts));
+		if (!resp.ok) {
+			self.postMessage({ type: 'error', message: resp.error || 'Invalid SMARTS' });
+			return;
+		}
+		currentSmarts = smarts;
+	}
 
-    const raw = searcher.searchBatch(startIdx, BATCH_SIZE);
-    const resp = JSON.parse(raw);
+	const raw = searcher.searchBatch(startIdx, BATCH_SIZE);
+	const resp = JSON.parse(raw);
 
-    if (!resp.ok) {
-        self.postMessage({ type: 'error', message: resp.error || 'Search error' });
-        return;
-    }
+	if (!resp.ok) {
+		self.postMessage({ type: 'error', message: resp.error || 'Search error' });
+		return;
+	}
 
-    const batchResults = [];
-    for (const match of resp.matches) {
-        const molInfo = moleculeNames[match.molecule_idx];
-        batchResults.push({
-            smiles: match.smiles,
-            name: molInfo ? molInfo.name : match.smiles,
-        });
-    }
+	const batchResults = [];
+	for (const match of resp.matches) {
+		const molInfo = moleculeNames[match.molecule_idx];
+		batchResults.push({
+			smiles: match.smiles,
+			name: molInfo ? molInfo.name : match.smiles,
+		});
+	}
 
-    const done = resp.done;
-    const nextIdx = done ? total : startIdx + resp.processed;
+	const done = resp.done;
+	const nextIdx = done ? total : startIdx + resp.processed;
 
-    self.postMessage({
-        type: 'batch',
-        results: batchResults,
-        percent: Math.round(resp.progress * 100),
-        totalSearched: Math.min(nextIdx, total),
-        totalMolecules: total,
-        finished: done,
-        nextIdx: done ? total : nextIdx,
-    });
+	self.postMessage({
+		type: 'batch',
+		results: batchResults,
+		percent: Math.round(resp.progress * 100),
+		totalSearched: Math.min(nextIdx, total),
+		totalMolecules: total,
+		finished: done,
+		nextIdx: done ? total : nextIdx,
+	});
 }
 
 self.onmessage = async (e) => {
-    const { smarts, startIdx = 0, initData } = e.data;
+	const { smarts, startIdx = 0, initData } = e.data;
 
-    if (initData) {
-        try {
-            moleculeNames = initData;
-            const smilesList = initData.map((/** @type {{smiles: string}} */ m) => m.smiles);
-            const { searcher: s } = await createSearcher(smilesList);
-            searcher = s;
-            total = smilesList.length;
-            self.postMessage({ type: 'ready', totalMolecules: total });
-        } catch (err) {
-            self.postMessage({
-                type: 'error',
-                message: err instanceof Error ? err.message : String(err),
-            });
-        }
-        return;
-    }
+	if (initData) {
+		try {
+			moleculeNames = initData;
+			const smilesList = initData.map((/** @type {{smiles: string}} */ m) => m.smiles);
+			const { searcher: s } = await createSearcher(smilesList);
+			searcher = s;
+			total = smilesList.length;
+			self.postMessage({ type: 'ready', totalMolecules: total });
+		} catch (err) {
+			self.postMessage({
+				type: 'error',
+				message: err instanceof Error ? err.message : String(err),
+			});
+		}
+		return;
+	}
 
-    if (smarts) {
-        await doSearch(smarts, startIdx);
-    }
+	if (smarts) {
+		await doSearch(smarts, startIdx);
+	}
 };
 
 init();

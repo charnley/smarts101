@@ -114,9 +114,7 @@
 	<h1 class="mb-6 text-2xl font-bold">Test Molecule Generation</h1>
 
 	<div class="mb-6 rounded-lg border border-border bg-card p-4">
-		<label for="smarts-input" class="mb-2 block text-sm font-medium">
-			SMARTS Pattern
-		</label>
+		<label for="smarts-input" class="mb-2 block text-sm font-medium"> SMARTS Pattern </label>
 		<Textarea
 			id="smarts-input"
 			value={smarts}
@@ -129,7 +127,7 @@
 			{#if !workerReady}
 				<span class="text-xs text-muted-foreground">Loading 100K molecule dataset...</span>
 			{:else if searching}
-				<span class="text-xs text-muted-foreground animate-pulse">Searching...</span>
+				<span class="animate-pulse text-xs text-muted-foreground">Searching...</span>
 			{:else}
 				<span class="text-xs text-muted-foreground">Type a SMARTS pattern to search</span>
 			{/if}
@@ -159,7 +157,10 @@
 
 	{#if results.length > 0}
 		<div class="mb-2 text-sm text-muted-foreground">
-			Showing {results.length} of {results.length >= MAX_RESULTS ? `${MAX_RESULTS}+ ` : ''}matches{#if !searching && totalMolecules > 0} (searched {totalSearched.toLocaleString()} molecules){/if}
+			Showing {results.length} of {results.length >= MAX_RESULTS
+				? `${MAX_RESULTS}+ `
+				: ''}matches{#if !searching && totalMolecules > 0}
+				(searched {totalSearched.toLocaleString()} molecules){/if}
 		</div>
 	{/if}
 
@@ -185,8 +186,6 @@
 	</div>
 
 	{#if results.length === 0 && !searching && !error && currentSearch}
-		<div class="py-12 text-center text-muted-foreground">
-			No matching molecules found.
-		</div>
+		<div class="py-12 text-center text-muted-foreground">No matching molecules found.</div>
 	{/if}
 </div>
