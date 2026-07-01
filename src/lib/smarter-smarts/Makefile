@@ -3,6 +3,7 @@ RDKIT_LIB ?= $(RDBASE)/build-wasm
 
 CC = em++
 CFLAGS = -std=c++20 -O3 -Wall \
+         -DRDK_BUILD_THREADSAFE_SSS \
          -s MODULARIZE=1 -s EXPORT_ES6=1 \
          -s EXPORT_NAME='initSmarterSmartsModule' \
          -s ALLOW_MEMORY_GROWTH=1 --bind \
