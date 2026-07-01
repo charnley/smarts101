@@ -7,21 +7,22 @@ let _module = null;
 let _initPromise = null;
 
 export async function getSmarterSmartsModule() {
-    if (_module) return _module;
-    if (!_initPromise) {
-        _initPromise = initSmarterSmartsModule(
-            /** @type {any} */ ({ locateFile: () => wasmUrl })
-        ).then((m) => {
-            _module = m;
-            return m;
-        });
-    }
-    return _initPromise;
+	if (_module) return _module;
+	if (!_initPromise) {
+		_initPromise = initSmarterSmartsModule(/** @type {any} */ ({ locateFile: () => wasmUrl })).then(
+			(m) => {
+				_module = m;
+				console.log('[smarter-smarts] rdkit version:', m.version());
+				return m;
+			},
+		);
+	}
+	return _initPromise;
 }
 
 export async function getAtomsProperties(smiles) {
-    const mod = await getSmarterSmartsModule();
-    return JSON.parse(mod.getAtomsProperties(smiles));
+	const mod = await getSmarterSmartsModule();
+	return JSON.parse(mod.getAtomsProperties(smiles));
 }
 
 /**
@@ -30,11 +31,11 @@ export async function getAtomsProperties(smiles) {
  * @returns {Promise<{searcher: any, mod: any}>}
  */
 export async function createSearcher(smilesList) {
-    const mod = await getSmarterSmartsModule();
-    const searcher = new mod.SmartsSearcher();
-    const resp = JSON.parse(searcher.load(JSON.stringify(smilesList)));
-    if (!resp.ok) {
-        throw new Error(resp.error || 'Failed to load molecules');
-    }
-    return { searcher, mod };
+	const mod = await getSmarterSmartsModule();
+	const searcher = new mod.SmartsSearcher();
+	const resp = JSON.parse(searcher.load(JSON.stringify(smilesList)));
+	if (!resp.ok) {
+		throw new Error(resp.error || 'Failed to load molecules');
+	}
+	return { searcher, mod };
 }

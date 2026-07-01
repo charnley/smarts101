@@ -5,6 +5,7 @@
 #include <GraphMol/MolOps.h>
 #include <GraphMol/RingInfo.h>
 #include <GraphMol/Substruct/SubstructMatch.h>
+#include <RDGeneral/versions.h>
 #include <nlohmann/json.hpp>
 #include <string>
 #include <memory>
@@ -169,6 +170,8 @@ private:
 };
 
 // ── exposed embind function ────────────────────────────────────────────────
+static std::string get_version() { return std::string(RDKit::rdkitVersion); }
+
 static std::string get_atom_properties(const std::string &smiles) {
     std::unique_ptr<RDKit::RWMol> mol(RDKit::SmilesToMol(smiles));
     if (!mol) return "[]";
@@ -199,6 +202,7 @@ static std::string get_atom_properties(const std::string &smiles) {
 
 EMSCRIPTEN_BINDINGS(smarter_smarts) {
     emscripten::function("getAtomsProperties(smiles)", &get_atom_properties);
+    emscripten::function("version", &get_version);
 
     emscripten::class_<SmartsSearcher>("SmartsSearcher")
         .constructor<>()
