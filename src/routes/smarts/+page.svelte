@@ -8,13 +8,14 @@
 	import { Textarea } from '$lib/components/ui/textarea/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import * as Tabs from '$lib/components/ui/tabs/index.js';
+	import * as Tooltip from '$lib/components/ui/tooltip/index.js';
 	import * as ToggleGroup from '$lib/components/ui/toggle-group/index.js';
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
 	import * as Sheet from '$lib/components/ui/sheet/index.js';
 	import { Checkbox } from '$lib/components/ui/checkbox/index.js';
 	import { Label } from '$lib/components/ui/label/index.js';
-    import SettingsIcon from '@lucide/svelte/icons/settings';
-    import CircleQuestionMarkIcon from '@lucide/svelte/icons/circle-question-mark';
+	import SettingsIcon from '@lucide/svelte/icons/settings';
+	import CircleQuestionMarkIcon from '@lucide/svelte/icons/circle-question-mark';
 	import ListFilter from '@lucide/svelte/icons/list-filter';
 	import PanelRightOpen from '@lucide/svelte/icons/panel-right-open';
 	import PanelRightClose from '@lucide/svelte/icons/panel-right-close';
@@ -112,6 +113,7 @@
 
 	// ── Settings dialog ──────────────────────────────────────────────────────
 	let settingsOpen = $state(false);
+	let infoOpen = $state(false);
 
 	// ── Tree-sitter parser ───────────────────────────────────────────────────
 	/** @type {Parser | null} */
@@ -511,11 +513,38 @@
 				<Tabs.Root value={viewMode} onValueChange={onViewModeChange}>
 					<div class="flex items-center justify-between">
 						<div class="flex items-center gap-1">
-							<Tabs.List>
-								<Tabs.Trigger value="grid">View</Tabs.Trigger>
-								<Tabs.Trigger value="edit">Edit Molecules</Tabs.Trigger>
-								<Tabs.Trigger value="gen">Smarter Generation</Tabs.Trigger>
-							</Tabs.List>
+							<Tooltip.Provider delayDuration={0}>
+								<Tabs.List>
+									<Tooltip.Root>
+										<Tooltip.Trigger>
+											{#snippet child({ props })}
+												<Tabs.Trigger value="grid" {...props}>View</Tabs.Trigger>
+											{/snippet}
+										</Tooltip.Trigger>
+										<Tooltip.Content side="top">View SMARTS results</Tooltip.Content>
+									</Tooltip.Root>
+
+									<Tooltip.Root>
+										<Tooltip.Trigger>
+											{#snippet child({ props })}
+												<Tabs.Trigger value="edit" {...props}>Edit</Tabs.Trigger>
+											{/snippet}
+										</Tooltip.Trigger>
+										<Tooltip.Content side="top">Edit target SMILES molecules</Tooltip.Content>
+									</Tooltip.Root>
+
+									<Tooltip.Root>
+										<Tooltip.Trigger>
+											{#snippet child({ props })}
+												<Tabs.Trigger value="gen" {...props}>Generate</Tabs.Trigger>
+											{/snippet}
+										</Tooltip.Trigger>
+										<Tooltip.Content side="top">
+											Use Smarter SMARTS<sup>tm</sup> to generate molecules
+										</Tooltip.Content>
+									</Tooltip.Root>
+								</Tabs.List>
+							</Tooltip.Provider>
 							<Button
 								variant="outline"
 								size="icon-sm"
@@ -523,15 +552,15 @@
 								onclick={() => (settingsOpen = true)}
 							>
 								<SettingsIcon size={16} />
-                            </Button>
-                            <Button
+							</Button>
+							<Button
 								variant="outline"
 								size="icon-sm"
-								aria-label="Settings"
-								onclick={() => (settingsOpen = true)}
+								aria-label="Info"
+								onclick={() => (infoOpen = true)}
 							>
-                                <CircleQuestionMarkIcon size={16} />
-                            </Button>
+								<CircleQuestionMarkIcon size={16} />
+							</Button>
 						</div>
 						<div class="flex items-center gap-1">
 							{#if !explainOpen || moleculesHidden}
@@ -746,6 +775,45 @@
 					</p>
 				</div>
 			</div>
+		</div>
+	</Dialog.Content>
+</Dialog.Root>
+
+<!-- Info dialog -->
+<Dialog.Root bind:open={infoOpen}>
+	<Dialog.Content class="sm:max-w-lg" portalProps={{}}>
+		<Dialog.Header class="">
+			<Dialog.Title class="">Usage</Dialog.Title>
+		</Dialog.Header>
+
+		<div class="flex flex-col gap-5 py-2 text-sm">
+			<section class="flex flex-col gap-2">
+				<p class="">
+					Enter a SMARTS pattern in the editor at the top of the page. Matching substructures are
+					highlighted in the molecule grid below as you type.
+				</p>
+				<ul class="ml-4 list-disc">
+					<li><strong>View</strong> — see which molecules match the current SMARTS.</li>
+					<li>
+						<strong>Edit</strong> — edit the target molecules in either SMILES list or SDF format.
+					</li>
+					<li><strong>Generate</strong> — Find example molecules from your SMARTS pattern, using Smarter SMARTS.</li>
+				</ul>
+			</section>
+
+			<section class="flex flex-col gap-2">
+				<h3 class="font-semibold">What is Smarter SMARTS?</h3>
+				<p class="">
+					Smarter SMARTS is a tool that helps you write accurate SMARTS patterns by showing the
+                    distinct molecules your pattern actually matches, filtered for unique atom environments in the 100K smallest Chembl molecules.
+                    Developed by Noel O'Boyle as described in 
+					<a
+						href="https://baoilleach.blogspot.com/2018/11/smarts-for-dummies.html"
+						target="_blank"
+						class="underline">SMARTS for dummies</a
+					>.
+				</p>
+			</section>
 		</div>
 	</Dialog.Content>
 </Dialog.Root>
