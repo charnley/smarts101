@@ -73,6 +73,7 @@
 }
 
 @theme inline {
+	--default-transition-duration: 0ms;
 	--radius-sm: calc(var(--radius) - 4px);
 	--radius-md: calc(var(--radius) - 2px);
 	--radius-lg: var(--radius);
