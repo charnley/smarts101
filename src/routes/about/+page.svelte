@@ -41,6 +41,29 @@
 		</li>
 	</ul>
 
+	<h2>Smarter SMARTS</h2>
+
+	<p class="">
+		Smarter SMARTS is a tool that helps you write accurate SMARTS patterns by showing the distinct
+		molecules your pattern actually matches, filtered for unique atom environments in the 100K
+		smallest Chembl molecules and stopping with 200 results. Developed by Noel O'Boyle as described
+		in
+		<a
+			href="https://baoilleach.blogspot.com/2018/11/smarts-for-dummies.html"
+			target="_blank"
+			class="underline">SMARTS for dummies</a
+		>.
+	</p>
+
+	<p>
+		To reproduce the dataset being used, go to <a
+			href="https://www.ebi.ac.uk/chembl/explore/compounds/"
+			target="_black">chEMBL</a
+		> and download `.csv` file of the small molecules. Strip salts (split multi-SMILES and select largest),
+		drop invalid molecules, drop duplicate SMILES, drop one-atom molecules, sort by number of atoms and
+		select first 100K.
+	</p>
+
 	<h2>References</h2>
 
 	Not enough information? Need a better tool? Check out;
