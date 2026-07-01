@@ -9,6 +9,8 @@
 #include <string>
 #include <memory>
 #include <vector>
+#include <set>
+#include <algorithm>
 
 // ── SmartsSearcher ────────────────────────────────────────────────────────
 
@@ -39,6 +41,7 @@ public:
     }
 
     std::string initSearch(const std::string &smarts) {
+        m_seen_hashes.clear();
         std::unique_ptr<RDKit::RWMol> q(RDKit::SmartsToMol(smarts));
         if (!q) {
             return R"({"ok":false,"error":"Invalid SMARTS pattern"})";
@@ -51,17 +54,24 @@ public:
         if (!m_query) {
             return R"({"ok":false,"error":"No SMARTS query initialized. Call initSearch first."})";
         }
-        int end = std::min(start + count, static_cast<int>(m_smiles.size()));
+        int total = static_cast<int>(m_smiles.size());
+        int end = std::min(start + count, total);
         nlohmann::json results = nlohmann::json::array();
         int processed = 0;
         int found = 0;
+        bool has_mols = !m_mols.empty();
 
         for (int i = start; i < end; i++) {
             processed++;
-            std::unique_ptr<RDKit::RWMol> mol(RDKit::SmilesToMol(m_smiles[i]));
-            if (!mol) continue;
-
-            RDKit::MolOps::findSSSR(*mol);
+            RDKit::RWMol *mol_ptr = nullptr;
+            std::unique_ptr<RDKit::RWMol> temp;
+            if (has_mols && i < static_cast<int>(m_mols.size()) && m_mols[i]) {
+                mol_ptr = m_mols[i].get();
+            } else {
+                temp = std::unique_ptr<RDKit::RWMol>(RDKit::SmilesToMol(m_smiles[i]));
+                if (!temp) continue;
+                mol_ptr = temp.get();
+            }
 
             try {
                 RDKit::SubstructMatchParameters params;
@@ -69,14 +79,37 @@ public:
                 params.recursionPossible = true;
                 params.maxMatches = 1;
                 auto matches =
-                    RDKit::SubstructMatch(*mol, *m_query, params);
-                if (!matches.empty()) {
-                    results.push_back({
-                        {"molecule_idx", i},
-                        {"smiles", m_smiles[i]},
-                    });
-                    found++;
+                    RDKit::SubstructMatch(*mol_ptr, *m_query, params);
+                if (matches.empty()) continue;
+
+                const auto &match = matches[0];
+                std::vector<std::vector<int>> atomtypes;
+                for (const auto &[qIdx, tIdx] : match) {
+                    const RDKit::Atom *a = mol_ptr->getAtomWithIdx(tIdx);
+                    std::vector<int> atype = {
+                        a->getAtomicNum(),
+                        static_cast<int>(a->getTotalValence()),
+                        static_cast<int>(a->getNumImplicitHs()),
+                        static_cast<int>(a->getDegree()),
+                        a->getFormalCharge(),
+                    };
+                    atomtypes.push_back(std::move(atype));
                 }
+
+                if (!atomtypes.empty() &&
+                    atomtypes[0][0] > atomtypes.back()[0]) {
+                    std::reverse(atomtypes.begin(), atomtypes.end());
+                }
+
+                std::string hash = nlohmann::json(atomtypes).dump();
+                if (m_seen_hashes.find(hash) != m_seen_hashes.end()) continue;
+                m_seen_hashes.insert(hash);
+
+                results.push_back({
+                    {"molecule_idx", i},
+                    {"smiles", m_smiles[i]},
+                });
+                found++;
             } catch (...) {
                 continue;
             }
@@ -88,19 +121,51 @@ public:
         resp["processed"] = processed;
         resp["found"] = found;
         resp["done"] =
-            (end >= static_cast<int>(m_smiles.size()));
+            (end >= total);
         resp["progress"] =
-            m_smiles.empty()
+            total == 0
                 ? 1.0
-                : static_cast<double>(end) / m_smiles.size();
+                : static_cast<double>(end) / total;
         return resp.dump();
     }
 
     int size() const { return static_cast<int>(m_smiles.size()); }
 
+    std::string preload() {
+        m_mols.clear();
+        m_mols.reserve(m_smiles.size());
+        int total_atoms = 0;
+        int failed = 0;
+        for (const auto &smi : m_smiles) {
+            auto mol = std::unique_ptr<RDKit::RWMol>(RDKit::SmilesToMol(smi));
+            if (mol) {
+                total_atoms += mol->getNumAtoms();
+                m_mols.push_back(std::move(mol));
+            } else {
+                m_mols.push_back(nullptr);
+                failed++;
+            }
+        }
+        long long approx_bytes =
+            static_cast<long long>(total_atoms) * 350 +
+            static_cast<long long>(m_mols.size()) * 200;
+        nlohmann::json resp = {
+            {"ok", true},
+            {"loaded", m_mols.size()},
+            {"failed", failed},
+            {"total_atoms", total_atoms},
+            {"approx_memory_mb", approx_bytes / (1024 * 1024)},
+        };
+        return resp.dump();
+    }
+
+    int loadedCount() const { return static_cast<int>(m_mols.size()); }
+
 private:
     std::vector<std::string> m_smiles;
+    std::vector<std::unique_ptr<RDKit::RWMol>> m_mols;
     std::unique_ptr<RDKit::RWMol> m_query;
+    std::set<std::string> m_seen_hashes;
 };
 
 // ── exposed embind function ────────────────────────────────────────────────
@@ -138,6 +203,8 @@ EMSCRIPTEN_BINDINGS(smarter_smarts) {
     emscripten::class_<SmartsSearcher>("SmartsSearcher")
         .constructor<>()
         .function("load", &SmartsSearcher::load)
+        .function("preload", &SmartsSearcher::preload)
+        .function("loadedCount", &SmartsSearcher::loadedCount)
         .function("initSearch", &SmartsSearcher::initSearch)
         .function("searchBatch", &SmartsSearcher::searchBatch)
         .function("size", &SmartsSearcher::size);

@@ -36,7 +36,6 @@ let moleculeNames = [];
 let total = 0;
 /** @type {string|null} */
 let currentSmarts = null;
-let aborted = false;
 
 async function init() {
     try {
@@ -48,6 +47,9 @@ async function init() {
         const { searcher: s } = await createSearcher(smilesList);
         searcher = s;
         total = smilesList.length;
+
+        const pre = JSON.parse(searcher.preload());
+        console.log('[worker] molecules preloaded:', JSON.stringify(pre));
 
         self.postMessage({ type: 'ready', totalMolecules: total });
     } catch (err) {
@@ -62,7 +64,6 @@ async function doSearch(smarts, startIdx) {
     if (!searcher) return;
 
     if (startIdx === 0) {
-        aborted = false;
         const resp = JSON.parse(searcher.initSearch(smarts));
         if (!resp.ok) {
             self.postMessage({ type: 'error', message: resp.error || 'Invalid SMARTS' });
@@ -71,57 +72,35 @@ async function doSearch(smarts, startIdx) {
         currentSmarts = smarts;
     }
 
-    const batchResults = [];
-    let idx = startIdx;
+    const raw = searcher.searchBatch(startIdx, BATCH_SIZE);
+    const resp = JSON.parse(raw);
 
-    while (idx < total) {
-        if (aborted) return;
-
-        const raw = searcher.searchBatch(idx, BATCH_SIZE);
-        const resp = JSON.parse(raw);
-
-        if (!resp.ok) {
-            self.postMessage({ type: 'error', message: resp.error || 'Search error' });
-            return;
-        }
-
-        for (const match of resp.matches) {
-            const molInfo = moleculeNames[match.molecule_idx];
-            batchResults.push({
-                smiles: match.smiles,
-                name: molInfo ? molInfo.name : match.smiles,
-            });
-        }
-
-        const done = resp.done;
-        idx = done ? total : idx + resp.processed;
-
-        if (batchResults.length > 0 || done) {
-            self.postMessage({
-                type: 'batch',
-                results: batchResults,
-                percent: Math.round(resp.progress * 100),
-                totalSearched: Math.min(idx, total),
-                totalMolecules: total,
-                finished: done,
-                nextIdx: done ? total : idx,
-            });
-            return;
-        }
-
-        if (done) {
-            self.postMessage({
-                type: 'batch',
-                results: [],
-                percent: 100,
-                totalSearched: total,
-                totalMolecules: total,
-                finished: true,
-                nextIdx: total,
-            });
-            return;
-        }
+    if (!resp.ok) {
+        self.postMessage({ type: 'error', message: resp.error || 'Search error' });
+        return;
     }
+
+    const batchResults = [];
+    for (const match of resp.matches) {
+        const molInfo = moleculeNames[match.molecule_idx];
+        batchResults.push({
+            smiles: match.smiles,
+            name: molInfo ? molInfo.name : match.smiles,
+        });
+    }
+
+    const done = resp.done;
+    const nextIdx = done ? total : startIdx + resp.processed;
+
+    self.postMessage({
+        type: 'batch',
+        results: batchResults,
+        percent: Math.round(resp.progress * 100),
+        totalSearched: Math.min(nextIdx, total),
+        totalMolecules: total,
+        finished: done,
+        nextIdx: done ? total : nextIdx,
+    });
 }
 
 self.onmessage = async (e) => {

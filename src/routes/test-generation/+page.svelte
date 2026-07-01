@@ -2,7 +2,6 @@
 	import { onMount, onDestroy } from 'svelte';
 	import StructureRenderer from '$lib/structure-renderer/StructureRenderer.svelte';
 	import { SmarterSmartsWorker } from '$lib/smarter-smarts/index.js';
-	import { Button } from '$lib/components/ui/button/index.js';
 	import { Textarea } from '$lib/components/ui/textarea/index.js';
 	import { validateSmarts } from '$lib/rdkit/utils.js';
 
@@ -20,6 +19,8 @@
 
 	/** @type {Worker|null} */
 	let worker = null;
+	/** @type {ReturnType<typeof setTimeout>|null} */
+	let debounceTimer = null;
 
 	onMount(() => {
 		worker = new SmarterSmartsWorker();
@@ -31,6 +32,7 @@
 	});
 
 	onDestroy(() => {
+		if (debounceTimer) clearTimeout(debounceTimer);
 		if (worker) {
 			worker.terminate();
 			worker = null;
@@ -64,36 +66,37 @@
 		}
 	}
 
-	async function generate() {
-		const trimmed = smarts.trim();
-		if (!trimmed) return;
+	function onInput(value) {
+		smarts = value;
+		if (debounceTimer) clearTimeout(debounceTimer);
 
-		const { valid, errors } = await validateSmarts(trimmed);
-		if (!valid) {
-			error = errors?.join('; ') || 'Invalid SMARTS pattern';
+		const trimmed = value.trim();
+		if (!trimmed) {
+			error = null;
+			searching = false;
+			results = [];
+			progress = 0;
 			return;
 		}
 
-		error = null;
-		results = [];
-		progress = 0;
-		totalSearched = 0;
-		totalMolecules = 0;
-		searching = true;
-		currentSearch = trimmed;
+		debounceTimer = setTimeout(async () => {
+			const { valid, errors } = await validateSmarts(trimmed);
+			if (!valid) {
+				error = errors?.join('; ') || 'Invalid SMARTS pattern';
+				searching = false;
+				return;
+			}
 
-		worker?.postMessage({ smarts: trimmed, startIdx: 0 });
-	}
+			error = null;
+			results = [];
+			progress = 0;
+			totalSearched = 0;
+			totalMolecules = 0;
+			searching = true;
+			currentSearch = trimmed;
 
-	function stop() {
-		searching = false;
-		currentSearch = null;
-	}
-
-	function handleKeydown(e) {
-		if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
-			generate();
-		}
+			worker?.postMessage({ smarts: trimmed, startIdx: 0 });
+		}, 350);
 	}
 
 	let highlights = $derived(
@@ -101,9 +104,6 @@
 			? { definitions: [{ smarts: currentSearch }], outline: true, fill: false }
 			: { definitions: [], outline: true, fill: false },
 	);
-
-	const noHighlights = { definitions: [], outline: true, fill: false }
-
 </script>
 
 <svelte:head>
@@ -119,26 +119,19 @@
 		</label>
 		<Textarea
 			id="smarts-input"
-			bind:value={smarts}
-			onkeydown={handleKeydown}
+			value={smarts}
+			oninput={(e) => onInput(e.target.value)}
 			placeholder="Enter a SMARTS pattern, e.g. C=O or c1ccccc1"
 			class="mb-3 font-mono"
 			rows="2"
-			disabled={searching}
 		/>
 		<div class="flex items-center gap-3">
 			{#if !workerReady}
-				<Button disabled>Loading molecules...</Button>
-				<span class="text-xs text-muted-foreground">Loading 100K molecule dataset</span>
+				<span class="text-xs text-muted-foreground">Loading 100K molecule dataset...</span>
 			{:else if searching}
-				<Button onclick={stop} variant="destructive">Stop</Button>
+				<span class="text-xs text-muted-foreground animate-pulse">Searching...</span>
 			{:else}
-				<Button onclick={generate} disabled={!smarts.trim()}>Generate</Button>
-			{/if}
-			{#if workerReady}
-				<span class="text-xs text-muted-foreground">
-					Ctrl+Enter to generate
-				</span>
+				<span class="text-xs text-muted-foreground">Type a SMARTS pattern to search</span>
 			{/if}
 		</div>
 	</div>
@@ -171,12 +164,12 @@
 	{/if}
 
 	<div class="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-4">
-		{#each results as result (result.smiles)}
+		{#each results as result (result.name)}
 			<div class="flex flex-col overflow-hidden rounded-lg border border-border bg-card">
 				<div class="flex items-center justify-center bg-card p-2">
 					<StructureRenderer
 						structureDefinition={result.smiles}
-						{noHighlights}
+						{highlights}
 						width={280}
 						height={200}
 					/>
