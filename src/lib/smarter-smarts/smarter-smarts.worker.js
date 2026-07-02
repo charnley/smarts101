@@ -7,7 +7,7 @@
 import { createSearcher } from './index.js';
 import csvText from '$lib/smarter-smarts/data/100k-smallest-chembl.csv?raw';
 
-const BATCH_SIZE = 10000;
+const BATCH_SIZE = 20_000;
 
 /**
  * Parse CHEMBL_ID,SMILES CSV (no quoting, no header).
@@ -60,7 +60,7 @@ async function init() {
 	}
 }
 
-async function doSearch(smarts, startIdx) {
+async function doSearch(smarts, startIdx, currentCount = 0, maxResults = Infinity) {
 	if (!searcher) return;
 
 	if (startIdx === 0) {
@@ -89,22 +89,26 @@ async function doSearch(smarts, startIdx) {
 		});
 	}
 
+	const room = Math.max(0, maxResults - currentCount);
+	const capped = batchResults.slice(0, room);
+	const hitMax = capped.length < batchResults.length;
+
 	const done = resp.done;
 	const nextIdx = done ? total : startIdx + resp.processed;
 
 	self.postMessage({
 		type: 'batch',
-		results: batchResults,
+		results: capped,
 		percent: Math.round(resp.progress * 100),
 		totalSearched: Math.min(nextIdx, total),
 		totalMolecules: total,
-		finished: done,
+		finished: done || hitMax,
 		nextIdx: done ? total : nextIdx,
 	});
 }
 
 self.onmessage = async (e) => {
-	const { smarts, startIdx = 0, initData } = e.data;
+	const { smarts, startIdx = 0, currentCount = 0, maxResults = Infinity, initData } = e.data;
 
 	if (initData) {
 		try {
@@ -124,7 +128,7 @@ self.onmessage = async (e) => {
 	}
 
 	if (smarts) {
-		await doSearch(smarts, startIdx);
+		await doSearch(smarts, startIdx, currentCount, maxResults);
 	}
 };
 

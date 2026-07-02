@@ -16,9 +16,6 @@
 	let { smarts, active = false, onresults } = $props();
 
 	let searching = $state(false);
-	let progress = $state(0);
-	let totalSearched = $state(0);
-	let totalMolecules = $state(0);
 	/** @type {string | null} */
 	let error = $state(null);
 	/** @type {string | null} */
@@ -43,9 +40,6 @@
 		if (type === 'batch') {
 			const batch = e.data;
 			results = [...results, ...batch.results];
-			progress = batch.percent;
-			totalSearched = batch.totalSearched;
-			totalMolecules = batch.totalMolecules;
 
 			onresults?.(results.map((r) => r.smiles));
 
@@ -54,7 +48,12 @@
 				return;
 			}
 
-			worker?.postMessage({ smarts: currentSearch, startIdx: batch.nextIdx });
+			worker?.postMessage({
+				smarts: currentSearch,
+				startIdx: batch.nextIdx,
+				currentCount: results.length,
+				maxResults: MAX_RESULTS,
+			});
 		} else if (type === 'error') {
 			error = e.data.message;
 			searching = false;
@@ -98,7 +97,6 @@
 			error = null;
 			searching = false;
 			results = [];
-			progress = 0;
 			currentSearch = null;
 			untrack(() => onresults?.([]));
 			return;
@@ -121,13 +119,15 @@
 
 			error = null;
 			results = [];
-			progress = 0;
-			totalSearched = 0;
-			totalMolecules = 0;
 			searching = true;
 			currentSearch = trimmed;
 
-			worker?.postMessage({ smarts: trimmed, startIdx: 0 });
+			worker?.postMessage({
+				smarts: trimmed,
+				startIdx: 0,
+				currentCount: 0,
+				maxResults: MAX_RESULTS,
+			});
 		}, 350 * 2);
 	});
 </script>
@@ -141,17 +141,8 @@
 	{:else if error}
 		<div class="rounded-md bg-destructive/10 p-3 text-sm text-destructive">{error}</div>
 	{:else if searching}
-		<div class="space-y-1">
-			<div class="flex justify-between text-sm text-muted-foreground">
-				<span>Searching molecules…</span>
-				<span>{totalSearched.toLocaleString()} / {totalMolecules.toLocaleString()}</span>
-			</div>
-			<div class="h-2 w-full overflow-hidden rounded-full bg-secondary">
-				<div class="h-full rounded-full bg-primary" style="width: {progress}%"></div>
-			</div>
-			<div class="text-xs text-muted-foreground">
-				Found {results.length} match{results.length !== 1 ? 'es' : ''} so far
-			</div>
+		<div class="text-sm text-muted-foreground">
+			Searching… {results.length} match{results.length !== 1 ? 'es' : ''} so far
 		</div>
 	{:else if !currentSearch}
 		<p class="text-sm text-muted-foreground">
