@@ -530,29 +530,29 @@
 									<Tooltip.Root>
 										<Tooltip.Trigger>
 											{#snippet child({ props })}
-												<Tabs.Trigger value="grid" {...props}>View</Tabs.Trigger>
+												<Tabs.Trigger value="grid" {...props}>View Results</Tabs.Trigger>
 											{/snippet}
 										</Tooltip.Trigger>
-										<Tooltip.Content side="top">View SMARTS results</Tooltip.Content>
+										<Tooltip.Content side="top">View SMARTS matches</Tooltip.Content>
 									</Tooltip.Root>
 
 									<Tooltip.Root>
 										<Tooltip.Trigger>
 											{#snippet child({ props })}
-												<Tabs.Trigger value="edit" {...props}>Edit</Tabs.Trigger>
+												<Tabs.Trigger value="edit" {...props}>Edit Molecules</Tabs.Trigger>
 											{/snippet}
 										</Tooltip.Trigger>
-										<Tooltip.Content side="top">Edit target SMILES molecules</Tooltip.Content>
+										<Tooltip.Content side="top">Edit target SMILES/SDF molecules</Tooltip.Content>
 									</Tooltip.Root>
 
 									<Tooltip.Root>
 										<Tooltip.Trigger>
 											{#snippet child({ props })}
-												<Tabs.Trigger value="gen" {...props}>Generate</Tabs.Trigger>
+												<Tabs.Trigger value="gen" {...props}>Generate Molecules</Tabs.Trigger>
 											{/snippet}
 										</Tooltip.Trigger>
 										<Tooltip.Content side="top">
-											Use Smarter SMARTS<sup>tm</sup> to generate molecules
+											Use Smarter SMARTS<sup>tm</sup> to find matching molecules
 										</Tooltip.Content>
 									</Tooltip.Root>
 								</Tabs.List>
@@ -817,7 +817,15 @@
 						<strong>Generate</strong> — Find example molecules from your SMARTS pattern, using Smarter
 						SMARTS.
 					</li>
-				</ul>
+                </ul>
+			</section>
+
+			<section class="flex flex-col gap-2">
+				<h3 class="font-semibold">Reactions</h3>
+                <p class="">
+                    You can use <code>>></code> SMARTS reaction syntax in "view" and you will see the target transform.
+                    Note that if you have multiple reactants with <code>.</code> you will need the same amount of SMILES in your "Edit" molecules.
+				</p>
 			</section>
 
 			<section class="flex flex-col gap-2">
