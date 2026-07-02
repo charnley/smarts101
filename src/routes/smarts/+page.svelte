@@ -215,7 +215,7 @@
 
 	/** Molecules produced by the Generate tab — separate from the main grid list */
 	let generatedMolecules = $state(
-		/** @type {{ id: number, structureDefinition: string }[]} */ ([]),
+		/** @type {{ id: number, structureDefinition: string, name?: string }[]} */ ([]),
 	);
 	/** @type {boolean[]} */
 	let generatedMatchStates = $state([]);
@@ -692,8 +692,10 @@
 							<GeneratePanel
 								smarts={rawSmarts}
 								active={viewMode === 'gen'}
-								onresults={(smiles) => {
-									const list = withIds(smiles.map((s) => ({ structureDefinition: s })));
+								onresults={(items) => {
+									const list = withIds(
+										items.map((it) => ({ structureDefinition: it.smiles, name: it.name })),
+									);
 									generatedMolecules = list;
 									generatedMatchStates = list.map(() => false);
 								}}
@@ -720,6 +722,7 @@
 								{#each generatedMolecules as mol, i (mol.id)}
 									<MoleculeBox
 										structureDefinition={mol.structureDefinition}
+										name={mol.name}
 										{highlights}
 										width={genMolSize.width}
 										height={genMolSize.height}

@@ -10,7 +10,7 @@
 	 * @type {{
 	 *   smarts: string,
 	 *   active?: boolean,
-	 *   onresults?: (smiles: string[]) => void,
+	 *   onresults?: (items: { smiles: string, name: string }[]) => void,
 	 * }}
 	 */
 	let { smarts, active = false, onresults } = $props();
@@ -41,7 +41,7 @@
 			const batch = e.data;
 			results = [...results, ...batch.results];
 
-			onresults?.(results.map((r) => r.smiles));
+			onresults?.(results.map((r) => ({ smiles: r.smiles, name: r.name })));
 
 			if (batch.finished || results.length >= MAX_RESULTS) {
 				searching = false;
