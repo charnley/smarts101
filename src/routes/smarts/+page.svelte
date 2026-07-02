@@ -817,14 +817,15 @@
 						<strong>Generate</strong> — Find example molecules from your SMARTS pattern, using Smarter
 						SMARTS.
 					</li>
-                </ul>
+				</ul>
 			</section>
 
 			<section class="flex flex-col gap-2">
 				<h3 class="font-semibold">Reactions</h3>
-                <p class="">
-                    You can use <code>>></code> SMARTS reaction syntax in "view" and you will see the target transform.
-                    Note that if you have multiple reactants with <code>.</code> you will need the same amount of SMILES in your "Edit" molecules.
+				<p class="">
+					You can use <code>>></code> SMARTS reaction syntax in "view" and you will see the target
+					transform. Note that if you have multiple reactants with <code>.</code> you will need the same
+					amount of SMILES in your "Edit" molecules.
 				</p>
 			</section>
 
