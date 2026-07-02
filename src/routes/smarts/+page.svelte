@@ -8,16 +8,20 @@
 	import { Textarea } from '$lib/components/ui/textarea/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import * as Tabs from '$lib/components/ui/tabs/index.js';
+	import * as Tooltip from '$lib/components/ui/tooltip/index.js';
 	import * as ToggleGroup from '$lib/components/ui/toggle-group/index.js';
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
 	import * as Sheet from '$lib/components/ui/sheet/index.js';
 	import { Checkbox } from '$lib/components/ui/checkbox/index.js';
 	import { Label } from '$lib/components/ui/label/index.js';
 	import SettingsIcon from '@lucide/svelte/icons/settings';
+	import CircleQuestionMarkIcon from '@lucide/svelte/icons/circle-question-mark';
+	import CopyIcon from '@lucide/svelte/icons/copy';
 	import ListFilter from '@lucide/svelte/icons/list-filter';
 	import PanelRightOpen from '@lucide/svelte/icons/panel-right-open';
 	import PanelRightClose from '@lucide/svelte/icons/panel-right-close';
 	import ExplainPanel from '$lib/components/ExplainPanel.svelte';
+	import GeneratePanel from '$lib/components/GeneratePanel.svelte';
 	import { settings } from '$lib/settings.svelte.js';
 	import { isMediumScreen } from '$lib/breakpoints.svelte.js';
 	import { validateSmarts } from '$lib/rdkit/utils.js';
@@ -111,6 +115,7 @@
 
 	// ── Settings dialog ──────────────────────────────────────────────────────
 	let settingsOpen = $state(false);
+	let infoOpen = $state(false);
 
 	// ── Tree-sitter parser ───────────────────────────────────────────────────
 	/** @type {Parser | null} */
@@ -187,6 +192,15 @@
 	let gridClass = $derived(COLS_CLASS[effectiveMolCols] ?? COLS_CLASS[1]);
 	let molSize = $derived(MOL_SIZE[effectiveMolCols] ?? MOL_SIZE[1]);
 
+	/** Columns for the Generate tab — reaction mode doesn't collapse it to 1 */
+	let genMolCols = $derived(
+		/** @type {1|2|3|4} */ (
+			explainOpen ? Math.max(1, settings.columnsPerRow - 1) : settings.columnsPerRow
+		),
+	);
+	let genGridClass = $derived(COLS_CLASS[genMolCols] ?? COLS_CLASS[1]);
+	let genMolSize = $derived(MOL_SIZE[genMolCols] ?? MOL_SIZE[1]);
+
 	// ── State ────────────────────────────────────────────────────────────────
 	let molecules = $state(
 		withIds(DEFAULT_MOLECULES.map((m) => ({ structureDefinition: m.smiles }))),
@@ -199,8 +213,15 @@
 	 */
 	let matchStates = $state(DEFAULT_MOLECULES.map(() => false));
 
-	/** 'grid' shows the molecule cards; 'edit' shows the textarea editor */
-	let viewMode = $state(/** @type {'grid' | 'edit'} */ ('grid'));
+	/** Molecules produced by the Generate tab — separate from the main grid list */
+	let generatedMolecules = $state(
+		/** @type {{ id: number, structureDefinition: string, name?: string }[]} */ ([]),
+	);
+	/** @type {boolean[]} */
+	let generatedMatchStates = $state([]);
+
+	/** 'grid' shows the molecule cards; 'edit' shows the textarea editor; 'gen' shows the generator */
+	let viewMode = $state(/** @type {'grid' | 'edit' | 'gen'} */ ('grid'));
 
 	/** Raw text in the textarea editor — synced from molecules when entering edit mode */
 	let textareaValue = $state('');
@@ -430,6 +451,17 @@
 	function onViewModeChange(v) {
 		if (v === 'edit') switchToEdit();
 		else if (v === 'grid') switchToGrid();
+		else if (v === 'gen') viewMode = 'gen';
+	}
+
+	/** @param {string[]} smiles */
+	function copyGenerated(smiles) {
+		if (smiles.length === 0) return;
+		const list = withIds(smiles.map((s) => ({ structureDefinition: s })));
+		molecules = list;
+		matchStates = list.map(() => false);
+		textareaValue = toTextarea(list);
+		viewMode = 'grid';
 	}
 
 	// ── Load a named molecule set ─────────────────────────────────────────────
@@ -510,10 +542,38 @@
 				<Tabs.Root value={viewMode} onValueChange={onViewModeChange}>
 					<div class="flex items-center justify-between">
 						<div class="flex items-center gap-1">
-							<Tabs.List>
-								<Tabs.Trigger value="grid">View</Tabs.Trigger>
-								<Tabs.Trigger value="edit">Edit Molecules</Tabs.Trigger>
-							</Tabs.List>
+							<Tooltip.Provider delayDuration={0}>
+								<Tabs.List>
+									<Tooltip.Root>
+										<Tooltip.Trigger>
+											{#snippet child({ props })}
+												<Tabs.Trigger value="grid" {...props}>View Results</Tabs.Trigger>
+											{/snippet}
+										</Tooltip.Trigger>
+										<Tooltip.Content side="top">View SMARTS matches</Tooltip.Content>
+									</Tooltip.Root>
+
+									<Tooltip.Root>
+										<Tooltip.Trigger>
+											{#snippet child({ props })}
+												<Tabs.Trigger value="edit" {...props}>Edit Molecules</Tabs.Trigger>
+											{/snippet}
+										</Tooltip.Trigger>
+										<Tooltip.Content side="top">Edit target SMILES/SDF molecules</Tooltip.Content>
+									</Tooltip.Root>
+
+									<Tooltip.Root>
+										<Tooltip.Trigger>
+											{#snippet child({ props })}
+												<Tabs.Trigger value="gen" {...props}>Generate Molecules</Tabs.Trigger>
+											{/snippet}
+										</Tooltip.Trigger>
+										<Tooltip.Content side="top">
+											Use Smarter SMARTS<sup>tm</sup> to find matching molecules
+										</Tooltip.Content>
+									</Tooltip.Root>
+								</Tabs.List>
+							</Tooltip.Provider>
 							<Button
 								variant="outline"
 								size="icon-sm"
@@ -521,6 +581,14 @@
 								onclick={() => (settingsOpen = true)}
 							>
 								<SettingsIcon size={16} />
+							</Button>
+							<Button
+								variant="outline"
+								size="icon-sm"
+								aria-label="Info"
+								onclick={() => (infoOpen = true)}
+							>
+								<CircleQuestionMarkIcon size={16} />
 							</Button>
 						</div>
 						<div class="flex items-center gap-1">
@@ -616,6 +684,54 @@
 									Start from…
 								</Button>
 							{/if}
+						</div>
+					</Tabs.Content>
+
+					<Tabs.Content value="gen">
+						<div class="flex flex-col gap-3">
+							<GeneratePanel
+								smarts={rawSmarts}
+								active={viewMode === 'gen'}
+								onresults={(items) => {
+									const list = withIds(
+										items.map((it) => ({ structureDefinition: it.smiles, name: it.name })),
+									);
+									generatedMolecules = list;
+									generatedMatchStates = list.map(() => false);
+								}}
+							/>
+
+							{#if generatedMolecules.length > 0}
+								<div class="flex items-center justify-between">
+									<div class="text-sm text-muted-foreground">
+										Showing {generatedMolecules.length} matches
+									</div>
+									<Button
+										variant="outline"
+										size="sm"
+										onclick={() =>
+											copyGenerated(generatedMolecules.map((m) => m.structureDefinition))}
+									>
+										<CopyIcon size={16} />
+										Copy to View/Edit
+									</Button>
+								</div>
+							{/if}
+
+							<div class="grid gap-4 {genGridClass}">
+								{#each generatedMolecules as mol, i (mol.id)}
+									<MoleculeBox
+										structureDefinition={mol.structureDefinition}
+										name={mol.name}
+										{highlights}
+										width={genMolSize.width}
+										height={genMolSize.height}
+										useCoordgen={settings.useCoordgen}
+										explicitHydrogens={settings.explicitHydrogens}
+										bind:hasMatch={generatedMatchStates[i]}
+									/>
+								{/each}
+							</div>
 						</div>
 					</Tabs.Content>
 				</Tabs.Root>
@@ -736,6 +852,58 @@
 					</p>
 				</div>
 			</div>
+		</div>
+	</Dialog.Content>
+</Dialog.Root>
+
+<!-- Info dialog -->
+<Dialog.Root bind:open={infoOpen}>
+	<Dialog.Content class="sm:max-w-lg" portalProps={{}}>
+		<Dialog.Header class="">
+			<Dialog.Title class="">Usage</Dialog.Title>
+		</Dialog.Header>
+
+		<div class="flex flex-col gap-5 py-2 text-sm">
+			<section class="flex flex-col gap-2">
+				<p class="">
+					Enter a SMARTS pattern in the editor at the top of the page. Matching substructures are
+					highlighted in the molecule grid below as you type.
+				</p>
+				<ul class="ml-4 list-disc">
+					<li><strong>View</strong> — see which molecules match the current SMARTS.</li>
+					<li>
+						<strong>Edit</strong> — edit the target molecules in either SMILES list or SDF format.
+					</li>
+					<li>
+						<strong>Generate</strong> — Find example molecules from your SMARTS pattern, using Smarter
+						SMARTS.
+					</li>
+				</ul>
+			</section>
+
+			<section class="flex flex-col gap-2">
+				<h3 class="font-semibold">Reactions</h3>
+				<p class="">
+					You can use <code>>></code> SMARTS reaction syntax in "view" and you will see the target
+					transform. Note that if you have multiple reactants with <code>.</code> you will need the same
+					amount of SMILES in your "Edit" molecules.
+				</p>
+			</section>
+
+			<section class="flex flex-col gap-2">
+				<h3 class="font-semibold">What is Smarter SMARTS?</h3>
+				<p class="">
+					Smarter SMARTS is a tool that helps you write accurate SMARTS patterns by showing the
+					distinct molecules your pattern actually matches, filtered for unique atom environments in
+					the 100K smallest Chembl molecules and stopping with 200 results. Developed by Noel
+					O'Boyle as described in
+					<a
+						href="https://baoilleach.blogspot.com/2018/11/smarts-for-dummies.html"
+						target="_blank"
+						class="underline">SMARTS for dummies</a
+					>.
+				</p>
+			</section>
 		</div>
 	</Dialog.Content>
 </Dialog.Root>

@@ -8,7 +8,7 @@ import wasmUrl from './RDKit_minimal.wasm?url';
  */
 export const PALETTE_LIGHT = {
 	0: [0.1, 0.1, 0.1], // default / unknown
-	1: [5, 0, 0], // H
+	1: [0.5, 0.5, 0.5], // H  — grey
 	6: [0, 0, 0], // C  — black
 	7: [0, 0, 0.9], // N  — blue
 	8: [0.9, 0, 0], // O  — red
@@ -50,6 +50,7 @@ export async function getRDKit() {
 	if (!_initPromise) {
 		_initPromise = initRDKitModule(/** @type {any} */ ({ locateFile: () => wasmUrl })).then((r) => {
 			_rdkit = r;
+			console.log('[RDKit_minimal] version:', r.version());
 			return r;
 		});
 	}
