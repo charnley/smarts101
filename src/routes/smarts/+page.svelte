@@ -16,6 +16,7 @@
 	import { Label } from '$lib/components/ui/label/index.js';
 	import SettingsIcon from '@lucide/svelte/icons/settings';
 	import CircleQuestionMarkIcon from '@lucide/svelte/icons/circle-question-mark';
+	import CopyIcon from '@lucide/svelte/icons/copy';
 	import ListFilter from '@lucide/svelte/icons/list-filter';
 	import PanelRightOpen from '@lucide/svelte/icons/panel-right-open';
 	import PanelRightClose from '@lucide/svelte/icons/panel-right-close';
@@ -191,6 +192,15 @@
 	let gridClass = $derived(COLS_CLASS[effectiveMolCols] ?? COLS_CLASS[1]);
 	let molSize = $derived(MOL_SIZE[effectiveMolCols] ?? MOL_SIZE[1]);
 
+	/** Columns for the Generate tab — reaction mode doesn't collapse it to 1 */
+	let genMolCols = $derived(
+		/** @type {1|2|3|4} */ (
+			explainOpen ? Math.max(1, settings.columnsPerRow - 1) : settings.columnsPerRow
+		),
+	);
+	let genGridClass = $derived(COLS_CLASS[genMolCols] ?? COLS_CLASS[1]);
+	let genMolSize = $derived(MOL_SIZE[genMolCols] ?? MOL_SIZE[1]);
+
 	// ── State ────────────────────────────────────────────────────────────────
 	let molecules = $state(
 		withIds(DEFAULT_MOLECULES.map((m) => ({ structureDefinition: m.smiles }))),
@@ -202,6 +212,13 @@
 	 * @type {boolean[]}
 	 */
 	let matchStates = $state(DEFAULT_MOLECULES.map(() => false));
+
+	/** Molecules produced by the Generate tab — separate from the main grid list */
+	let generatedMolecules = $state(
+		/** @type {{ id: number, structureDefinition: string }[]} */ ([]),
+	);
+	/** @type {boolean[]} */
+	let generatedMatchStates = $state([]);
 
 	/** 'grid' shows the molecule cards; 'edit' shows the textarea editor; 'gen' shows the generator */
 	let viewMode = $state(/** @type {'grid' | 'edit' | 'gen'} */ ('grid'));
@@ -671,7 +688,48 @@
 					</Tabs.Content>
 
 					<Tabs.Content value="gen">
-						<GeneratePanel smarts={rawSmarts} oncopy={copyGenerated} />
+						<div class="flex flex-col gap-3">
+							<GeneratePanel
+								smarts={rawSmarts}
+								active={viewMode === 'gen'}
+								onresults={(smiles) => {
+									const list = withIds(smiles.map((s) => ({ structureDefinition: s })));
+									generatedMolecules = list;
+									generatedMatchStates = list.map(() => false);
+								}}
+							/>
+
+							{#if generatedMolecules.length > 0}
+								<div class="flex items-center justify-between">
+									<div class="text-sm text-muted-foreground">
+										Showing {generatedMolecules.length} matches
+									</div>
+									<Button
+										variant="outline"
+										size="sm"
+										onclick={() =>
+											copyGenerated(generatedMolecules.map((m) => m.structureDefinition))}
+									>
+										<CopyIcon size={16} />
+										Copy to View/Edit
+									</Button>
+								</div>
+							{/if}
+
+							<div class="grid gap-4 {genGridClass}">
+								{#each generatedMolecules as mol, i (mol.id)}
+									<MoleculeBox
+										structureDefinition={mol.structureDefinition}
+										{highlights}
+										width={genMolSize.width}
+										height={genMolSize.height}
+										useCoordgen={settings.useCoordgen}
+										explicitHydrogens={settings.explicitHydrogens}
+										bind:hasMatch={generatedMatchStates[i]}
+									/>
+								{/each}
+							</div>
+						</div>
 					</Tabs.Content>
 				</Tabs.Root>
 			</div>

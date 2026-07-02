@@ -1,28 +1,24 @@
 <script>
-	import { onMount, onDestroy } from 'svelte';
-	import StructureRenderer from '$lib/structure-renderer/StructureRenderer.svelte';
+	import { onDestroy, untrack } from 'svelte';
 	import { SmarterSmartsWorker } from '$lib/smarter-smarts/index.js';
 	import { validateSmarts } from '$lib/rdkit/utils.js';
-	import { Button } from '$lib/components/ui/button/index.js';
 	import { Spinner } from '$lib/components/ui/spinner/index.js';
-	import CopyIcon from '@lucide/svelte/icons/copy';
 
 	const MAX_RESULTS = 200;
 
 	/**
 	 * @type {{
 	 *   smarts: string,
-	 *   oncopy?: (smiles: string[]) => void,
+	 *   active?: boolean,
+	 *   onresults?: (smiles: string[]) => void,
 	 * }}
 	 */
-	let { smarts, oncopy } = $props();
+	let { smarts, active = false, onresults } = $props();
 
 	let searching = $state(false);
 	let progress = $state(0);
 	let totalSearched = $state(0);
 	let totalMolecules = $state(0);
-	/** @type {{ smiles: string, name: string }[]} */
-	let results = $state([]);
 	/** @type {string | null} */
 	let error = $state(null);
 	/** @type {string | null} */
@@ -33,23 +29,7 @@
 	let worker = null;
 	/** @type {ReturnType<typeof setTimeout> | null} */
 	let debounceTimer = null;
-
-	onMount(() => {
-		worker = new SmarterSmartsWorker();
-		worker.onmessage = handleMessage;
-		worker.onerror = (e) => {
-			error = 'Worker error: ' + (e.message || 'Unknown');
-			searching = false;
-		};
-	});
-
-	onDestroy(() => {
-		if (debounceTimer) clearTimeout(debounceTimer);
-		if (worker) {
-			worker.terminate();
-			worker = null;
-		}
-	});
+	let workerInited = false;
 
 	/** @param {MessageEvent} e */
 	function handleMessage(e) {
@@ -67,6 +47,8 @@
 			totalSearched = batch.totalSearched;
 			totalMolecules = batch.totalMolecules;
 
+			onresults?.(results.map((r) => r.smiles));
+
 			if (batch.finished || results.length >= MAX_RESULTS) {
 				searching = false;
 				return;
@@ -79,9 +61,36 @@
 		}
 	}
 
-	// Debounced search on smarts prop change
+	// results array hoisted so handleMessage can reference it
+	/** @type {{ smiles: string, name: string }[]} */
+	let results = $state([]);
+
+	onDestroy(() => {
+		if (debounceTimer) clearTimeout(debounceTimer);
+		if (worker) {
+			worker.terminate();
+			worker = null;
+		}
+	});
+
+	// Lazy worker init on first activation
+	$effect(() => {
+		if (!active || workerInited) return;
+		workerInited = true;
+		worker = new SmarterSmartsWorker();
+		worker.onmessage = handleMessage;
+		worker.onerror = (e) => {
+			error = 'Worker error: ' + (e.message || 'Unknown');
+			searching = false;
+		};
+	});
+
+	// Debounced search on smarts/active/ready change
 	$effect(() => {
 		const value = smarts;
+		const _active = active;
+		const _ready = workerReady;
+
 		if (debounceTimer) clearTimeout(debounceTimer);
 
 		const trimmed = value.trim();
@@ -90,11 +99,19 @@
 			searching = false;
 			results = [];
 			progress = 0;
+			currentSearch = null;
+			untrack(() => onresults?.([]));
 			return;
 		}
 
+		// Don't search when tab closed or worker not ready.
+		// Effect re-fires when either flips, so no search is lost.
+		if (!_active || !_ready) return;
+
+		// Skip redundant re-search when smarts unchanged (incl. zero-match cached)
+		if (trimmed === currentSearch) return;
+
 		debounceTimer = setTimeout(async () => {
-			if (!workerReady) return;
 			const { valid, errors } = await validateSmarts(trimmed);
 			if (!valid) {
 				error = errors?.join('; ') || 'Invalid SMARTS pattern';
@@ -111,18 +128,8 @@
 			currentSearch = trimmed;
 
 			worker?.postMessage({ smarts: trimmed, startIdx: 0 });
-		}, 350);
+		}, 350 * 2);
 	});
-
-	let highlights = $derived(
-		currentSearch
-			? { definitions: [{ smarts: currentSearch }], outline: true, fill: false }
-			: { definitions: [], outline: true, fill: false },
-	);
-
-	function copyResults() {
-		oncopy?.(results.map((r) => r.smiles));
-	}
 </script>
 
 <div class="flex flex-col gap-3">
@@ -151,39 +158,6 @@
 			Enter a SMARTS pattern above to search 100K ChEMBL small molecules
 		</p>
 	{/if}
-
-	{#if results.length > 0}
-		<div class="flex items-center justify-between">
-			<div class="text-sm text-muted-foreground">
-				Showing {results.length} matches
-			</div>
-			<Button variant="outline" size="sm" onclick={copyResults}>
-				<CopyIcon size={16} />
-				Copy to View/Edit
-			</Button>
-		</div>
-	{/if}
-
-	<div class="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-4">
-		{#each results as result (result.name)}
-			<div class="flex flex-col overflow-hidden rounded-lg border border-border bg-card">
-				<div class="flex items-center justify-center bg-card p-2">
-					<StructureRenderer
-						structureDefinition={result.smiles}
-						{highlights}
-						width={280}
-						height={200}
-					/>
-				</div>
-				<div
-					class="border-t border-border px-3 py-1.5 font-mono text-xs text-muted-foreground"
-					title={result.smiles}
-				>
-					{result.name}
-				</div>
-			</div>
-		{/each}
-	</div>
 
 	{#if results.length === 0 && !searching && !error && currentSearch}
 		<div class="py-12 text-center text-muted-foreground">No matching molecules found.</div>
