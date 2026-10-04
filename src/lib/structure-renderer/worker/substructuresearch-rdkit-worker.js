@@ -25,6 +25,80 @@ const initializeRDKit = async () => {
 	return true;
 };
 
+// ── Persistent caches (module scope) ───────────────────────────────────────
+// Hoisted out of performRDKitSearch so parsed SMARTS queries and target
+// molecules are reused across onmessage calls (e.g. repeated keystrokes
+// against the same molecule set). RDKit mol/qmol objects are reusable for
+// read-only substructure search; the worker does not mutate them.
+//
+// Bounded LRU: Map insertion order gives LRU for free. On hit, delete+set
+// re-inserts at end (most-recently-used). On overflow, evict the oldest entry
+// (front of the map) and call .delete() on it to free the underlying C++ Mol,
+// which GC cannot reach. Null entries (invalid SMILES) just Map.delete.
+const MAX_QUERIES = 50;
+const MAX_MOLS = 500;
+
+/** @type {Map<string, any>} SMARTS string → cached qmol */
+const _queriesCache = new Map();
+/** @type {Map<string, any|null>} SMILES string → cached mol (or null if invalid) */
+const _moleculesCache = new Map();
+
+/**
+ * @param {string} smartsQuery
+ * @returns {any}
+ */
+const getSmartsQueryMolecule = (smartsQuery) => {
+	if (_queriesCache.has(smartsQuery)) {
+		const q = _queriesCache.get(smartsQuery);
+		_queriesCache.delete(smartsQuery);
+		_queriesCache.set(smartsQuery, q); // re-insert = most-recently-used
+		return q;
+	}
+
+	const queryMol = RDKit.get_qmol(smartsQuery);
+	if (!queryMol) {
+		throw new Error(`Invalid SMARTS query: "${smartsQuery}"`);
+	}
+
+	_queriesCache.set(smartsQuery, queryMol);
+	if (_queriesCache.size > MAX_QUERIES) {
+		const oldest = _queriesCache.keys().next().value;
+		if (oldest !== undefined) {
+			const q0 = _queriesCache.get(oldest);
+			if (q0) q0.delete?.();
+			_queriesCache.delete(oldest);
+		}
+	}
+	return queryMol;
+};
+
+/**
+ * @param {string} smiles
+ * @returns {any|null}
+ */
+const getMoleculeFromSmiles = (smiles) => {
+	if (_moleculesCache.has(smiles)) {
+		const m = _moleculesCache.get(smiles);
+		_moleculesCache.delete(smiles);
+		_moleculesCache.set(smiles, m); // re-insert = most-recently-used
+		return m;
+	}
+
+	const mol = RDKit.get_mol(smiles);
+	const valid = mol && mol.is_valid() !== false;
+	_moleculesCache.set(smiles, valid ? mol : null);
+
+	if (_moleculesCache.size > MAX_MOLS) {
+		const oldest = _moleculesCache.keys().next().value;
+		if (oldest !== undefined) {
+			const m0 = _moleculesCache.get(oldest);
+			if (m0) m0.delete?.(); // null-safe: invalid SMILES cached as null
+			_moleculesCache.delete(oldest);
+		}
+	}
+	return valid ? mol : null;
+};
+
 /**
  * RDKit-based substructure search
  *
@@ -40,37 +114,6 @@ const performRDKitSearch = (smarts, smilesList, includeAtomBondIndices = false) 
 	if (!RDKit) {
 		throw new Error('RDKit not initialized');
 	}
-
-	const _queriesCache = new Map();
-	const _moleculesCache = new Map();
-
-	const getSmartsQueryMolecule = (/** @type {string} */ smartsQuery) => {
-		if (_queriesCache.has(smartsQuery)) {
-			return _queriesCache.get(smartsQuery);
-		}
-
-		const queryMol = RDKit.get_qmol(smartsQuery);
-		if (!queryMol) {
-			throw new Error(`Invalid SMARTS query: "${smartsQuery}"`);
-		}
-
-		_queriesCache.set(smartsQuery, queryMol);
-		return queryMol;
-	};
-
-	const getMoleculeFromSmiles = (/** @type {string} */ smiles) => {
-		if (_moleculesCache.has(smiles)) {
-			return _moleculesCache.get(smiles);
-		}
-
-		const mol = RDKit.get_mol(smiles);
-		if (!mol || mol.is_valid() === false) {
-			_moleculesCache.set(smiles, null);
-			return null;
-		}
-		_moleculesCache.set(smiles, mol);
-		return mol;
-	};
 
 	const queryMol = getSmartsQueryMolecule(smarts);
 	const matches = new Array(smilesList.length).fill(false);
