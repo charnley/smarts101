@@ -1,10 +1,8 @@
-import initRDKitModule from './RDKit_minimal.js';
-import wasmUrl from './RDKit_minimal.wasm?url';
+import initRDKitModule from '@rdkit/rdkit';
+import wasmUrl from '@rdkit/rdkit/RDKit_minimal.wasm?url';
 
 /**
  * Atom colour palettes for light and dark backgrounds.
- * Values are [r, g, b] in 0–1 range (RDKit convention).
- * Extend these objects to tune any element's colour.
  */
 export const PALETTE_LIGHT = {
 	0: [0.1, 0.1, 0.1], // default / unknown

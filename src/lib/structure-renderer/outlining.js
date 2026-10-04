@@ -370,7 +370,7 @@ export async function createSurroundingOutline({
 		offset: outlineOptions.offset ?? adaptiveOffset,
 		join: /** @type {'miter'|'round'|'bevel'} */ (outlineOptions.join ?? 'round'),
 		miterLimit: outlineOptions.miterLimit ?? baseOffset + maxOverlap,
-		flatten: outlineOptions.flatten ?? null,
+		flatten: outlineOptions.flatten ?? 1,
 		simplify: outlineOptions.simplify ?? false,
 		simplifyTolerance: outlineOptions.simplifyTolerance ?? 0,
 		outerOnly: outlineOptions.outerOnly ?? true,

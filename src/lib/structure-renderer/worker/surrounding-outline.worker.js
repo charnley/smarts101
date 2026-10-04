@@ -148,6 +148,12 @@ function computeOutline(shapeDescriptors, viewBox, options = {}) {
 	for (const desc of shapeDescriptors) {
 		const item = descriptorToPath(desc, scope);
 		if (!item) continue;
+		// Flatten early so all downstream ops (connectivity graph, offsetStroke
+		// for bonds, offset, unite) operate on line segments. Curve-curve
+		// intersection math (getCurveIntersections) is the dominant Paper.js
+		// cost — flattening at tolerance 1 (1 SVG unit ≈ 1px) eliminates it
+		// with no visible quality difference at typical render scales.
+		if (typeof item.flatten === 'function') item.flatten(1);
 
 		const isClosed = !(item instanceof scope.Path) || item.closed;
 		const hasArea = Math.abs(item.area || 0) > 0;
