@@ -1,5 +1,5 @@
-import initRDKitModule from './RDKit_minimal.js';
-import wasmUrl from './RDKit_minimal.wasm?url';
+import initRDKitModule from '@rdkit/rdkit';
+import wasmUrl from '@rdkit/rdkit/RDKit_minimal.wasm?url';
 
 /**
  * Atom colour palettes for light and dark backgrounds.
