@@ -26,12 +26,16 @@ function getMolecule(input) {
 	return mol;
 }
 
-/** Generate an SVG with atom/bond class annotations for highlight support */
+const range = (n) => Array.from({ length: n }, (_, i) => i);
+
+/**
+ * Every atom and bond is highlighted transparently so the drawing is identical
+ * with or without SMARTS highlights, and highlight shapes exist for outlining.
+ */
 async function generateStructureSVG({
 	moleculeInput,
 	width,
 	height,
-	needsHighlights = true,
 	darkMode = false,
 	showAtomIndices = false,
 	preferCoorDGen = false,
@@ -46,8 +50,7 @@ async function generateStructureSVG({
 	const isMolblock = moleculeInput.includes('\n');
 	if (isMolblock && !explicitHydrogens) mol.remove_hs_in_place();
 
-	const baseOptions = {
-		centreMoleculesBeforeDrawing: true,
+	const options = {
 		addBondIndices: false,
 		bondLineWidth: 2.0,
 		multipleBondOffset: 0.25,
@@ -58,59 +61,24 @@ async function generateStructureSVG({
 		highlightBondWidthMultiplier: 20,
 		dummyIsotopeLabels: false,
 		atomColourPalette: darkMode ? PALETTE_DARK : PALETTE_LIGHT,
-		// Always transparent — the CSS/card background shows through
-		backgroundColour: [0, 0, 0, 0],
+		clearBackground: false,
 		singleColourWedgeBonds: true,
 		addStereoAnnotation: true,
 		addAtomIndices: showAtomIndices,
 		...userDrawingOptions,
+		atoms: range(mol.get_num_atoms()),
+		bonds: range(mol.get_num_bonds()),
+		highlightColour: [1, 1, 1, 0],
+		standardColoursForHighlightedAtoms: true,
+		// width: width,
+		// height: height,
 		width: parseInt(`${width}`),
 		height: parseInt(`${height}`),
 	};
 
-	// First pass: get bond→atom mapping
-	const rawSvg = mol.get_svg_with_highlights(JSON.stringify(baseOptions));
-	const rawEl = new DOMParser().parseFromString(rawSvg, 'text/xml').documentElement;
-	const paths = rawEl.querySelectorAll('path[class^="bond-"]');
-
-	const bondAtomsMap = {};
-	const atomBondsMap = {};
-	paths.forEach((path) => {
-		const classes = [...path.classList];
-		const bondId = parseInt(classes.find((c) => c.startsWith('bond-'))?.replace('bond-', ''));
-		const atoms = classes
-			.filter((c) => c.startsWith('atom-'))
-			.map((c) => parseInt(c.replace('atom-', '')));
-		atoms.forEach((atom) => {
-			if (!atomBondsMap[atom]) atomBondsMap[atom] = [];
-			if (!atomBondsMap[atom].includes(bondId)) atomBondsMap[atom].push(bondId);
-		});
-		if (!bondAtomsMap[bondId]) bondAtomsMap[bondId] = [];
-		bondAtomsMap[bondId].push(atoms);
-	});
-
-	let finalSvg, viewBox;
-	if (needsHighlights) {
-		const allAtoms = Object.keys(atomBondsMap).map(Number);
-		const allBonds = Object.keys(bondAtomsMap).map(Number);
-		const svg = mol.get_svg_with_highlights(
-			JSON.stringify({
-				...baseOptions,
-				atoms: allAtoms,
-				bonds: allBonds,
-				highlightColour: [1, 1, 1, 0],
-			}),
-		);
-		const el = new DOMParser().parseFromString(svg, 'text/xml').documentElement;
-		viewBox = el.getAttribute('viewBox') || `0 0 ${width} ${height}`;
-		finalSvg = el.toString?.() ?? el.outerHTML;
-	} else {
-		viewBox = rawEl.getAttribute('viewBox') || `0 0 ${width} ${height}`;
-		finalSvg = rawEl.toString?.() ?? rawEl.outerHTML;
-	}
-
+	const svg = mol.get_svg_with_highlights(JSON.stringify(options));
 	mol.delete();
-	return { svg: finalSvg, bondAtomsMap, atomBondsMap, viewBox };
+	return { svg };
 }
 
 /** Generate an SVG for a SMARTS query molecule using get_qmol */
@@ -128,7 +96,9 @@ async function generateQuerySVG({ smartsInput, width, height, darkMode = false }
 		minFontSize: -1,
 		maxFontSize: -1,
 		atomColourPalette: darkMode ? PALETTE_DARK : PALETTE_LIGHT,
-		backgroundColour: [0, 0, 0, 0],
+		clearBackground: false,
+		// width: width,
+		// height: height,
 		width: parseInt(`${width}`),
 		height: parseInt(`${height}`),
 	};

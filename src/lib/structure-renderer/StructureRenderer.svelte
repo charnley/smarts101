@@ -1,6 +1,7 @@
 <script>
-	import { generateMoleculeSVG } from './generate-svg.js';
-	import { applyHighlights } from './apply-highlights.js';
+	import { rdkitWorker } from './worker-manager.js';
+	import { buildShapeIndex } from './outlining.js';
+	import { buildHighlights } from './apply-highlights.js';
 	import { untrack } from 'svelte';
 	import { mode } from 'mode-watcher';
 	import { Spinner } from '$lib/components/ui/spinner/index.js';
@@ -50,84 +51,109 @@
 	// mode.current is a Svelte 5 rune (not a store), so read it directly.
 	let isDark = $derived(darkMode !== null ? darkMode : mode.current === 'dark');
 
-	// ── State ────────────────────────────────────────────────────────────────
 	/** @type {HTMLDivElement|undefined} */
 	let container = $state();
 	let isRendering = $state(false);
 	let renderError = $state(/** @type {string|null} */ (null));
 
-	// ── Main render effect ────────────────────────────────────────────────────
-	// Re-runs whenever any prop changes. Use void-array to track every dependency
-	// unconditionally — && short-circuits on falsy values and drops tracking.
-	// @ts-ignore
-	$effect(async () => {
-		void [
-			structureDefinition,
-			container,
+	/** @typedef {{ svgRoot: SVGSVGElement, shapeIndex: import('./outlining.js').ShapeIndex, definition: string }} RenderedStructure */
+
+	/** @type {RenderedStructure | null} */
+	let rendered = $state.raw(null);
+
+	let structureToken = 0;
+	let highlightToken = 0;
+	/** @type {RenderedStructure | null} */
+	let highlightedStructure = null;
+	let highlightedKey = '';
+
+	$effect(() => {
+		const target = container;
+		const request = {
+			definition: structureDefinition,
 			width,
 			height,
-			highlights,
-			isDark,
+			darkMode: isDark,
 			showAtomIndices,
-			useCoordgen,
+			preferCoorDGen: useCoordgen,
 			explicitHydrogens,
-		];
+		};
+		if (target && structureDefinition) untrack(() => renderStructure(target, request));
+	});
 
-		untrack(async () => {
-			if (!container || !structureDefinition) return;
-
-			isRendering = true;
-			renderError = null;
-
-			// Clear previous render (structure-shell is inside container)
-			const shell = container.querySelector('.structure-shell');
-			if (shell) shell.innerHTML = '';
-
-			try {
-				// Step 1: Generate molecule SVG via generate-svg.js pipeline
-				// Pass darkMode and showAtomIndices as userDrawingOptions so the worker
-				// receives them (generate-svg.js spreads userDrawingOptions into the payload).
-				const hasHighlights = (highlights?.definitions?.length ?? 0) > 0;
-
-				const { svgRoot, svgViewBox } = await generateMoleculeSVG({
-					definition: structureDefinition,
-					container,
-					width,
-					height,
-					userDrawingOptions: {
-						darkMode: isDark,
-						showAtomIndices,
-						preferCoorDGen: useCoordgen,
-						explicitHydrogens,
-					},
-					showBondIndices: false,
-					needsHighlights: hasHighlights,
-				});
-
-				if (!svgRoot) throw new Error('No SVG from RDKit');
-
-				// Replace hardcoded black with currentColor for dark-mode support
-				recolorBlackElements(svgRoot);
-
-				if (hasHighlights) {
-					const result = await applyHighlights({
-						svgRoot,
-						svgViewBox,
-						highlights,
-						definition: structureDefinition,
-					});
-					hasMatch = (result?.detectedMatches?.length ?? 0) > 0;
-				} else {
-					hasMatch = false;
-				}
-			} catch (/** @type {any} */ err) {
-				renderError = err?.message ?? 'Render failed';
-				hasMatch = false;
-			} finally {
-				isRendering = false;
-			}
+	$effect(() => {
+		const structure = rendered;
+		const key = JSON.stringify(highlights ?? {});
+		untrack(() => {
+			if (structure === highlightedStructure && key === highlightedKey) return;
+			highlightedStructure = structure;
+			highlightedKey = key;
+			updateHighlights(structure);
 		});
 	});
+
+	/**
+	 * @param {HTMLDivElement} target
+	 * @param {{ definition: string, width: number, height: number } & Record<string, any>} request
+	 */
+	async function renderStructure(target, { definition, ...options }) {
+		const token = ++structureToken;
+		isRendering = true;
+		renderError = null;
+		try {
+			const bounds = target.getBoundingClientRect();
+			const { svg } = await rdkitWorker.generateSVG({
+				...options,
+				moleculeInput: definition,
+				width: bounds.width || options.width,
+				height: bounds.height || options.height,
+			});
+			if (token !== structureToken) return;
+
+			const shell = /** @type {Element} */ (target.querySelector('.structure-shell'));
+			shell.innerHTML = svg;
+			const svgRoot = shell.querySelector('svg');
+			if (!svgRoot) throw new Error('No SVG from RDKit');
+			recolorBlackElements(svgRoot);
+			rendered = { svgRoot, shapeIndex: buildShapeIndex(svgRoot), definition };
+		} catch (/** @type {any} */ err) {
+			if (token !== structureToken) return;
+			renderError = err?.message ?? 'Render failed';
+			target.querySelector('.structure-shell')?.replaceChildren();
+			rendered = null;
+			hasMatch = false;
+		} finally {
+			if (token === structureToken) isRendering = false;
+		}
+	}
+
+	/** @param {RenderedStructure | null} structure */
+	async function updateHighlights(structure) {
+		const token = ++highlightToken;
+		if (!structure) return;
+
+		/** @type {SVGGElement[]} */
+		let groups = [];
+		let matched = false;
+		if (highlights?.definitions?.length) {
+			try {
+				const result = await buildHighlights({
+					shapeIndex: structure.shapeIndex,
+					highlights,
+					definition: structure.definition,
+				});
+				groups = result.groups;
+				matched = result.detectedMatches.length > 0;
+			} catch (err) {
+				console.warn('[StructureRenderer] Highlighting failed', err);
+			}
+		}
+		if (token !== highlightToken) return;
+
+		for (const old of structure.svgRoot.querySelectorAll('.contour-highlight')) old.remove();
+		structure.svgRoot.prepend(...[...groups].reverse());
+		hasMatch = matched;
+	}
 
 	/**
 	 * Walk every element in the SVG and replace hardcoded black fill/stroke values

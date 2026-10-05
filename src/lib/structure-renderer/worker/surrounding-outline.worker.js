@@ -115,7 +115,7 @@ function computeOutline(shapeDescriptors, viewBox, options = {}) {
 		offset = 6,
 		join = 'round',
 		miterLimit = 8,
-		flatten = null,
+		flatten = 1,
 		simplify = false,
 		simplifyTolerance = 0,
 		outerOnly = true,
@@ -148,12 +148,7 @@ function computeOutline(shapeDescriptors, viewBox, options = {}) {
 	for (const desc of shapeDescriptors) {
 		const item = descriptorToPath(desc, scope);
 		if (!item) continue;
-		// Flatten early so all downstream ops (connectivity graph, offsetStroke
-		// for bonds, offset, unite) operate on line segments. Curve-curve
-		// intersection math (getCurveIntersections) is the dominant Paper.js
-		// cost — flattening at tolerance 1 (1 SVG unit ≈ 1px) eliminates it
-		// with no visible quality difference at typical render scales.
-		if (typeof item.flatten === 'function') item.flatten(1);
+		if (flatten && typeof item.flatten === 'function') item.flatten(flatten);
 
 		const isClosed = !(item instanceof scope.Path) || item.closed;
 		const hasArea = Math.abs(item.area || 0) > 0;
@@ -196,12 +191,6 @@ function computeOutline(shapeDescriptors, viewBox, options = {}) {
 		return [];
 	}
 
-	// ================================================================
-	// Step 4: Connectivity graph
-	// ================================================================
-
-	const n = items.length;
-	const adj = Array.from({ length: n }, () => new Set());
 	const areaEps = 1e-7 * vbW * vbH;
 	const bbPad = 1e-6 * Math.max(vbW, vbH);
 
@@ -234,38 +223,41 @@ function computeOutline(shapeDescriptors, viewBox, options = {}) {
 		return ok;
 	}
 
-	for (let i = 0; i < n; i++) {
-		for (let j = i + 1; j < n; j++) {
-			if (connected(items[i], items[j])) {
-				adj[i].add(j);
-				adj[j].add(i);
-			}
-		}
-	}
-
-	// ================================================================
-	// Step 5: Connected components (clusters)
-	// ================================================================
-
-	const visited = new Array(n).fill(false);
-	const clustersIdx = [];
-	for (let i = 0; i < n; i++) {
-		if (visited[i]) continue;
-		const comp = [];
-		const stack = [i];
-		visited[i] = true;
-		while (stack.length) {
-			const k = stack.pop();
-			comp.push(k);
-			for (const m of adj[k]) {
-				if (!visited[m]) {
-					visited[m] = true;
-					stack.push(m);
+	function findClusters() {
+		const n = items.length;
+		const adj = Array.from({ length: n }, () => new Set());
+		for (let i = 0; i < n; i++) {
+			for (let j = i + 1; j < n; j++) {
+				if (connected(items[i], items[j])) {
+					adj[i].add(j);
+					adj[j].add(i);
 				}
 			}
 		}
-		clustersIdx.push(comp);
+
+		const visited = new Array(n).fill(false);
+		const clusters = [];
+		for (let i = 0; i < n; i++) {
+			if (visited[i]) continue;
+			const comp = [];
+			const stack = [i];
+			visited[i] = true;
+			while (stack.length) {
+				const k = stack.pop();
+				comp.push(k);
+				for (const m of adj[k]) {
+					if (!visited[m]) {
+						visited[m] = true;
+						stack.push(m);
+					}
+				}
+			}
+			clusters.push(comp);
+		}
+		return clusters;
 	}
+
+	const clustersIdx = mergeClusters ? [items.map((_, i) => i)] : findClusters();
 
 	// ================================================================
 	// Step 6: Offset each item individually
@@ -276,7 +268,7 @@ function computeOutline(shapeDescriptors, viewBox, options = {}) {
 		if (offset > 0) {
 			try {
 				if (items[i] instanceof scope.Path) items[i].closed = true;
-				if (flatten != null && typeof items[i].flatten === 'function') items[i].flatten(flatten);
+				if (flatten && typeof items[i].flatten === 'function') items[i].flatten(flatten);
 				if (simplify && typeof items[i].simplify === 'function') items[i].simplify();
 				const expanded = PaperOffset.offset(items[i], offset, {
 					join,
