@@ -13,8 +13,6 @@
 #include <set>
 #include <algorithm>
 
-// ── SmartsSearcher ────────────────────────────────────────────────────────
-
 class SmartsSearcher {
 public:
     SmartsSearcher() {}
@@ -169,7 +167,6 @@ private:
     std::set<std::string> m_seen_hashes;
 };
 
-// ── exposed embind function ────────────────────────────────────────────────
 static std::string get_version() { return std::string(RDKit::rdkitVersion); }
 
 static std::string get_atom_properties(const std::string &smiles) {

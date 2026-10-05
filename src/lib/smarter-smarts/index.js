@@ -20,11 +20,6 @@ export async function getSmarterSmartsModule() {
 	return _initPromise;
 }
 
-export async function getAtomsProperties(smiles) {
-	const mod = await getSmarterSmartsModule();
-	return JSON.parse(mod.getAtomsProperties(smiles));
-}
-
 /**
  * Create a SmartsSearcher instance and load molecule list.
  * @param {string[]} smilesList - array of SMILES strings
