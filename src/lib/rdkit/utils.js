@@ -4,33 +4,66 @@ import wasmUrl from '@rdkit/rdkit/RDKit_minimal.wasm?url';
 /**
  * Atom colour palettes for light and dark backgrounds.
  */
-export const PALETTE_LIGHT = {
-	0: [0.1, 0.1, 0.1], // default / unknown
-	1: [0.5, 0.5, 0.5], // H  — grey
-	6: [0, 0, 0], // C  — black
-	7: [0, 0, 0.9], // N  — blue
-	8: [0.9, 0, 0], // O  — red
-	9: [0, 0.5, 0], // F  — green
-	15: [0.5, 0, 0.5], // P  — purple
-	16: [0.5, 0.25, 0], // S  — brown/orange
-	17: [0, 0.5, 0], // Cl — green
-	35: [0, 0.5, 0], // Br — green
-	53: [0.25, 0, 0.5], // I  — violet
-};
+
+const DEFAULT_DARK = [1.0, 1.0, 1.0]
+const DEFAULT_LIGHT = [0.0, 0.0, 0.0]
+
+// export const PALETTE_LIGHT = {
+// 	0: [0.1, 0.1, 0.1], // default / unknown
+// 	1: [0.5, 0.5, 0.5], // H  — grey
+// 	6: [0, 0, 0], // C  — black
+// 	7: [0, 0, 0.9], // N  — blue
+// 	8: [0.9, 0, 0], // O  — red
+// 	9: [0, 0.5, 0], // F  — green
+// 	15: [0.5, 0, 0.5], // P  — purple
+// 	16: [0.5, 0.25, 0], // S  — brown/orange
+// 	17: [0, 0.5, 0], // Cl — green
+// 	35: [0, 0.5, 0], // Br — green
+// 	53: [0.25, 0, 0.5], // I  — violet
+// };
+
+// export const PALETTE_DARK = {
+// 	0: [0.85, 0.85, 0.85], // default / unknown
+// 	1: [0.85, 0.85, 0.85], // H
+// 	6: [1.0, 1.0, 1.0], // C  — light grey
+// 	7: [0.4, 0.6, 1], // N  — light blue
+// 	8: [1, 0.4, 0.4], // O  — light red
+// 	9: [0.2, 0.9, 0.4], // F  — bright green
+// 	15: [0.85, 0.4, 0.85], // P  — light purple
+// 	16: [0.9, 0.75, 0.1], // S  — yellow-orange
+// 	17: [0.2, 0.9, 0.4], // Cl — bright green
+// 	35: [0.2, 0.9, 0.4], // Br — bright green
+// 	53: [0.7, 0.4, 0.9], // I  — light violet
+// };
+
 
 export const PALETTE_DARK = {
-	0: [0.85, 0.85, 0.85], // default / unknown
-	1: [0.85, 0.85, 0.85], // H
-	6: [1.0, 1.0, 1.0], // C  — light grey
-	7: [0.4, 0.6, 1], // N  — light blue
-	8: [1, 0.4, 0.4], // O  — light red
-	9: [0.2, 0.9, 0.4], // F  — bright green
-	15: [0.85, 0.4, 0.85], // P  — light purple
-	16: [0.9, 0.75, 0.1], // S  — yellow-orange
-	17: [0.2, 0.9, 0.4], // Cl — bright green
-	35: [0.2, 0.9, 0.4], // Br — bright green
-	53: [0.7, 0.4, 0.9], // I  — light violet
-};
+	0: DEFAULT_DARK,
+	1: DEFAULT_DARK,
+	6: DEFAULT_DARK,
+	7: DEFAULT_DARK,
+	8: DEFAULT_DARK,
+	9: DEFAULT_DARK,
+	15: DEFAULT_DARK,
+	16: DEFAULT_DARK,
+	17: DEFAULT_DARK,
+	35: DEFAULT_DARK,
+	53: DEFAULT_DARK,
+}
+
+export const PALETTE_LIGHT = {
+	0: DEFAULT_LIGHT,
+	1: DEFAULT_LIGHT,
+	6: DEFAULT_LIGHT,
+	7: DEFAULT_LIGHT,
+	8: DEFAULT_LIGHT,
+	9: DEFAULT_LIGHT,
+	15: DEFAULT_LIGHT,
+	16: DEFAULT_LIGHT,
+	17: DEFAULT_LIGHT,
+	35: DEFAULT_LIGHT,
+	53: DEFAULT_LIGHT,
+}
 
 // ── Singleton ─────────────────────────────────────────────────────────────
 
@@ -59,9 +92,6 @@ export async function getRDKit() {
 
 /**
  * Parse a SMARTS string with RDKit and return any parse errors.
- * Uses set_log_capture to intercept RDKit's internal error log channel
- * (rdApp.error), which is the correct way to get structured parse errors
- * from the WASM build — stderr is not reliably available in the browser.
  * @param {string} smarts
  * @returns {Promise<{ valid: boolean, errors: string[] }>}
  */
