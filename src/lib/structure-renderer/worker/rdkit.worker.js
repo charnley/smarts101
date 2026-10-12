@@ -88,17 +88,7 @@ async function generateQuerySVG({ smartsInput, width, height, darkMode = false }
 	if (!mol) throw new Error('Invalid SMARTS');
 
 	const options = {
-		centreMoleculesBeforeDrawing: true,
-		bondLineWidth: 2.0,
-		multipleBondOffset: 0.25,
-		fixedScale: 0.08,
-		baseFontSize: 0.8,
-		minFontSize: -1,
-		maxFontSize: -1,
-		atomColourPalette: darkMode ? PALETTE_DARK : PALETTE_LIGHT,
-		clearBackground: false,
-		// width: width,
-		// height: height,
+		...getDrawingOptions({ darkMode, centreMoleculesBeforeDrawing: true }),
 		width: parseInt(`${width}`),
 		height: parseInt(`${height}`),
 	};

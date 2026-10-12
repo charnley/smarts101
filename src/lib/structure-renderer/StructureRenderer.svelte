@@ -19,6 +19,7 @@
 	 *   useCoordgen?: boolean,
 	 *   explicitHydrogens?: boolean,
 	 *   hasMatch?: boolean,
+	 *   outlinesOnTop?: boolean,
 	 * }}
 	 */
 	let {
@@ -45,6 +46,8 @@
 		 * on this molecule, false otherwise. Only meaningful when highlights.definitions is non-empty.
 		 */
 		hasMatch = $bindable(false),
+		/** Draw SMARTS outlines over the molecule (true) or behind it (false). */
+		outlinesOnTop = true,
 	} = $props();
 
 	// Resolve dark mode: prop override takes priority, otherwise follow the app theme.
@@ -83,7 +86,7 @@
 
 	$effect(() => {
 		const structure = rendered;
-		const key = JSON.stringify(highlights ?? {});
+		const key = JSON.stringify({ highlights: highlights ?? {}, outlinesOnTop });
 		untrack(() => {
 			if (structure === highlightedStructure && key === highlightedKey) return;
 			highlightedStructure = structure;
@@ -151,7 +154,10 @@
 		if (token !== highlightToken) return;
 
 		for (const old of structure.svgRoot.querySelectorAll('.contour-highlight')) old.remove();
-		structure.svgRoot.prepend(...[...groups].reverse());
+		// Reverse so the first match is painted last (on top of later matches).
+		const ordered = [...groups].reverse();
+		if (outlinesOnTop) structure.svgRoot.append(...ordered);
+		else structure.svgRoot.prepend(...ordered);
 		hasMatch = matched;
 	}
 
@@ -232,6 +238,10 @@
 	.structure-shell :global(svg) {
 		width: 100%;
 		height: 100%;
+	}
+
+	.structure-shell :global(.contour-highlight) {
+		pointer-events: none;
 	}
 
 	/* Centered spinner overlay */

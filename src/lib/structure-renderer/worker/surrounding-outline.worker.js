@@ -168,8 +168,9 @@ function computeOutline(shapeDescriptors, viewBox, options = {}) {
 	const expandedBonds = [];
 	for (const openPath of openPaths) {
 		try {
-			const sw = openPath.strokeWidth > 0 ? openPath.strokeWidth : strokeExpand;
-			const strokeShape = PaperOffset.offsetStroke(openPath, Math.max(sw, strokeExpand) / 2, {
+			// Constant band width: the drawn bond stroke width (bondLineWidth) must
+			// not leak into the outline geometry.
+			const strokeShape = PaperOffset.offsetStroke(openPath, strokeExpand / 2, {
 				join: 'round',
 				cap: 'round',
 				limit: 4,

@@ -3,6 +3,7 @@ import OutlineWorker from './worker/surrounding-outline.worker.js?worker';
 const NS = 'http://www.w3.org/2000/svg';
 const POOL_SIZE = 2;
 const BASE_OFFSET = 2;
+const DEFAULT_ATOM_RADIUS = 8;
 
 /**
  * @typedef {Object} ShapeDescriptor
@@ -28,7 +29,7 @@ const BASE_OFFSET = 2;
  */
 
 /**
- * @typedef {{ atoms: Map<number, ShapeDescriptor[]>, bonds: Map<number, ShapeDescriptor[]>, viewBox: { w: number, h: number } }} ShapeIndex
+ * @typedef {{ atoms: Map<number, ShapeDescriptor[]>, bonds: Map<number, ShapeDescriptor[]>, viewBox: { w: number, h: number }, atomRadius: number }} ShapeIndex
  */
 
 /** @type {Worker[]} */
@@ -68,6 +69,20 @@ function computeInWorker(shapes, viewBox, options) {
 }
 
 /**
+ * @param {CSSStyleDeclaration} style
+ * @returns {boolean}
+ */
+function isInvisible(style) {
+	const fillOpacity = parseFloat(style.fillOpacity);
+	const strokeOpacity = parseFloat(style.strokeOpacity);
+	const strokeWidth = parseFloat(style.strokeWidth);
+	const noFill = !style.fill || style.fill === 'none' || fillOpacity === 0;
+	const noStroke =
+		!style.stroke || style.stroke === 'none' || strokeOpacity === 0 || strokeWidth === 0;
+	return noFill && noStroke;
+}
+
+/**
  * @param {Element} el
  * @param {boolean} isBond
  * @returns {ShapeDescriptor|null}
@@ -86,6 +101,10 @@ function toDescriptor(el, isBond) {
 		case 'path': {
 			const d = el.getAttribute('d');
 			if (!d) return null;
+			// Skip RDKit's transparent bond-highlight polygons. Their width scales
+			// with bondLineWidth * highlightBondWidthMultiplier and they are mitered
+			// into neighbouring bonds, which bloats and distorts the outline.
+			if (isBond && isInvisible(style)) return null;
 			const closed = /[Zz]\s*$/.test(d.trim());
 			return isBond
 				? { ...base, type: 'path', d, hasStroke: true, closed }
@@ -146,7 +165,12 @@ function toDescriptor(el, isBond) {
 export function buildShapeIndex(svgRoot) {
 	const [, , w, h] = (svgRoot.getAttribute('viewBox') ?? '').trim().split(/\s+/).map(Number);
 	/** @type {ShapeIndex} */
-	const index = { atoms: new Map(), bonds: new Map(), viewBox: { w, h } };
+	const index = {
+		atoms: new Map(),
+		bonds: new Map(),
+		viewBox: { w, h },
+		atomRadius: DEFAULT_ATOM_RADIUS,
+	};
 
 	for (const el of svgRoot.children) {
 		const bond = el.getAttribute('class')?.match(/\bbond-(\d+)/);
@@ -158,6 +182,16 @@ export function buildShapeIndex(svgRoot) {
 		const key = Number(idx);
 		map.set(key, [...(map.get(key) ?? []), desc]);
 	}
+
+	// Bond band width follows the RDKit atom-highlight radius so bonds and atoms
+	// get the same margin, independent of bondLineWidth. Labelled atoms (N, OH, ...)
+	// get stretched ellipses, so the smallest radius is the bare-atom one.
+	const radii = [...index.atoms.values()]
+		.flat()
+		.filter((s) => s.type === 'ellipse' || s.type === 'circle')
+		.flatMap((s) => [s.rx ?? s.r ?? 0, s.ry ?? s.r ?? 0])
+		.filter((r) => r > 0);
+	if (radii.length) index.atomRadius = Math.min(...radii);
 	return index;
 }
 
@@ -238,6 +272,7 @@ export async function createSurroundingOutline({
 		miterLimit: BASE_OFFSET + overlap,
 		flatten: 1,
 		mergeClusters: true,
+		strokeExpand: 2 * shapeIndex.atomRadius,
 	};
 
 	let d;
