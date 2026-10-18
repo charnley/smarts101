@@ -43,7 +43,7 @@
 
 	<h2>Smarter SMARTS</h2>
 
-	<p class="">
+	<p>
 		Smarter SMARTS is a tool that helps you write accurate SMARTS patterns by showing the distinct
 		molecules your pattern actually matches, filtered for unique atom environments in the 100K
 		smallest Chembl molecules and stopping with 200 results. Developed by Noel O'Boyle as described

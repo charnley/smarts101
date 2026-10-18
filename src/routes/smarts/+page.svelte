@@ -765,9 +765,9 @@
 
 <!-- Sets sheet (mobile) -->
 <Sheet.Root bind:open={setsSheetOpen}>
-	<Sheet.Content side="left" class="" portalProps={{}}>
-		<Sheet.Header class="">
-			<Sheet.Title class="">Start from…</Sheet.Title>
+	<Sheet.Content side="left">
+		<Sheet.Header>
+			<Sheet.Title>Start from…</Sheet.Title>
 		</Sheet.Header>
 		<div class="flex flex-col gap-2 p-4">
 			{#each Object.entries(SETS) as [key, set]}
@@ -787,9 +787,9 @@
 
 <!-- Settings dialog -->
 <Dialog.Root bind:open={settingsOpen}>
-	<Dialog.Content class="sm:max-w-md" portalProps={{}}>
-		<Dialog.Header class="">
-			<Dialog.Title class="">Settings</Dialog.Title>
+	<Dialog.Content class="sm:max-w-md">
+		<Dialog.Header>
+			<Dialog.Title>Settings</Dialog.Title>
 		</Dialog.Header>
 
 		<div class="flex flex-col gap-6 py-2">
@@ -813,18 +813,18 @@
 
 			<!-- Explicit hydrogens -->
 			<div class="flex items-center gap-3">
-				<Checkbox class="" id="explicit-h" bind:checked={settings.explicitHydrogens} />
+				<Checkbox id="explicit-h" bind:checked={settings.explicitHydrogens} />
 				<div class="flex flex-col gap-0.5">
-					<Label class="" for="explicit-h">Keep explicit hydrogens</Label>
+					<Label for="explicit-h">Keep explicit hydrogens</Label>
 					<p class="text-xs text-muted-foreground">Relevant for SDF input with embedded H atoms.</p>
 				</div>
 			</div>
 
 			<!-- prefer_coordgen -->
 			<div class="flex items-center gap-3">
-				<Checkbox class="" id="coordgen" bind:checked={settings.useCoordgen} />
+				<Checkbox id="coordgen" bind:checked={settings.useCoordgen} />
 				<div class="flex flex-col gap-0.5">
-					<Label class="" for="coordgen">Generate Coordinate</Label>
+					<Label for="coordgen">Generate Coordinate</Label>
 					<p class="text-xs text-muted-foreground">
 						Generate new coordinates for molecules (will be slower, but pretty)
 					</p>
@@ -833,9 +833,9 @@
 
 			<!-- Filter matches only -->
 			<div class="flex items-center gap-3">
-				<Checkbox class="" id="filter-matches" bind:checked={settings.filterMatchesOnly} />
+				<Checkbox id="filter-matches" bind:checked={settings.filterMatchesOnly} />
 				<div class="flex flex-col gap-0.5">
-					<Label class="" for="filter-matches">Show only matching molecules</Label>
+					<Label for="filter-matches">Show only matching molecules</Label>
 					<p class="text-xs text-muted-foreground">
 						Hides molecules that do not match the active SMARTS pattern.
 					</p>
@@ -844,9 +844,9 @@
 
 			<!-- Highlight recursive SMARTS -->
 			<div class="flex items-center gap-3">
-				<Checkbox class="" id="highlight-recursive" bind:checked={settings.highlightRecursive} />
+				<Checkbox id="highlight-recursive" bind:checked={settings.highlightRecursive} />
 				<div class="flex flex-col gap-0.5">
-					<Label class="" for="highlight-recursive">Highlight active recursive SMARTS</Label>
+					<Label for="highlight-recursive">Highlight active recursive SMARTS</Label>
 					<p class="text-xs text-muted-foreground">
 						Highlights the inner pattern of <code>$(...)</code> under the cursor in molecule views.
 					</p>
@@ -858,14 +858,14 @@
 
 <!-- Info dialog -->
 <Dialog.Root bind:open={infoOpen}>
-	<Dialog.Content class="sm:max-w-lg" portalProps={{}}>
-		<Dialog.Header class="">
-			<Dialog.Title class="">Usage</Dialog.Title>
+	<Dialog.Content class="sm:max-w-lg">
+		<Dialog.Header>
+			<Dialog.Title>Usage</Dialog.Title>
 		</Dialog.Header>
 
 		<div class="flex flex-col gap-5 py-2 text-sm">
 			<section class="flex flex-col gap-2">
-				<p class="">
+				<p>
 					Enter a SMARTS pattern in the editor at the top of the page. Matching substructures are
 					highlighted in the molecule grid below as you type.
 				</p>
@@ -883,7 +883,7 @@
 
 			<section class="flex flex-col gap-2">
 				<h3 class="font-semibold">Reactions</h3>
-				<p class="">
+				<p>
 					You can use <code>>></code> SMARTS reaction syntax in "view" and you will see the target
 					transform. Note that if you have multiple reactants with <code>.</code> you will need the same
 					amount of SMILES in your "Edit" molecules.
@@ -892,7 +892,7 @@
 
 			<section class="flex flex-col gap-2">
 				<h3 class="font-semibold">What is Smarter SMARTS?</h3>
-				<p class="">
+				<p>
 					Smarter SMARTS is a tool that helps you write accurate SMARTS patterns by showing the
 					distinct molecules your pattern actually matches, filtered for unique atom environments in
 					the 100K smallest Chembl molecules and stopping with 200 results. Developed by Noel
