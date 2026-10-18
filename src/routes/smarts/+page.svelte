@@ -452,10 +452,11 @@
 		else if (v === 'gen') viewMode = 'gen';
 	}
 
-	/** @param {string[]} smiles */
-	function copyGenerated(smiles) {
-		if (smiles.length === 0) return;
-		const list = withIds(smiles.map((s) => ({ structureDefinition: s })));
+	function copyGenerated() {
+		if (generatedMolecules.length === 0) return;
+		const list = withIds(
+			generatedMolecules.map(({ structureDefinition, name }) => ({ structureDefinition, name })),
+		);
 		molecules = list;
 		matchStates = list.map(() => false);
 		textareaValue = toTextarea(list);
@@ -703,12 +704,7 @@
 									<div class="text-sm text-muted-foreground">
 										Showing {generatedMolecules.length} matches
 									</div>
-									<Button
-										variant="outline"
-										size="sm"
-										onclick={() =>
-											copyGenerated(generatedMolecules.map((m) => m.structureDefinition))}
-									>
+									<Button variant="outline" size="sm" onclick={copyGenerated}>
 										<CopyIcon size={16} />
 										Copy to View/Edit
 									</Button>
