@@ -4,12 +4,8 @@
  */
 
 // @ts-nocheck
-import { getRDKit, PALETTE_DARK, PALETTE_LIGHT } from '$lib/rdkit/utils.js';
-import { parseHTML } from 'linkedom';
-// linkedom gives us DOMParser + document for SVG parsing inside the worker
-const { document, DOMParser } = parseHTML('<!DOCTYPE html><html><body></body></html>');
-globalThis.DOMParser = DOMParser;
-globalThis.document = document;
+import { getRDKit } from '$lib/rdkit/utils.js';
+import { getDrawingOptions, STRUCTURE_DRAWING_OPTIONS } from '$lib/rdkit/drawing-options.js';
 
 /** @type {any} */
 let rdkit = null;
@@ -40,7 +36,6 @@ async function generateStructureSVG({
 	showAtomIndices = false,
 	preferCoorDGen = false,
 	explicitHydrogens = false,
-	userDrawingOptions = {},
 }) {
 	rdkit.prefer_coordgen(preferCoorDGen);
 
@@ -51,27 +46,13 @@ async function generateStructureSVG({
 	if (isMolblock && !explicitHydrogens) mol.remove_hs_in_place();
 
 	const options = {
-		addBondIndices: false,
-		bondLineWidth: 2.0,
-		multipleBondOffset: 0.25,
-		fixedScale: 0.08,
-		baseFontSize: 0.8,
-		minFontSize: -1,
-		maxFontSize: -1,
-		highlightBondWidthMultiplier: 20,
-		dummyIsotopeLabels: false,
-		atomColourPalette: darkMode ? PALETTE_DARK : PALETTE_LIGHT,
-		clearBackground: false,
-		singleColourWedgeBonds: true,
-		addStereoAnnotation: true,
+		...getDrawingOptions({ darkMode }),
+		...STRUCTURE_DRAWING_OPTIONS,
 		addAtomIndices: showAtomIndices,
-		...userDrawingOptions,
 		atoms: range(mol.get_num_atoms()),
 		bonds: range(mol.get_num_bonds()),
 		highlightColour: [1, 1, 1, 0],
 		standardColoursForHighlightedAtoms: true,
-		// width: width,
-		// height: height,
 		width: parseInt(`${width}`),
 		height: parseInt(`${height}`),
 	};
@@ -94,11 +75,8 @@ async function generateQuerySVG({ smartsInput, width, height, darkMode = false }
 	};
 
 	const svg = mol.get_svg_with_highlights(JSON.stringify(options));
-	const el = new DOMParser().parseFromString(svg, 'text/xml').documentElement;
-	const viewBox = el.getAttribute('viewBox') || `0 0 ${width} ${height}`;
-	const finalSvg = el.toString?.() ?? el.outerHTML;
 	mol.delete();
-	return { svg: finalSvg, viewBox };
+	return { svg };
 }
 
 self.onmessage = async (event) => {
