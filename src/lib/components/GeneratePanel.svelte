@@ -21,6 +21,8 @@
 	/** @type {string | null} */
 	let currentSearch = $state(null);
 	let workerReady = $state(false);
+	/** @type {{ smiles: string, name: string }[]} */
+	let results = $state([]);
 
 	/** @type {Worker | null} */
 	let worker = null;
@@ -59,10 +61,6 @@
 			searching = false;
 		}
 	}
-
-	// results array hoisted so handleMessage can reference it
-	/** @type {{ smiles: string, name: string }[]} */
-	let results = $state([]);
 
 	onDestroy(() => {
 		if (debounceTimer) clearTimeout(debounceTimer);
