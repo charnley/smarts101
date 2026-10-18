@@ -82,7 +82,8 @@
 				<Button
 					variant="ghost"
 					size="icon"
-					target="_new"
+					target="_blank"
+					rel="noopener"
 					href="https://github.com/charnley/smarts101"
 					aria-label="GitHub"
 				>

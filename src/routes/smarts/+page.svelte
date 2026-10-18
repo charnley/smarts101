@@ -870,13 +870,13 @@
 					highlighted in the molecule grid below as you type.
 				</p>
 				<ul class="ml-4 list-disc">
-					<li><strong>View</strong> — see which molecules match the current SMARTS.</li>
+					<li><strong>View Results</strong> — see which molecules match the current SMARTS.</li>
 					<li>
-						<strong>Edit</strong> — edit the target molecules in either SMILES list or SDF format.
+						<strong>Edit Molecules</strong> — edit the target molecules in either SMILES list or SDF format.
 					</li>
 					<li>
-						<strong>Generate</strong> — Find example molecules from your SMARTS pattern, using Smarter
-						SMARTS.
+						<strong>Generate Molecules</strong> — Find example molecules from your SMARTS pattern, using
+						Smarter SMARTS.
 					</li>
 				</ul>
 			</section>
@@ -895,11 +895,12 @@
 				<p>
 					Smarter SMARTS is a tool that helps you write accurate SMARTS patterns by showing the
 					distinct molecules your pattern actually matches, filtered for unique atom environments in
-					the 100K smallest Chembl molecules and stopping with 200 results. Developed by Noel
+					the 100K smallest ChEMBL molecules and stopping with 200 results. Developed by Noel
 					O'Boyle as described in
 					<a
 						href="https://baoilleach.blogspot.com/2018/11/smarts-for-dummies.html"
 						target="_blank"
+						rel="noopener"
 						class="underline">SMARTS for dummies</a
 					>.
 				</p>
