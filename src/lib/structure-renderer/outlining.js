@@ -1,4 +1,5 @@
 import OutlineWorker from './worker/surrounding-outline.worker.js?worker';
+import { hexToRgbaArray, rgbaArrayToString } from './color-utils.js';
 
 const NS = 'http://www.w3.org/2000/svg';
 const POOL_SIZE = 2;
@@ -219,14 +220,9 @@ function descriptorToD({ type, d = '', cx = 0, cy = 0, r = 0, rx = r, ry = r, ..
  * @returns {string}
  */
 function toStrokeColor(color) {
-	if (Array.isArray(color)) {
-		const [r, g, b] = color.map((c) => Math.round(c * 255));
-		return `rgba(${r}, ${g}, ${b}, ${color[3] ?? 0.6})`;
-	}
-	if (color.startsWith('#')) {
-		const [r, g, b] = [1, 3, 5].map((i) => parseInt(color.slice(i, i + 2), 16));
-		return `rgba(${r}, ${g}, ${b}, 0.6)`;
-	}
+	if (Array.isArray(color))
+		return rgbaArrayToString([color[0], color[1], color[2], color[3] ?? 0.6]);
+	if (color.startsWith('#')) return rgbaArrayToString(hexToRgbaArray(color));
 	return color;
 }
 
