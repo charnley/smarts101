@@ -217,8 +217,6 @@
 	let generatedMolecules = $state(
 		/** @type {{ id: number, structureDefinition: string, name?: string }[]} */ ([]),
 	);
-	/** @type {boolean[]} */
-	let generatedMatchStates = $state([]);
 
 	/** 'grid' shows the molecule cards; 'edit' shows the textarea editor; 'gen' shows the generator */
 	let viewMode = $state(/** @type {'grid' | 'edit' | 'gen'} */ ('grid'));
@@ -697,7 +695,6 @@
 										items.map((it) => ({ structureDefinition: it.smiles, name: it.name })),
 									);
 									generatedMolecules = list;
-									generatedMatchStates = list.map(() => false);
 								}}
 							/>
 
@@ -719,7 +716,7 @@
 							{/if}
 
 							<div class="grid gap-4 {genGridClass}">
-								{#each generatedMolecules as mol, i (mol.id)}
+								{#each generatedMolecules as mol (mol.id)}
 									<MoleculeBox
 										structureDefinition={mol.structureDefinition}
 										name={mol.name}
@@ -728,7 +725,6 @@
 										height={genMolSize.height}
 										useCoordgen={settings.useCoordgen}
 										explicitHydrogens={settings.explicitHydrogens}
-										bind:hasMatch={generatedMatchStates[i]}
 									/>
 								{/each}
 							</div>
