@@ -8,34 +8,6 @@ import wasmUrl from '@rdkit/rdkit/RDKit_minimal.wasm?url';
 const DEFAULT_DARK = [1.0, 1.0, 1.0];
 const DEFAULT_LIGHT = [0.0, 0.0, 0.0];
 
-// export const PALETTE_LIGHT = {
-// 	0: [0.1, 0.1, 0.1], // default / unknown
-// 	1: [0.5, 0.5, 0.5], // H  — grey
-// 	6: [0, 0, 0], // C  — black
-// 	7: [0, 0, 0.9], // N  — blue
-// 	8: [0.9, 0, 0], // O  — red
-// 	9: [0, 0.5, 0], // F  — green
-// 	15: [0.5, 0, 0.5], // P  — purple
-// 	16: [0.5, 0.25, 0], // S  — brown/orange
-// 	17: [0, 0.5, 0], // Cl — green
-// 	35: [0, 0.5, 0], // Br — green
-// 	53: [0.25, 0, 0.5], // I  — violet
-// };
-
-// export const PALETTE_DARK = {
-// 	0: [0.85, 0.85, 0.85], // default / unknown
-// 	1: [0.85, 0.85, 0.85], // H
-// 	6: [1.0, 1.0, 1.0], // C  — light grey
-// 	7: [0.4, 0.6, 1], // N  — light blue
-// 	8: [1, 0.4, 0.4], // O  — light red
-// 	9: [0.2, 0.9, 0.4], // F  — bright green
-// 	15: [0.85, 0.4, 0.85], // P  — light purple
-// 	16: [0.9, 0.75, 0.1], // S  — yellow-orange
-// 	17: [0.2, 0.9, 0.4], // Cl — bright green
-// 	35: [0.2, 0.9, 0.4], // Br — bright green
-// 	53: [0.7, 0.4, 0.9], // I  — light violet
-// };
-
 export const PALETTE_DARK = {
 	0: DEFAULT_DARK,
 	1: DEFAULT_DARK,
