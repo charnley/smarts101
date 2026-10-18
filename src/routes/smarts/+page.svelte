@@ -4,6 +4,7 @@
 	import ReactionCard from '$lib/components/ReactionCard.svelte';
 	import { runReaction } from '$lib/structure-renderer/reaction-runner.js';
 	import { mode } from 'mode-watcher';
+	import { SMARTS_INPUT_DEBOUNCE_MS, REACTION_DEBOUNCE_MS } from '$lib/constants.js';
 	import SmartsEditor from '$lib/components/SmartsEditor.svelte';
 	import { Textarea } from '$lib/components/ui/textarea/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
@@ -309,7 +310,7 @@
 			return;
 		}
 		if (reactionDebounceTimer) clearTimeout(reactionDebounceTimer);
-		reactionDebounceTimer = setTimeout(() => runReactionMode(_rxn, _mols), 400);
+		reactionDebounceTimer = setTimeout(() => runReactionMode(_rxn, _mols), REACTION_DEBOUNCE_MS);
 	});
 
 	/**
@@ -521,7 +522,7 @@
 				debounceTimer = setTimeout(() => {
 					if (parser) smartsTree = rawSmarts.trim() ? parser.parse(rawSmarts) : null;
 					validateAndApply(rawSmarts);
-				}, 350);
+				}, SMARTS_INPUT_DEBOUNCE_MS);
 			}}
 			oncursorchange={(pos) => {
 				cursorPos = pos;

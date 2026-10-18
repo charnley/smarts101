@@ -5,9 +5,8 @@
  */
 
 import { createSearcher } from './index.js';
+import { SMARTER_SMARTS_BATCH_SIZE } from '$lib/constants.js';
 import csvText from '$lib/smarter-smarts/data/100k-smallest-chembl.csv?raw';
-
-const BATCH_SIZE = 20_000;
 
 /**
  * Parse CHEMBL_ID,SMILES CSV (no quoting, no header).
@@ -69,7 +68,7 @@ async function doSearch(smarts, startIdx, currentCount = 0, maxResults = Infinit
 		}
 	}
 
-	const raw = searcher.searchBatch(startIdx, BATCH_SIZE);
+	const raw = searcher.searchBatch(startIdx, SMARTER_SMARTS_BATCH_SIZE);
 	const resp = JSON.parse(raw);
 
 	if (!resp.ok) {

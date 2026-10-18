@@ -3,6 +3,7 @@
 	import { SmarterSmartsWorker } from '$lib/smarter-smarts/index.js';
 	import { validateSmarts } from '$lib/rdkit/utils.js';
 	import { Spinner } from '$lib/components/ui/spinner/index.js';
+	import { GENERATE_DEBOUNCE_MS } from '$lib/constants.js';
 
 	const MAX_RESULTS = 200;
 
@@ -126,7 +127,7 @@
 				currentCount: 0,
 				maxResults: MAX_RESULTS,
 			});
-		}, 350 * 2);
+		}, GENERATE_DEBOUNCE_MS);
 	});
 </script>
 

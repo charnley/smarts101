@@ -1,8 +1,8 @@
 import OutlineWorker from './worker/surrounding-outline.worker.js?worker';
+import { OUTLINE_POOL_SIZE } from '$lib/constants.js';
 import { hexToRgbaArray, rgbaArrayToString } from './color-utils.js';
 
 const NS = 'http://www.w3.org/2000/svg';
-const POOL_SIZE = 2;
 const BASE_OFFSET = 2;
 const DEFAULT_ATOM_RADIUS = 8;
 
@@ -40,7 +40,7 @@ const pending = new Map();
 let msgId = 0;
 
 function getWorker() {
-	if (workers.length < POOL_SIZE) {
+	if (workers.length < OUTLINE_POOL_SIZE) {
 		const worker = new OutlineWorker();
 		worker.onmessage = (e) => {
 			const { id, type, result, error } = e.data;

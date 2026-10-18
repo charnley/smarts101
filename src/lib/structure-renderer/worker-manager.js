@@ -7,11 +7,12 @@
 import RDKitWorker from './worker/rdkit.worker.js?worker';
 import RDKitSearchWorker from './worker/substructure-search.worker.js?worker';
 import RDKitReactionWorker from './worker/reaction-rdkit-worker.js?worker';
-
-// ── Pool sizes (tune as needed) ─────────────────────────────────────────────
-const RENDER_POOL_SIZE = 2;
-const SEARCH_POOL_SIZE = 2;
-const REACTION_POOL_SIZE = 1;
+import {
+	RENDER_POOL_SIZE,
+	SEARCH_POOL_SIZE,
+	REACTION_POOL_SIZE,
+	WORKER_TIMEOUT_MS,
+} from '$lib/constants.js';
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // Generic WorkerPool
@@ -75,7 +76,7 @@ class WorkerPool {
 					this.msgToWorker.delete(id);
 					(initReject ?? reject)(new Error(`[${this.name}] Timeout: ${type}`));
 				}
-			}, 30000);
+			}, WORKER_TIMEOUT_MS);
 
 			this.pending.set(id, {
 				resolve: initResolve
