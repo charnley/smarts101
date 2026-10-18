@@ -34,8 +34,6 @@ let searcher = null;
 /** @type {{smiles: string, name: string}[]} */
 let moleculeNames = [];
 let total = 0;
-/** @type {string|null} */
-let currentSmarts = null;
 
 async function init() {
 	try {
@@ -51,7 +49,7 @@ async function init() {
 		const pre = JSON.parse(searcher.preload());
 		console.log('[worker] molecules preloaded:', JSON.stringify(pre));
 
-		self.postMessage({ type: 'ready', totalMolecules: total });
+		self.postMessage({ type: 'ready' });
 	} catch (err) {
 		self.postMessage({
 			type: 'error',
@@ -69,7 +67,6 @@ async function doSearch(smarts, startIdx, currentCount = 0, maxResults = Infinit
 			self.postMessage({ type: 'error', message: resp.error || 'Invalid SMARTS' });
 			return;
 		}
-		currentSmarts = smarts;
 	}
 
 	const raw = searcher.searchBatch(startIdx, BATCH_SIZE);
@@ -99,33 +96,13 @@ async function doSearch(smarts, startIdx, currentCount = 0, maxResults = Infinit
 	self.postMessage({
 		type: 'batch',
 		results: capped,
-		percent: Math.round(resp.progress * 100),
-		totalSearched: Math.min(nextIdx, total),
-		totalMolecules: total,
 		finished: done || hitMax,
 		nextIdx: done ? total : nextIdx,
 	});
 }
 
 self.onmessage = async (e) => {
-	const { smarts, startIdx = 0, currentCount = 0, maxResults = Infinity, initData } = e.data;
-
-	if (initData) {
-		try {
-			moleculeNames = initData;
-			const smilesList = initData.map((/** @type {{smiles: string}} */ m) => m.smiles);
-			const { searcher: s } = await createSearcher(smilesList);
-			searcher = s;
-			total = smilesList.length;
-			self.postMessage({ type: 'ready', totalMolecules: total });
-		} catch (err) {
-			self.postMessage({
-				type: 'error',
-				message: err instanceof Error ? err.message : String(err),
-			});
-		}
-		return;
-	}
+	const { smarts, startIdx = 0, currentCount = 0, maxResults = Infinity } = e.data;
 
 	if (smarts) {
 		await doSearch(smarts, startIdx, currentCount, maxResults);
