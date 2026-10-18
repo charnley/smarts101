@@ -104,13 +104,7 @@
 		isRendering = true;
 		renderError = null;
 		try {
-			const bounds = target.getBoundingClientRect();
-			const { svg } = await rdkitWorker.generateSVG({
-				...options,
-				moleculeInput: definition,
-				width: bounds.width || options.width,
-				height: bounds.height || options.height,
-			});
+			const { svg } = await rdkitWorker.generateSVG({ ...options, moleculeInput: definition });
 			if (token !== structureToken) return;
 
 			const shell = /** @type {Element} */ (target.querySelector('.structure-shell'));
