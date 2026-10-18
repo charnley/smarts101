@@ -5,8 +5,6 @@
 	import { Spinner } from '$lib/components/ui/spinner/index.js';
 	import { GENERATE_DEBOUNCE_MS } from '$lib/constants.js';
 
-	const MAX_RESULTS = 200;
-
 	/**
 	 * @type {{
 	 *   smarts: string,
@@ -46,7 +44,7 @@
 
 			onresults?.(results.map((r) => ({ smiles: r.smiles, name: r.name })));
 
-			if (batch.finished || results.length >= MAX_RESULTS) {
+			if (batch.finished) {
 				searching = false;
 				return;
 			}
@@ -54,8 +52,6 @@
 			worker?.postMessage({
 				smarts: currentSearch,
 				startIdx: batch.nextIdx,
-				currentCount: results.length,
-				maxResults: MAX_RESULTS,
 			});
 		} else if (type === 'error') {
 			error = e.data.message;
@@ -124,8 +120,6 @@
 			worker?.postMessage({
 				smarts: trimmed,
 				startIdx: 0,
-				currentCount: 0,
-				maxResults: MAX_RESULTS,
 			});
 		}, GENERATE_DEBOUNCE_MS);
 	});

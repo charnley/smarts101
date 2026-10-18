@@ -5,7 +5,7 @@
  */
 
 import { createSearcher } from './index.js';
-import { SMARTER_SMARTS_BATCH_SIZE } from '$lib/constants.js';
+import { SMARTER_SMARTS_BATCH_SIZE, MAX_GENERATED_RESULTS } from '$lib/constants.js';
 import csvText from '$lib/smarter-smarts/data/100k-smallest-chembl.csv?raw';
 
 /**
@@ -33,6 +33,8 @@ let searcher = null;
 /** @type {{smiles: string, name: string}[]} */
 let moleculeNames = [];
 let total = 0;
+/** Matches sent back so far for the current search (the worker owns the result cap). */
+let sentCount = 0;
 
 async function init() {
 	try {
@@ -57,7 +59,7 @@ async function init() {
 	}
 }
 
-async function doSearch(smarts, startIdx, currentCount = 0, maxResults = Infinity) {
+async function doSearch(smarts, startIdx) {
 	if (!searcher) return;
 
 	if (startIdx === 0) {
@@ -66,6 +68,7 @@ async function doSearch(smarts, startIdx, currentCount = 0, maxResults = Infinit
 			self.postMessage({ type: 'error', message: resp.error || 'Invalid SMARTS' });
 			return;
 		}
+		sentCount = 0;
 	}
 
 	const raw = searcher.searchBatch(startIdx, SMARTER_SMARTS_BATCH_SIZE);
@@ -85,9 +88,9 @@ async function doSearch(smarts, startIdx, currentCount = 0, maxResults = Infinit
 		});
 	}
 
-	const room = Math.max(0, maxResults - currentCount);
-	const capped = batchResults.slice(0, room);
-	const hitMax = capped.length < batchResults.length;
+	const capped = batchResults.slice(0, MAX_GENERATED_RESULTS - sentCount);
+	sentCount += capped.length;
+	const hitMax = sentCount >= MAX_GENERATED_RESULTS;
 
 	const done = resp.done;
 	const nextIdx = done ? total : startIdx + resp.processed;
@@ -101,10 +104,10 @@ async function doSearch(smarts, startIdx, currentCount = 0, maxResults = Infinit
 }
 
 self.onmessage = async (e) => {
-	const { smarts, startIdx = 0, currentCount = 0, maxResults = Infinity } = e.data;
+	const { smarts, startIdx = 0 } = e.data;
 
 	if (smarts) {
-		await doSearch(smarts, startIdx, currentCount, maxResults);
+		await doSearch(smarts, startIdx);
 	}
 };
 
