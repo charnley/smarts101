@@ -17,10 +17,7 @@ import { PaperOffset } from 'paperjs-offset';
 
 const TRACE = '[Outline Worker]';
 
-// ============================================================================
 // Reconstruct Paper.js items from shape descriptors (no DOM needed)
-// ============================================================================
-
 /**
  * Convert a shape descriptor into a Paper.js PathItem.
  * @param {Object} desc  Shape descriptor from the main thread
@@ -97,10 +94,7 @@ function descriptorToPath(desc, scope) {
 	}
 }
 
-// ============================================================================
 // Core computation (runs entirely in the worker)
-// ============================================================================
-
 /**
  * Compute surrounding outlines from pre-extracted shape descriptors.
  *
@@ -260,10 +254,7 @@ function computeOutline(shapeDescriptors, viewBox, options = {}) {
 
 	const clustersIdx = mergeClusters ? [items.map((_, i) => i)] : findClusters();
 
-	// ================================================================
-	// Step 6: Offset each item individually
-	// ================================================================
-
+	// Offset each item individually
 	const expandedItems = [];
 	for (let i = 0; i < items.length; i++) {
 		if (offset > 0) {
@@ -290,10 +281,7 @@ function computeOutline(shapeDescriptors, viewBox, options = {}) {
 		}
 	}
 
-	// ================================================================
-	// Step 7: Boolean-union the pre-expanded items per cluster
-	// ================================================================
-
+	// Boolean-union the pre-expanded items per cluster
 	const unions = [];
 	for (const comp of clustersIdx) {
 		let merged = null;
@@ -319,10 +307,7 @@ function computeOutline(shapeDescriptors, viewBox, options = {}) {
 		for (const it of buffered) it.simplify(simplifyTolerance);
 	}
 
-	// ================================================================
-	// Step 8: Optionally merge clusters after offset
-	// ================================================================
-
+	// Optionally merge clusters after offset
 	if (mergeClusters) {
 		if (buffered.length > 1) {
 			let acc = buffered[0].clone();
@@ -390,20 +375,14 @@ function computeOutline(shapeDescriptors, viewBox, options = {}) {
 		buffered = mergedGroups;
 	}
 
-	// ================================================================
-	// Step 9: Strip inner holes for outer-only outlines
-	// ================================================================
-
+	// Strip inner holes for outer-only outlines
 	if (outerOnly) {
 		for (let i = 0; i < buffered.length; i++) {
 			buffered[i] = extractOuterBoundary(buffered[i], scope);
 		}
 	}
 
-	// ================================================================
-	// Step 10+11: Ensure closed + export path data
-	// ================================================================
-
+	// Ensure closed + export path data
 	const results = [];
 	for (const merged of buffered) {
 		ensureClosed(merged, scope);
@@ -438,10 +417,7 @@ function computeOutline(shapeDescriptors, viewBox, options = {}) {
 	}
 }
 
-// ============================================================================
-// Helpers (duplicated from main module — worker has no access to main-thread code)
-// ============================================================================
-
+// Helpers
 function extractOuterBoundary(item, scope) {
 	if (!(item instanceof scope.CompoundPath) || !item.children) return item;
 	const outers = item.children.filter((c) => c.area > 0);
@@ -484,10 +460,7 @@ function ensureClosed(item, scope) {
 	}
 }
 
-// ============================================================================
 // Worker message handler
-// ============================================================================
-
 self.onmessage = (event) => {
 	const { id, type, payload } = event.data;
 
