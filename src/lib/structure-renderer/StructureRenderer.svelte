@@ -194,7 +194,6 @@
 	style:height="{height}px"
 	class:is-rendering={isRendering}
 >
-	<!-- generate-svg.js queries container.querySelector('.structure-shell') -->
 	<div class="sr-container" bind:this={container}>
 		<div class="structure-shell"></div>
 	</div>
@@ -253,12 +252,6 @@
 		justify-content: center;
 		background: color-mix(in srgb, var(--card, white) 60%, transparent);
 		backdrop-filter: blur(1px);
-	}
-
-	@keyframes sr-spin {
-		to {
-			transform: rotate(360deg);
-		}
 	}
 
 	.sr-error {
