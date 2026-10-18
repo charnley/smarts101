@@ -17,7 +17,22 @@ import { PaperOffset } from 'paperjs-offset';
 
 const TRACE = '[Outline Worker]';
 
-// Reconstruct Paper.js items from shape descriptors (no DOM needed)
+/**
+ * Apply the black fill/stroke that Paper.js needs for boolean operations.
+ * @param {any} item  Paper.js item
+ * @param {{ hasFill?: boolean, hasStroke?: boolean, strokeWidth?: number }} flags
+ * @param {number} [defaultWidth]  Stroke width when the descriptor has none
+ * @returns {any}
+ */
+function paint(item, { hasFill, hasStroke, strokeWidth }, defaultWidth = 1) {
+	if (hasFill) item.fillColor = 'black';
+	if (hasStroke) {
+		item.strokeColor = 'black';
+		item.strokeWidth = strokeWidth || defaultWidth;
+	}
+	return item;
+}
+
 /**
  * Convert a shape descriptor into a Paper.js PathItem.
  * @param {Object} desc  Shape descriptor from the main thread
@@ -33,62 +48,33 @@ function descriptorToPath(desc, scope) {
 			if (p.children && p.children.length === 1) {
 				const child = p.children[0].clone({ insert: false });
 				p.remove();
-				if (desc.hasFill) child.fillColor = 'black';
-				if (desc.hasStroke) {
-					child.strokeColor = 'black';
-					child.strokeWidth = desc.strokeWidth || 1;
-				}
+				paint(child, desc);
 				child.closed = desc.closed;
 				return child;
 			}
-			if (desc.hasFill) p.fillColor = 'black';
-			if (desc.hasStroke) {
-				p.strokeColor = 'black';
-				p.strokeWidth = desc.strokeWidth || 1;
-			}
-			return p;
+			return paint(p, desc);
 		}
-		case 'circle': {
-			const c = new scope.Path.Circle(new scope.Point(desc.cx, desc.cy), desc.r);
-			if (desc.hasFill) c.fillColor = 'black';
-			if (desc.hasStroke) {
-				c.strokeColor = 'black';
-				c.strokeWidth = desc.strokeWidth || 1;
-			}
-			return c;
-		}
-		case 'ellipse': {
-			const e = new scope.Path.Ellipse({
-				center: new scope.Point(desc.cx, desc.cy),
-				radius: new scope.Size(desc.rx, desc.ry),
-			});
-			if (desc.hasFill) e.fillColor = 'black';
-			if (desc.hasStroke) {
-				e.strokeColor = 'black';
-				e.strokeWidth = desc.strokeWidth || 1;
-			}
-			return e;
-		}
-		case 'line': {
-			const l = new scope.Path.Line(
-				new scope.Point(desc.x1, desc.y1),
-				new scope.Point(desc.x2, desc.y2),
+		case 'circle':
+			return paint(new scope.Path.Circle(new scope.Point(desc.cx, desc.cy), desc.r), desc);
+		case 'ellipse':
+			return paint(
+				new scope.Path.Ellipse({
+					center: new scope.Point(desc.cx, desc.cy),
+					radius: new scope.Size(desc.rx, desc.ry),
+				}),
+				desc,
 			);
-			l.strokeColor = 'black';
-			l.strokeWidth = desc.strokeWidth || 2;
-			return l;
-		}
-		case 'rect': {
-			const r = new scope.Path.Rectangle(
-				new scope.Rectangle(desc.x, desc.y, desc.width, desc.height),
+		case 'line':
+			return paint(
+				new scope.Path.Line(new scope.Point(desc.x1, desc.y1), new scope.Point(desc.x2, desc.y2)),
+				{ hasStroke: true, strokeWidth: desc.strokeWidth },
+				2,
 			);
-			if (desc.hasFill) r.fillColor = 'black';
-			if (desc.hasStroke) {
-				r.strokeColor = 'black';
-				r.strokeWidth = desc.strokeWidth || 1;
-			}
-			return r;
-		}
+		case 'rect':
+			return paint(
+				new scope.Path.Rectangle(new scope.Rectangle(desc.x, desc.y, desc.width, desc.height)),
+				desc,
+			);
 		default:
 			return null;
 	}
