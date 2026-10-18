@@ -5,7 +5,7 @@
 
 // @ts-nocheck
 import RDKitWorker from './worker/rdkit.worker.js?worker';
-import RDKitSearchWorker from './worker/substructuresearch-rdkit-worker.js?worker';
+import RDKitSearchWorker from './worker/substructure-search.worker.js?worker';
 import RDKitReactionWorker from './worker/reaction-rdkit-worker.js?worker';
 
 // ── Pool sizes (tune as needed) ─────────────────────────────────────────────
