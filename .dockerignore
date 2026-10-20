@@ -1,0 +1,8 @@
+.git
+.svelte-kit
+build
+node_modules
+test-results
+tmp
+notes
+storybook-static
