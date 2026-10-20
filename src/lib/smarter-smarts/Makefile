@@ -12,7 +12,7 @@ LDRDKIT = -I $(RDBASE)/Code -I $(RDBASE)/External \
           -I $(RDBASE)/External/RingFamilies/RingDecomposerLib/src/RingDecomposerLib \
           -L $(RDKIT_LIB)/lib
 
-FLAGSRDKIT = -lRDKitSmilesParse -lRDKitGraphMol -lRDKitRDGeometryLib -lRDKitRDGeneral
+FLAGSRDKIT = -lRDKitSmilesParse -lRDKitGraphMol -lRDKitRingDecomposerLib -lRDKitRDGeometryLib -lRDKitRDGeneral
 
 RDKIT_SRC = $(RDBASE)/Code
 SRCS = src/smarter-smarts.cpp \

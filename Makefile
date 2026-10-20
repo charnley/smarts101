@@ -1,12 +1,15 @@
-.PHONY: build format dev build-wasm build-docker start-docker readme-hero
+.PHONY: build format dev build-grammar-wasm build-rdkit-image build-smarter-smarts-wasm build-docker start-docker readme-hero
 
 PORT=5173
 TREE_SITTER ?= npx tree-sitter
 TREE_SITTER_DIR = ./src/lib/grammar-smarts
 
-RDKIT_DIR=
-RDKIT_CONTEXT=
+RDKIT_TAG ?= Release_2026_09_1
 RDKIT_BUILD_IMAGE=rdkit-build-image
+SMARTER_SMARTS_DIR=./src/lib/smarter-smarts
+
+# Extra `docker build` flags for the RDKit image, e.g. a layer cache in CI
+DOCKER_BUILD_FLAGS ?=
 
 all: node_modules .env
 
@@ -21,20 +24,35 @@ node_modules:
 build: dep
 	pnpm run build
 
-dep: ./src/lib/grammar-smarts/tree-sitter-smarts.wasm
+dep: $(TREE_SITTER_DIR)/tree-sitter-smarts.wasm $(SMARTER_SMARTS_DIR)/smarter-smarts.wasm
 
-build-wasm:
+# Docker
+
+build-rdkit-image: ./docker/rdkitlib.Dockerfile
+	docker build -t ${RDKIT_BUILD_IMAGE} -f ./docker/rdkitlib.Dockerfile \
+		$(if $(RDKIT_TAG),--build-arg RDKIT_TAG=$(RDKIT_TAG)) $(DOCKER_BUILD_FLAGS) ./docker
+
+# WASM
+
+$(TREE_SITTER_DIR)/tree-sitter-smarts.wasm: $(TREE_SITTER_DIR)/grammar.js
+	make build-grammar-wasm
+
+build-grammar-wasm:
 	cd $(TREE_SITTER_DIR) && $(TREE_SITTER) generate && $(TREE_SITTER) build --wasm
 
-./src/lib/grammar-smarts/tree-sitter-smarts.wasm: ./src/lib/grammar-smarts/grammar.js
-	make build-wasm
-
-build-rdkit-build-image:
-	test -d "${RDKIT_CONTEXT}/${RDKIT_DIR}"
-	docker build -t ${RDKIT_BUILD_IMAGE} -f ./docker/rdkitlib.Dockerfile --build-arg "RDKIT_DIR=${RDKIT_DIR}" ${RDKIT_CONTEXT}
+$(SMARTER_SMARTS_DIR)/smarter-smarts.wasm: $(SMARTER_SMARTS_DIR)/src/smarter-smarts.cpp
+	make build-rdkit-image build-smarter-smarts-wasm
 
 build-smarter-smarts-wasm:
-	docker run --rm -v ./src/lib/smarter-smarts/:/src/smarter-smarts ${RDKIT_BUILD_IMAGE} bash -c 'source /opt/emsdk/emsdk_env.sh && cd /src/smarter-smarts && make clean && make'
+	docker run --rm -v ${SMARTER_SMARTS_DIR}:/src/smarter-smarts ${RDKIT_BUILD_IMAGE} bash -c 'source /opt/emsdk/emsdk_env.sh && cd /src/smarter-smarts && make clean && make'
+
+build-docker: dep ./docker/Dockerfile
+	docker build -f docker/Dockerfile -t smarts101 .
+
+start-docker:
+	docker run -p 8080:80 smarts101
+
+# Test
 
 format:
 	npx prettier --write .
@@ -52,14 +70,6 @@ dev: dep
 
 start-storybook:
 	npx storybook dev -p 6006
-
-# Docker
-
-build-docker:
-	docker build -f docker/Dockerfile -t smarts101 .
-
-start-docker:
-	docker run -p 8080:80 smarts101
 
 # Screenshot
 

@@ -7,3 +7,8 @@ bun.lockb
 
 # Miscellaneous
 /static/
+
+# Generated
+/src/lib/grammar-smarts/src/
+/src/lib/smarter-smarts/smarter-smarts.js
+/src/lib/smarter-smarts/smarter-smarts.d.ts

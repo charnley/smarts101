@@ -1,4 +1,7 @@
+# Needs src/lib/smarter-smarts/smarter-smarts.{js,wasm} from the host (`make build-docker` builds them first).
 FROM rockylinux/rockylinux:10 AS builder
+
+ENV CI=true
 
 RUN dnf install -y nodejs nodejs-npm python3 make gcc-c++ && dnf clean all
 RUN npm install -g pnpm
@@ -6,12 +9,12 @@ RUN npm install -g pnpm
 WORKDIR /app
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-RUN CI=true pnpm install
+RUN pnpm install
 
 COPY . .
 
-RUN make build-wasm
-RUN make build
+RUN make build-grammar-wasm
+RUN pnpm run build
 
 FROM nginx:alpine
 

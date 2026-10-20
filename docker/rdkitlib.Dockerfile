@@ -20,8 +20,8 @@ RUN EM_CACHE=$(em-config CACHE) \
         -exec sed -i "s|/usr/include|${EM_CACHE}/sysroot/include|g" {} \;
 
 FROM deps AS builder
-ARG RDKIT_DIR
-COPY ${RDKIT_DIR} /src/rdkit
+ARG RDKIT_TAG=Release_2026_09_1
+RUN git clone --depth 1 --branch ${RDKIT_TAG} https://github.com/rdkit/rdkit.git /src/rdkit
 RUN source /opt/emsdk/emsdk_env.sh \
     && BOOST_DIR=$(find $(em-config CACHE)/sysroot/lib/cmake -name BoostConfig.cmake | head -1 | xargs dirname) \
     && cd /src/rdkit && rm -rf build-wasm && mkdir build-wasm && cd build-wasm \
