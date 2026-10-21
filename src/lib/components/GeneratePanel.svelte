@@ -27,7 +27,13 @@
 	let worker = null;
 	/** @type {ReturnType<typeof setTimeout> | null} */
 	let debounceTimer = null;
-	let workerInited = false;
+	/** Id of the current search. The worker echoes it back, replies with another id are dropped. */
+	let searchId = 0;
+
+	function cancelSearch() {
+		searchId++;
+		searching = false;
+	}
 
 	/** @param {MessageEvent} e */
 	function handleMessage(e) {
@@ -38,11 +44,14 @@
 			return;
 		}
 
+		// Replies from a search that was replaced or cleared. Errors from loading carry no id.
+		if (e.data.searchId !== undefined && e.data.searchId !== searchId) return;
+
 		if (type === 'batch') {
 			const batch = e.data;
 			results = [...results, ...batch.results];
 
-			onresults?.(results.map((r) => ({ smiles: r.smiles, name: r.name })));
+			onresults?.(results);
 
 			if (batch.finished) {
 				searching = false;
@@ -52,6 +61,7 @@
 			worker?.postMessage({
 				smarts: currentSearch,
 				startIdx: batch.nextIdx,
+				searchId,
 			});
 		} else if (type === 'error') {
 			error = e.data.message;
@@ -69,8 +79,7 @@
 
 	// Lazy worker init on first activation
 	$effect(() => {
-		if (!active || workerInited) return;
-		workerInited = true;
+		if (!active || worker) return;
 		worker = new SmarterSmartsWorker();
 		worker.onmessage = handleMessage;
 		worker.onerror = (e) => {
@@ -81,16 +90,13 @@
 
 	// Debounced search on smarts/active/ready change
 	$effect(() => {
-		const value = smarts;
-		const _active = active;
-		const _ready = workerReady;
+		const trimmed = smarts.trim();
 
 		if (debounceTimer) clearTimeout(debounceTimer);
 
-		const trimmed = value.trim();
 		if (!trimmed) {
+			cancelSearch();
 			error = null;
-			searching = false;
 			results = [];
 			currentSearch = null;
 			untrack(() => onresults?.([]));
@@ -99,16 +105,22 @@
 
 		// Don't search when tab closed or worker not ready.
 		// Effect re-fires when either flips, so no search is lost.
-		if (!_active || !_ready) return;
+		if (!active || !workerReady) return;
 
 		// Skip redundant re-search when smarts unchanged (incl. zero-match cached)
-		if (trimmed === currentSearch) return;
+		if (trimmed === untrack(() => currentSearch)) return;
 
 		debounceTimer = setTimeout(async () => {
+			const id = ++searchId;
 			const { valid, errors } = await validateSmarts(trimmed);
+			if (id !== searchId) return; // the SMARTS changed while validating
+
 			if (!valid) {
 				error = errors?.join('; ') || 'Invalid SMARTS pattern';
 				searching = false;
+				results = [];
+				currentSearch = null;
+				onresults?.([]);
 				return;
 			}
 
@@ -120,19 +132,20 @@
 			worker?.postMessage({
 				smarts: trimmed,
 				startIdx: 0,
+				searchId: id,
 			});
 		}, GENERATE_DEBOUNCE_MS);
 	});
 </script>
 
 <div class="flex flex-col gap-3">
-	{#if !workerReady}
+	{#if error}
+		<div class="rounded-md bg-destructive/10 p-3 text-sm text-destructive">{error}</div>
+	{:else if !workerReady}
 		<div class="flex items-center gap-2 text-sm text-muted-foreground">
 			<Spinner />
 			<span>Loading molecule dataset…</span>
 		</div>
-	{:else if error}
-		<div class="rounded-md bg-destructive/10 p-3 text-sm text-destructive">{error}</div>
 	{:else if searching}
 		<div class="text-sm text-muted-foreground">
 			Searching… {results.length} match{results.length !== 1 ? 'es' : ''} so far

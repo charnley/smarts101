@@ -59,13 +59,13 @@ async function init() {
 	}
 }
 
-async function doSearch(smarts, startIdx) {
+async function doSearch(smarts, startIdx, searchId) {
 	if (!searcher) return;
 
 	if (startIdx === 0) {
 		const resp = JSON.parse(searcher.initSearch(smarts));
 		if (!resp.ok) {
-			self.postMessage({ type: 'error', message: resp.error || 'Invalid SMARTS' });
+			self.postMessage({ type: 'error', searchId, message: resp.error || 'Invalid SMARTS' });
 			return;
 		}
 		sentCount = 0;
@@ -75,7 +75,7 @@ async function doSearch(smarts, startIdx) {
 	const resp = JSON.parse(raw);
 
 	if (!resp.ok) {
-		self.postMessage({ type: 'error', message: resp.error || 'Search error' });
+		self.postMessage({ type: 'error', searchId, message: resp.error || 'Search error' });
 		return;
 	}
 
@@ -97,6 +97,7 @@ async function doSearch(smarts, startIdx) {
 
 	self.postMessage({
 		type: 'batch',
+		searchId,
 		results: capped,
 		finished: done || hitMax,
 		nextIdx: done ? total : nextIdx,
@@ -104,10 +105,10 @@ async function doSearch(smarts, startIdx) {
 }
 
 self.onmessage = async (e) => {
-	const { smarts, startIdx = 0 } = e.data;
+	const { smarts, startIdx = 0, searchId } = e.data;
 
 	if (smarts) {
-		await doSearch(smarts, startIdx);
+		await doSearch(smarts, startIdx, searchId);
 	}
 };
 
