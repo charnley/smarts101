@@ -77,7 +77,7 @@
 		}
 		debounceTimer = setTimeout(async () => {
 			try {
-				await performSubstructureSearchAsync(value.trim(), 'C', 'rdkit', false);
+				await performSubstructureSearchAsync(value.trim(), 'C', false);
 				syntaxValid = true;
 			} catch {
 				syntaxValid = false;
@@ -95,8 +95,8 @@
 
 		try {
 			const [userResult, refResult] = await Promise.all([
-				performSubstructureSearchAsync(trimmed, smiles, 'rdkit', true),
-				performSubstructureSearchAsync(referenceSMARTS, smiles, 'rdkit', true),
+				performSubstructureSearchAsync(trimmed, smiles, true),
+				performSubstructureSearchAsync(referenceSMARTS, smiles, true),
 			]);
 
 			const userAtoms = extractAtoms(userResult);

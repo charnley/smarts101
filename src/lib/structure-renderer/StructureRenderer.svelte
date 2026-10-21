@@ -140,7 +140,7 @@
 					definition: structure.definition,
 				});
 				groups = result.groups;
-				matched = result.detectedMatches.length > 0;
+				matched = result.matched;
 			} catch (err) {
 				console.warn('[StructureRenderer] Highlighting failed', err);
 			}

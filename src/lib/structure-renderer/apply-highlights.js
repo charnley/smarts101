@@ -18,13 +18,10 @@ const OUTLINE_WIDTH = 2.5;
  * @param {import('./outlining.js').ShapeIndex} options.shapeIndex
  * @param {HighlightConfig} options.highlights
  * @param {string} options.definition
- * @returns {Promise<{ groups: SVGGElement[], detectedMatches: any[] }>}
+ * @returns {Promise<{ groups: SVGGElement[], matched: boolean }>}
  */
 export async function buildHighlights({ shapeIndex, highlights, definition }) {
-	const { highlightMatches, detectedMatches } = await runSmartsSearch(
-		highlights.definitions ?? [],
-		definition,
-	);
+	const highlightMatches = await runSmartsSearch(highlights.definitions ?? [], definition);
 
 	const strokeWidth = highlights.outline !== false ? OUTLINE_WIDTH : 0;
 	const atomCounts = new Map();
@@ -62,5 +59,5 @@ export async function buildHighlights({ shapeIndex, highlights, definition }) {
 	}
 
 	const groups = (await Promise.all(jobs)).filter((g) => g.children.length > 0);
-	return { groups, detectedMatches };
+	return { groups, matched: highlightMatches.length > 0 };
 }

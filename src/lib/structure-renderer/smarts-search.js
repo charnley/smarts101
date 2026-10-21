@@ -14,31 +14,12 @@ import { performSubstructureSearchAsync } from './worker-manager.js';
  */
 
 /**
+ * One matched pattern on one molecule.
  * @typedef {Object} HighlightMatch
- * @property {any} match - Raw atomBondMatch object from the search result
  * @property {string | number[]} color - Resolved color value
  * @property {string} id - Pattern identifier
  * @property {string} name - Pattern display name
- * @property {string[]} query - Resolved query strings
- * @property {any} matches - Per-match atom/bond data
- */
-
-/**
- * @typedef {Object} DetectedMatch
- * @property {string} id
- * @property {string} name
- * @property {string[]} query
- * @property {string | number[]} color
- * @property {number[]} atoms
- * @property {number[]} bonds
- */
-
-/**
- * @typedef {Object} SmartsSearchResult
- * @property {HighlightMatch[]} highlightMatches
- * @property {DetectedMatch[]} detectedMatches
- * @property {number[]} allAtomsMatches
- * @property {number[]} allBondsMatches
+ * @property {{ atoms: number[], bonds: number[] }[]} matches - Atom/bond indices of each match instance
  */
 
 /**
@@ -46,13 +27,9 @@ import { performSubstructureSearchAsync } from './worker-manager.js';
  *
  * @param {SmartsDefinition[]} definitions
  * @param {string} definition - Molecule definition (SMILES, molblock, etc.)
- * @returns {Promise<SmartsSearchResult>}
+ * @returns {Promise<HighlightMatch[]>}
  */
 export async function runSmartsSearch(definitions, definition) {
-	/** @type {number[]} */
-	const allAtomsMatches = [];
-	/** @type {number[]} */
-	const allBondsMatches = [];
 	/** @type {HighlightMatch[]} */
 	const highlightMatches = [];
 
@@ -65,31 +42,20 @@ export async function runSmartsSearch(definitions, definition) {
 			const smartsName = smartsObj.name || `Pattern ${idx + 1}`;
 			const queries = Array.isArray(smartsQuery) ? smartsQuery : [smartsQuery];
 
-			const searchResult = await performSubstructureSearchAsync(
-				[...queries],
-				definition,
-				'rdkit',
-				true,
-			);
+			const searchResult = await performSubstructureSearchAsync([...queries], definition, true);
 
 			// @ts-ignore
 			const { success, results } = searchResult;
 			if (success) {
 				for (const result of results) {
 					const { atomBondMatches = [], allAtomBondMatches = [], matches = [false] } = result;
-					let mIdx = -1;
-					for (const match of atomBondMatches) {
-						mIdx++;
+					for (let mIdx = 0; mIdx < atomBondMatches.length; mIdx++) {
 						if (!(matches[mIdx] || false)) continue;
 						const matchList = allAtomBondMatches[mIdx] || { atoms: [], bonds: [] };
-						allAtomsMatches.push(...(match.atoms || []));
-						allBondsMatches.push(...(match.bonds || []));
 						highlightMatches.push({
-							match,
 							color: smartsColor,
 							id: smartsId,
 							name: smartsName,
-							query: queries,
 							matches: matchList,
 						});
 					}
@@ -100,23 +66,5 @@ export async function runSmartsSearch(definitions, definition) {
 		}
 	}
 
-	/** @type {DetectedMatch[]} */
-	const detectedMatches = highlightMatches.flatMap((meta) => {
-		const matchInstances = Array.isArray(meta.matches) ? meta.matches : [meta.matches];
-		return matchInstances.map((instance, j) => ({
-			id: `${meta.id}-${j}`,
-			name: `${meta.name} ${j + 1}`,
-			query: meta.query,
-			color: meta.color,
-			atoms: [...(instance.atoms || [])],
-			bonds: [...(instance.bonds || [])],
-		}));
-	});
-
-	return {
-		highlightMatches,
-		detectedMatches,
-		allAtomsMatches,
-		allBondsMatches,
-	};
+	return highlightMatches;
 }
