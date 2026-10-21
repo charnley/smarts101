@@ -6,7 +6,7 @@
 // @ts-nocheck
 import RDKitWorker from './worker/rdkit.worker.js?worker';
 import RDKitSearchWorker from './worker/substructure-search.worker.js?worker';
-import RDKitReactionWorker from './worker/reaction-rdkit-worker.js?worker';
+import RDKitReactionWorker from './worker/reaction.worker.js?worker';
 import {
 	RENDER_POOL_SIZE,
 	SEARCH_POOL_SIZE,
