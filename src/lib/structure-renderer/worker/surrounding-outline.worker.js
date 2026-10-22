@@ -80,29 +80,19 @@ function descriptorToPath(desc, scope) {
 	}
 }
 
-// Core computation (runs entirely in the worker)
 /**
- * Compute surrounding outlines from pre-extracted shape descriptors.
+ * Compute the outline around a set of shape descriptors: every shape is grown by `offset`,
+ * all of them are merged into one, and only the outer boundary is kept.
  *
  * @param {Object[]} shapeDescriptors  Array of shape descriptors from main thread
  * @param {{ w: number, h: number }} viewBox  ViewBox dimensions
- * @param {Object} options              Outline options
+ * @param {{ offset?: number, miterLimit?: number, flatten?: number, strokeExpand?: number }} options
+ *   offset: distance to grow each shape, miterLimit: limit of the round joins,
+ *   flatten: flatness used to turn curves into lines, strokeExpand: width of the band drawn around bonds
  * @returns {Array<{ d: string, bbox: { x: number, y: number, width: number, height: number } }>}
  */
 function computeOutline(shapeDescriptors, viewBox, options = {}) {
-	const {
-		includeUnfilled = true,
-		offset = 6,
-		join = 'round',
-		miterLimit = 8,
-		flatten = 1,
-		simplify = false,
-		simplifyTolerance = 0,
-		outerOnly = true,
-		strokeExpand = 6,
-		mergeClusters = false,
-		mergeClustersAfterOffset = false,
-	} = options;
+	const { offset = 6, miterLimit = 8, flatten = 1, strokeExpand = 6 } = options;
 
 	const vbW = viewBox.w;
 	const vbH = viewBox.h;
@@ -121,7 +111,7 @@ function computeOutline(shapeDescriptors, viewBox, options = {}) {
 				})();
 	scope.setup(canvas);
 
-	// --- Reconstruct Paper.js items from descriptors (no importSVG / DOMParser) ---
+	// Reconstruct Paper.js items from descriptors (no importSVG / DOMParser)
 	const closedShapes = [];
 	const openPaths = [];
 
@@ -131,13 +121,9 @@ function computeOutline(shapeDescriptors, viewBox, options = {}) {
 		if (flatten && typeof item.flatten === 'function') item.flatten(flatten);
 
 		const isClosed = !(item instanceof scope.Path) || item.closed;
-		const hasArea = Math.abs(item.area || 0) > 0;
-		const hasFill = desc.hasFill;
-		const hasStroke = desc.hasStroke || desc.strokeWidth > 0;
-
-		if (isClosed && hasArea && (hasFill || includeUnfilled)) {
+		if (isClosed && Math.abs(item.area || 0) > 0) {
 			closedShapes.push(item);
-		} else if (!isClosed && (hasStroke || hasFill || includeUnfilled)) {
+		} else if (!isClosed) {
 			openPaths.push(item);
 		} else {
 			item.remove();
@@ -157,6 +143,7 @@ function computeOutline(shapeDescriptors, viewBox, options = {}) {
 				insert: false,
 			});
 			if (strokeShape && Math.abs(strokeShape.area || 0) > 0) {
+				if (flatten && typeof strokeShape.flatten === 'function') strokeShape.flatten(flatten);
 				expandedBonds.push(strokeShape);
 			} else if (strokeShape) {
 				strokeShape.remove();
@@ -168,239 +155,53 @@ function computeOutline(shapeDescriptors, viewBox, options = {}) {
 
 	const items = [...closedShapes, ...expandedBonds];
 	if (!items.length) {
-		cleanup();
+		scope.project.clear();
 		return [];
 	}
 
-	const areaEps = 1e-7 * vbW * vbH;
-	const bbPad = 1e-6 * Math.max(vbW, vbH);
-
-	function boundsIntersect(a, b) {
-		const A = a.bounds.expand(bbPad),
-			B = b.bounds.expand(bbPad);
-		return A.intersects(B);
-	}
-
-	function connected(a, b) {
-		if (!boundsIntersect(a, b)) return false;
-		if (a.intersects(b)) return true;
-		const bc = b.bounds.center,
-			ac = a.bounds.center;
-		if (a.contains(bc) || b.contains(ac)) return true;
-		const acp = a.clone(),
-			bcp = b.clone();
-		let u = null,
-			ok = false;
+	// Grow each item
+	const expandedItems = items.map((item) => {
+		if (!(offset > 0)) return item.clone();
 		try {
-			u = acp.unite(bcp);
-			ok = Math.abs(u.area) < Math.abs(a.area) + Math.abs(b.area) - areaEps;
-		} catch (_) {
-			ok = false;
-		} finally {
-			if (u) u.remove();
-			acp.remove();
-			bcp.remove();
-		}
-		return ok;
-	}
+			if (item instanceof scope.Path) item.closed = true;
+			const expanded = PaperOffset.offset(item, offset, {
+				join: 'round',
+				limit: miterLimit,
+				insert: false,
+			});
+			if (expanded && Math.abs(expanded.area || 0) > 0) return expanded;
+			if (expanded) expanded.remove();
+		} catch (_) {}
+		return item.clone();
+	});
 
-	function findClusters() {
-		const n = items.length;
-		const adj = Array.from({ length: n }, () => new Set());
-		for (let i = 0; i < n; i++) {
-			for (let j = i + 1; j < n; j++) {
-				if (connected(items[i], items[j])) {
-					adj[i].add(j);
-					adj[j].add(i);
-				}
-			}
+	// Union everything into one shape
+	let merged = null;
+	for (const item of expandedItems) {
+		if (!merged) {
+			merged = item.clone();
+			continue;
 		}
-
-		const visited = new Array(n).fill(false);
-		const clusters = [];
-		for (let i = 0; i < n; i++) {
-			if (visited[i]) continue;
-			const comp = [];
-			const stack = [i];
-			visited[i] = true;
-			while (stack.length) {
-				const k = stack.pop();
-				comp.push(k);
-				for (const m of adj[k]) {
-					if (!visited[m]) {
-						visited[m] = true;
-						stack.push(m);
-					}
-				}
-			}
-			clusters.push(comp);
-		}
-		return clusters;
-	}
-
-	const clustersIdx = mergeClusters ? [items.map((_, i) => i)] : findClusters();
-
-	// Offset each item individually
-	const expandedItems = [];
-	for (let i = 0; i < items.length; i++) {
-		if (offset > 0) {
-			try {
-				if (items[i] instanceof scope.Path) items[i].closed = true;
-				if (flatten && typeof items[i].flatten === 'function') items[i].flatten(flatten);
-				if (simplify && typeof items[i].simplify === 'function') items[i].simplify();
-				const expanded = PaperOffset.offset(items[i], offset, {
-					join,
-					limit: miterLimit,
-					insert: false,
-				});
-				if (expanded && Math.abs(expanded.area || 0) > 0) {
-					expandedItems.push(expanded);
-				} else {
-					if (expanded) expanded.remove();
-					expandedItems.push(items[i].clone());
-				}
-			} catch (_) {
-				expandedItems.push(items[i].clone());
-			}
-		} else {
-			expandedItems.push(items[i].clone());
-		}
-	}
-
-	// Boolean-union the pre-expanded items per cluster
-	const unions = [];
-	for (const comp of clustersIdx) {
-		let merged = null;
-		for (const idx of comp) {
-			const p = expandedItems[idx];
-			if (!merged) {
-				merged = p.clone();
-			} else {
-				try {
-					const u = merged.unite(p);
-					merged.remove();
-					merged = u;
-				} catch (_) {}
-			}
-		}
-		if (typeof merged.reduce === 'function') merged.reduce();
-		if (simplifyTolerance > 0) merged.simplify(simplifyTolerance);
-		unions.push(merged);
-	}
-
-	let buffered = unions.map((u) => u.clone());
-	if (simplifyTolerance > 0) {
-		for (const it of buffered) it.simplify(simplifyTolerance);
-	}
-
-	// Optionally merge clusters after offset
-	if (mergeClusters) {
-		if (buffered.length > 1) {
-			let acc = buffered[0].clone();
-			for (let i = 1; i < buffered.length; i++) {
-				try {
-					const u = acc.unite(buffered[i]);
-					acc.remove();
-					acc = u;
-				} catch (_) {}
-			}
-			for (const it of buffered) it.remove();
-			buffered = [acc];
-		}
-	} else if (mergeClustersAfterOffset && buffered.length > 1) {
-		const m = buffered.length;
-		const adj2 = Array.from({ length: m }, () => new Set());
-		for (let i = 0; i < m; i++) {
-			for (let j = i + 1; j < m; j++) {
-				if (
-					boundsIntersect(buffered[i], buffered[j]) &&
-					(buffered[i].intersects(buffered[j]) || connected(buffered[i], buffered[j]))
-				) {
-					adj2[i].add(j);
-					adj2[j].add(i);
-				}
-			}
-		}
-		const visited2 = new Array(m).fill(false);
-		const groups = [];
-		for (let i = 0; i < m; i++) {
-			if (visited2[i]) continue;
-			const comp = [];
-			const st = [i];
-			visited2[i] = true;
-			while (st.length) {
-				const k = st.pop();
-				comp.push(k);
-				for (const t of adj2[k]) {
-					if (!visited2[t]) {
-						visited2[t] = true;
-						st.push(t);
-					}
-				}
-			}
-			groups.push(comp);
-		}
-		const mergedGroups = [];
-		for (const g of groups) {
-			let acc = null;
-			for (const idx of g) {
-				const it = buffered[idx];
-				if (!acc) {
-					acc = it.clone();
-				} else {
-					try {
-						const u = acc.unite(it);
-						acc.remove();
-						acc = u;
-					} catch (_) {}
-				}
-			}
-			mergedGroups.push(acc);
-		}
-		for (const it of buffered) it.remove();
-		buffered = mergedGroups;
-	}
-
-	// Strip inner holes for outer-only outlines
-	if (outerOnly) {
-		for (let i = 0; i < buffered.length; i++) {
-			buffered[i] = extractOuterBoundary(buffered[i], scope);
-		}
-	}
-
-	// Ensure closed + export path data
-	const results = [];
-	for (const merged of buffered) {
-		ensureClosed(merged, scope);
-		if (typeof merged.reduce === 'function') merged.reduce();
-		const d = merged.pathData;
-		const b = merged.bounds;
-		results.push({ d, bbox: { x: b.x, y: b.y, width: b.width, height: b.height } });
-		merged.remove();
-	}
-
-	// Cleanup
-	for (const u of unions) {
 		try {
-			u.remove();
+			const u = merged.unite(item);
+			merged.remove();
+			merged = u;
 		} catch (_) {}
 	}
-	for (const eb of expandedBonds) {
-		try {
-			eb.remove();
-		} catch (_) {}
-	}
-	for (const ei of expandedItems) {
-		try {
-			ei.remove();
-		} catch (_) {}
-	}
-	cleanup();
+	if (typeof merged.reduce === 'function') merged.reduce();
+
+	// Outer boundary only, no inner holes
+	merged = extractOuterBoundary(merged, scope);
+	ensureClosed(merged, scope);
+	if (typeof merged.reduce === 'function') merged.reduce();
+
+	const b = merged.bounds;
+	const results = [
+		{ d: merged.pathData, bbox: { x: b.x, y: b.y, width: b.width, height: b.height } },
+	];
+
+	scope.project.clear();
 	return results;
-
-	function cleanup() {
-		scope.project.clear();
-	}
 }
 
 // Helpers
