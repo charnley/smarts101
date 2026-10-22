@@ -5,13 +5,14 @@
 
 // @ts-nocheck
 import RDKitWorker from './worker/rdkit.worker.js?worker';
-import RDKitSearchWorker from './worker/substructuresearch-rdkit-worker.js?worker';
-import RDKitReactionWorker from './worker/reaction-rdkit-worker.js?worker';
-
-// ── Pool sizes (tune as needed) ─────────────────────────────────────────────
-const RENDER_POOL_SIZE = 2;
-const SEARCH_POOL_SIZE = 2;
-const REACTION_POOL_SIZE = 1;
+import RDKitSearchWorker from './worker/substructure-search.worker.js?worker';
+import RDKitReactionWorker from './worker/reaction.worker.js?worker';
+import {
+	RENDER_POOL_SIZE,
+	SEARCH_POOL_SIZE,
+	REACTION_POOL_SIZE,
+	WORKER_TIMEOUT_MS,
+} from '$lib/constants.js';
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // Generic WorkerPool
@@ -75,7 +76,7 @@ class WorkerPool {
 					this.msgToWorker.delete(id);
 					(initReject ?? reject)(new Error(`[${this.name}] Timeout: ${type}`));
 				}
-			}, 30000);
+			}, WORKER_TIMEOUT_MS);
 
 			this.pending.set(id, {
 				resolve: initResolve
@@ -201,22 +202,13 @@ export const rdkitWorker = {
 
 /**
  * Perform a SMARTS substructure search via the RDKit search pool.
- * Named to match the reference project's API consumed by smarts-search.js.
  * @param {string|string[]} smarts
  * @param {string|string[]} smiles
- * @param {'rdkit'} [_engine]  kept for API compat — only rdkit pool available
  * @param {boolean} [includeAtomBondIndices]
  * @returns {Promise<any>}
  */
-export const performSubstructureSearchAsync = (
-	smarts,
-	smiles,
-	_engine = 'rdkit',
-	includeAtomBondIndices = false,
-) => searchPool.send('search', { smarts, smiles, includeAtomBondIndices });
-
-/** Legacy alias used by playground/page.svelte */
-export const performSubstructureSearch = performSubstructureSearchAsync;
+export const performSubstructureSearchAsync = (smarts, smiles, includeAtomBondIndices = false) =>
+	searchPool.send('search', { smarts, smiles, includeAtomBondIndices });
 
 /**
  * Run a reaction (rxnSmarts / SMIRKS) against a list of target SMILES.
@@ -226,10 +218,3 @@ export const performSubstructureSearch = performSubstructureSearchAsync;
  */
 export const performReactionAsync = (rxnSmarts, smilesList) =>
 	reactionPool.send('react', { rxnSmarts, smilesList });
-
-/** Terminate all pools (call on page teardown if needed) */
-export const terminateAll = () => {
-	renderPool.terminate();
-	searchPool.terminate();
-	reactionPool.terminate();
-};

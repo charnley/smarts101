@@ -41,38 +41,23 @@ const performRDKitSearch = (smarts, smilesList, includeAtomBondIndices = false) 
 		throw new Error('RDKit not initialized');
 	}
 
-	const _queriesCache = new Map();
-	const _moleculesCache = new Map();
+	const queryMol = RDKit.get_qmol(smarts);
+	if (!queryMol) {
+		throw new Error(`Invalid SMARTS query: "${smarts}"`);
+	}
+	try {
+		return matchAgainstTargets(queryMol, smilesList, includeAtomBondIndices);
+	} finally {
+		queryMol.delete();
+	}
+};
 
-	const getSmartsQueryMolecule = (/** @type {string} */ smartsQuery) => {
-		if (_queriesCache.has(smartsQuery)) {
-			return _queriesCache.get(smartsQuery);
-		}
-
-		const queryMol = RDKit.get_qmol(smartsQuery);
-		if (!queryMol) {
-			throw new Error(`Invalid SMARTS query: "${smartsQuery}"`);
-		}
-
-		_queriesCache.set(smartsQuery, queryMol);
-		return queryMol;
-	};
-
-	const getMoleculeFromSmiles = (/** @type {string} */ smiles) => {
-		if (_moleculesCache.has(smiles)) {
-			return _moleculesCache.get(smiles);
-		}
-
-		const mol = RDKit.get_mol(smiles);
-		if (!mol || mol.is_valid() === false) {
-			_moleculesCache.set(smiles, null);
-			return null;
-		}
-		_moleculesCache.set(smiles, mol);
-		return mol;
-	};
-
-	const queryMol = getSmartsQueryMolecule(smarts);
+/**
+ * @param {any} queryMol
+ * @param {string[]} smilesList
+ * @param {boolean} includeAtomBondIndices
+ */
+const matchAgainstTargets = (queryMol, smilesList, includeAtomBondIndices) => {
 	const matches = new Array(smilesList.length).fill(false);
 	const atomBondMatches = includeAtomBondIndices ? new Array(smilesList.length) : null;
 	const allAtomBondMatches = includeAtomBondIndices ? new Array(smilesList.length) : [];
@@ -83,9 +68,11 @@ const performRDKitSearch = (smarts, smilesList, includeAtomBondIndices = false) 
 		}
 		const smi = smilesList[i];
 		if (typeof smi !== 'string' || !smi.trim()) continue;
+		/** @type {any} */
+		let targetMol = null;
 		try {
-			const targetMol = getMoleculeFromSmiles(smi);
-			if (!targetMol) continue;
+			targetMol = RDKit.get_mol(smi);
+			if (!targetMol || targetMol.is_valid() === false) continue;
 
 			const jsonResult =
 				targetMol.get_substruct_matches(queryMol, JSON.stringify({ useChirality: true })) ?? '[]';
@@ -107,6 +94,8 @@ const performRDKitSearch = (smarts, smilesList, includeAtomBondIndices = false) 
 			}
 		} catch {
 			// skip invalid molecules
+		} finally {
+			targetMol?.delete();
 		}
 	}
 
@@ -151,16 +140,12 @@ const performSubstructureSearch = async (smarts, smiles, includeAtomBondIndices 
 			try {
 				const searchResult = performRDKitSearch(currentSmarts, smilesArray, includeAtomBondIndices);
 
-				/** @type {{ queryIndex: number, smarts: string, engine: string, totalTargets: number, matchCount: number, matches: any[], matchedIndices: number[], matchedSmiles: string[], success: boolean, error: null|string, atomBondMatches?: any[], allAtomBondMatches?: any[] }} */
+				/** @type {{ queryIndex: number, smarts: string, matchCount: number, matches: any[], success: boolean, error: null|string, atomBondMatches?: any[], allAtomBondMatches?: any[] }} */
 				const resultObject = {
 					queryIndex: i,
 					smarts: currentSmarts,
-					engine: 'rdkit',
-					totalTargets: smilesArray.length,
 					matchCount: searchResult.indices.length,
 					matches: searchResult.matches,
-					matchedIndices: searchResult.indices,
-					matchedSmiles: searchResult.indices.map((idx) => smilesArray[idx]),
 					success: true,
 					error: null,
 				};
@@ -175,37 +160,17 @@ const performSubstructureSearch = async (smarts, smiles, includeAtomBondIndices 
 				results.push({
 					queryIndex: i,
 					smarts: currentSmarts,
-					engine: 'rdkit',
-					totalTargets: smilesArray.length,
 					matchCount: 0,
 					matches: new Array(smilesArray.length).fill(false),
-					matchedIndices: [],
-					matchedSmiles: [],
 					success: false,
 					error: error?.message || String(error),
 				});
 			}
 		}
 
-		return {
-			success: true,
-			engine: 'rdkit',
-			results,
-			summary: {
-				totalQueries: smartsArray.length,
-				totalTargets: smilesArray.length,
-				successfulQueries: results.filter((r) => r.success).length,
-				failedQueries: results.filter((r) => !r.success).length,
-				totalMatches: results.reduce((sum, r) => sum + r.matchCount, 0),
-			},
-		};
+		return { success: true, results };
 	} catch (/** @type {any} */ error) {
-		return {
-			success: false,
-			engine: 'rdkit',
-			error: error?.message || String(error),
-			results: [],
-		};
+		return { success: false, error: error?.message || String(error), results: [] };
 	}
 };
 
@@ -230,20 +195,4 @@ self.onmessage = async function (event) {
 			data: null,
 		});
 	}
-};
-
-// Handle worker errors
-self.onerror = function (error) {
-	const errorMessage =
-		typeof error === 'string'
-			? error
-			: error instanceof ErrorEvent
-				? error.message
-				: 'Unknown worker error';
-	self.postMessage({
-		id: 'worker-error',
-		type: 'error',
-		error: `RDKit worker error: ${errorMessage}`,
-		data: null,
-	});
 };

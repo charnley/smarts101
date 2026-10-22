@@ -1,104 +1,63 @@
-/**
- * @fileoverview Step 2 — Match SMARTS patterns and render highlight outlines onto the SVG.
- *
- * Delegates substructure search to `runSmartsSearch`, then renders a surrounding
- * outline for each match.
- */
-
 import { createSurroundingOutline } from './outlining.js';
 import { runSmartsSearch } from './smarts-search.js';
 import { highlightFillColor } from './color-utils.js';
 
-/**
- * @typedef {Object} HighlightConfig
- * @property {any[]} [definitions] - Array of SMARTS pattern definitions
- * @property {boolean} [outline] - Whether to draw outlines (default: true)
- * @property {boolean} [fill] - Whether to fill the outlines (default: false)
- */
-
-/**
- * @typedef {Object} ApplyHighlightsOptions
- * @property {SVGSVGElement} svgRoot - Root SVG element
- * @property {string} svgViewBox - ViewBox string for outline calculations
- * @property {HighlightConfig} highlights - Highlight configuration
- * @property {string} definition - Molecule definition for the substructure search
- */
-
-/**
- * @typedef {Object} ApplyHighlightsResult
- * @property {Array<{id: string, name: string, query: string[], color: string|number[], atoms: number[], bonds: number[]}>} detectedMatches
- */
-
 const OUTLINE_WIDTH = 2.5;
 
 /**
- * Search SMARTS patterns, render outlines for every match, and return detected matches.
- *
- * @param {ApplyHighlightsOptions} options
- * @returns {Promise<ApplyHighlightsResult>}
+ * @typedef {Object} HighlightConfig
+ * @property {any[]} [definitions]
+ * @property {boolean} [outline]
+ * @property {boolean} [fill]
  */
-export async function applyHighlights({ svgRoot, svgViewBox, highlights, definition }) {
-	if (!highlights?.definitions?.length) return { detectedMatches: [] };
 
-	const shouldOutline = highlights.outline !== false;
-	const shouldFill = highlights.fill === true;
-	const definitions = Array.isArray(highlights.definitions) ? highlights.definitions : [];
+/**
+ * Search SMARTS patterns and build one outline group per match instance.
+ *
+ * @param {Object} options
+ * @param {import('./outlining.js').ShapeIndex} options.shapeIndex
+ * @param {HighlightConfig} options.highlights
+ * @param {string} options.definition
+ * @returns {Promise<{ groups: SVGGElement[], matched: boolean }>}
+ */
+export async function buildHighlights({ shapeIndex, highlights, definition }) {
+	const highlightMatches = await runSmartsSearch(highlights.definitions ?? [], definition);
 
-	const { highlightMatches, detectedMatches } = await runSmartsSearch(definitions, definition);
+	const strokeWidth = highlights.outline !== false ? OUTLINE_WIDTH : 0;
+	const atomCounts = new Map();
+	const bondCounts = new Map();
+	/** @type {Promise<SVGGElement>[]} */
+	const jobs = [];
 
-	if (highlightMatches.length > 0) {
-		const atomOverlapCounts = new Map();
-		const bondOverlapCounts = new Map();
+	for (const { color, name, id, matches } of highlightMatches) {
+		const instances = Array.isArray(matches) ? matches : [matches];
+		const fill = highlightFillColor(color, highlights.fill === true);
 
-		for (const meta of highlightMatches) {
-			const { color, name: matchName, id: matchId, matches: matchInstances } = meta;
-			const instancesArr = Array.isArray(matchInstances) ? matchInstances : [matchInstances];
+		instances.forEach((match, i) => {
+			const overlap = Math.max(
+				0,
+				...match.atoms.map((/** @type {number} */ a) => atomCounts.get(a) ?? 0),
+				...match.bonds.map((/** @type {number} */ b) => bondCounts.get(b) ?? 0),
+			);
+			for (const a of match.atoms) atomCounts.set(a, (atomCounts.get(a) ?? 0) + 1);
+			for (const b of match.bonds) bondCounts.set(b, (bondCounts.get(b) ?? 0) + 1);
 
-			for (let i = 0; i < instancesArr.length; i++) {
-				const match = instancesArr[i];
-				const fillColor = highlightFillColor(color, shouldFill);
-
-				try {
-					const outlineGroup = await createSurroundingOutline({
-						match,
-						color,
-						fill: fillColor !== 'none' ? fillColor : undefined,
-						id: `${matchId}-${i}`,
-						name: `${matchName} ${i + 1}`,
-						svgRoot,
-						viewBox: svgViewBox,
-						atomOverlapCounts,
-						bondOverlapCounts,
-						strokeWidth: shouldOutline ? OUTLINE_WIDTH : 0,
-						extraOffset: 2,
-						outlineOptions: {
-							outerOnly: true,
-							mergeClusters: true,
-						},
-					});
-
-					if (outlineGroup.children.length > 0) {
-						svgRoot.prepend(outlineGroup);
-					}
-				} catch (error) {
-					console.error(
-						`[StructureRenderer] Error creating outline for match ${matchId}-${i}:`,
-						error,
-					);
-				}
-			}
-		}
-
-		// Post-process: make RDKit highlight circles/ellipses invisible
-		svgRoot.querySelectorAll('circle, ellipse').forEach((/** @type {Element} */ el) => {
-			// @ts-ignore
-			el.style.fill = 'transparent';
-			// @ts-ignore
-			el.style.stroke = 'transparent';
-			// @ts-ignore
-			el.style.strokeWidth = el.style.strokeWidth || '2px';
+			jobs.push(
+				createSurroundingOutline({
+					match,
+					shapeIndex,
+					color,
+					fill: fill !== 'none' ? fill : undefined,
+					id: `${id}-${i}`,
+					name: `${name} ${i + 1}`,
+					overlap,
+					strokeWidth,
+					extraOffset: 2,
+				}),
+			);
 		});
 	}
 
-	return { detectedMatches };
+	const groups = (await Promise.all(jobs)).filter((g) => g.children.length > 0);
+	return { groups, matched: highlightMatches.length > 0 };
 }

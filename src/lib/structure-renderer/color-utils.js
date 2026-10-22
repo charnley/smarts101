@@ -31,21 +31,6 @@ export function rgbaArrayToString(color) {
 }
 
 /**
- * Resolve a MONOMER_COLORS value (hex string) to an RGBA array.
- * Falls back to a neutral grey with alpha 0.4 when the value is not a hex string.
- *
- * @param {string} monomerColor - Hex color string (e.g. "#3498db")
- * @param {number} [alpha=0.6] - Alpha for the resolved color
- * @returns {[number, number, number, number]}
- */
-export function monomerColorToRgba(monomerColor, alpha = 0.6) {
-	if (typeof monomerColor === 'string' && monomerColor.startsWith('#')) {
-		return hexToRgbaArray(monomerColor, alpha);
-	}
-	return [128 / 255, 128 / 255, 128 / 255, 0.4];
-}
-
-/**
  * Derive a CSS fill color for a highlight outline.
  * Returns `'none'` when filling is disabled or when the color is not an RGBA array.
  *

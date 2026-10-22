@@ -41,7 +41,7 @@
 					return;
 				}
 				try {
-					await performSubstructureSearchAsync(value, 'C', 'rdkit', false);
+					await performSubstructureSearchAsync(value, 'C', false);
 					setValid(id, true);
 				} catch {
 					setValid(id, false);
