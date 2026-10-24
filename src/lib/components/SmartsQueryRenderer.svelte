@@ -10,12 +10,12 @@
 	 *   smarts: string,
 	 *   width?: number,
 	 *   height?: number,
-	 *   darkMode?: boolean | null,
+	 *   isDarkMode?: boolean | null,
 	 * }}
 	 */
-	let { smarts, width = 300, height = 220, darkMode = null } = $props();
+	let { smarts, width = 300, height = 220, isDarkMode = null } = $props();
 
-	let isDark = $derived(darkMode !== null ? darkMode : mode.current === 'dark');
+	let resolvedDarkMode = $derived(isDarkMode !== null ? isDarkMode : mode.current === 'dark');
 
 	/** @type {string | null} */
 	let svg = $state(null);
@@ -28,7 +28,7 @@
 	// Re-render whenever smarts, size, or theme changes
 	// @ts-ignore
 	$effect(async () => {
-		void [smarts, width, height, isDark, container];
+		void [smarts, width, height, resolvedDarkMode, container];
 
 		untrack(async () => {
 			if (!smarts?.trim()) {
@@ -45,7 +45,7 @@
 					smartsInput: smarts.trim(),
 					width,
 					height,
-					darkMode: isDark,
+					isDarkMode: resolvedDarkMode,
 				});
 
 				// Parse the SVG string, recolour black → currentColor, then re-serialise

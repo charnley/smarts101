@@ -32,7 +32,7 @@ async function generateStructureSVG({
 	moleculeInput,
 	width,
 	height,
-	darkMode = false,
+	isDarkMode = false,
 	showAtomIndices = false,
 	preferCoorDGen = false,
 	explicitHydrogens = false,
@@ -46,7 +46,7 @@ async function generateStructureSVG({
 	if (isMolblock && !explicitHydrogens) mol.remove_hs_in_place();
 
 	const options = {
-		...getDrawingOptions({ darkMode }),
+		...getDrawingOptions({ isDarkMode }),
 		...STRUCTURE_DRAWING_OPTIONS,
 		addAtomIndices: showAtomIndices,
 		atoms: range(mol.get_num_atoms()),
@@ -63,13 +63,13 @@ async function generateStructureSVG({
 }
 
 /** Generate an SVG for a SMARTS query molecule using get_qmol */
-async function generateQuerySVG({ smartsInput, width, height, darkMode = false }) {
+async function generateQuerySVG({ smartsInput, width, height, isDarkMode = false }) {
 	if (!rdkit) throw new Error('RDKit not initialized');
 	const mol = rdkit.get_qmol(smartsInput);
 	if (!mol) throw new Error('Invalid SMARTS');
 
 	const options = {
-		...getDrawingOptions({ darkMode, centreMoleculesBeforeDrawing: true }),
+		...getDrawingOptions({ isDarkMode, centreMoleculesBeforeDrawing: true }),
 		width: parseInt(`${width}`),
 		height: parseInt(`${height}`),
 	};

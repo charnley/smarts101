@@ -42,7 +42,7 @@
 				control: { type: 'range', min: 100, max: 500, step: 10 },
 				description: 'Height of the renderer in pixels',
 			},
-			darkMode: {
+			isDarkMode: {
 				control: 'boolean',
 				description: 'Force dark mode palette. Leave unset (null) to auto-follow the app theme.',
 			},
@@ -58,7 +58,7 @@
 			height: 220,
 			// Pin to light mode by default so stories look consistent regardless of browser theme.
 			// The "Dark mode" story overrides this to true.
-			darkMode: false,
+			isDarkMode: false,
 		},
 	});
 </script>
@@ -82,7 +82,7 @@
   Dark mode: force the dark atom palette + wrap in a dark surface so that
   currentColor (used for carbon atoms/bonds) resolves to the correct light value.
 -->
-<Story name="Dark mode" args={{ darkMode: true }}>
+<Story name="Dark mode" args={{ isDarkMode: true }}>
 	{#snippet template(args)}
 		<div style="background:#1c1c1c; color:#e5e5e5; padding:16px; border-radius:8px;">
 			<StructureRenderer {...args} />
@@ -134,7 +134,7 @@
 	args={{
 		structureDefinition: 'OC[C@H]1OC(O)[C@H](O)[C@@H](O)[C@@H]1O',
 		highlights: { definitions: [] },
-		darkMode: false,
+		isDarkMode: false,
 	}}
 />
 
@@ -143,7 +143,7 @@
 	args={{
 		structureDefinition: 'OC[C@H]1OC(O)[C@H](O)[C@@H](O)[C@@H]1O',
 		highlights: { definitions: [] },
-		darkMode: true,
+		isDarkMode: true,
 	}}
 >
 	{#snippet template(args)}

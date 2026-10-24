@@ -14,7 +14,7 @@
 	 *   highlights?: { definitions?: any[], outline?: boolean, fill?: boolean },
 	 *   width?: number,
 	 *   height?: number,
-	 *   darkMode?: boolean | null,
+	 *   isDarkMode?: boolean | null,
 	 *   showAtomIndices?: boolean,
 	 *   useCoordgen?: boolean,
 	 *   explicitHydrogens?: boolean,
@@ -34,7 +34,7 @@
 		 * Override dark mode. null/undefined = auto-detect from mode-watcher.
 		 * Pass true/false to force a specific palette (e.g. false for PNG export).
 		 */
-		darkMode = null,
+		isDarkMode = null,
 		/** Show atom index numbers on the molecule. Default false. */
 		showAtomIndices = false,
 		/** Use CoordGen layout engine in RDKit. Default false. */
@@ -52,7 +52,7 @@
 
 	// Resolve dark mode: prop override takes priority, otherwise follow the app theme.
 	// mode.current is a Svelte 5 rune (not a store), so read it directly.
-	let isDark = $derived(darkMode !== null ? darkMode : mode.current === 'dark');
+	let resolvedDarkMode = $derived(isDarkMode !== null ? isDarkMode : mode.current === 'dark');
 
 	/** @type {HTMLDivElement|undefined} */
 	let container = $state();
@@ -76,7 +76,7 @@
 			definition: structureDefinition,
 			width,
 			height,
-			darkMode: isDark,
+			isDarkMode: resolvedDarkMode,
 			showAtomIndices,
 			preferCoorDGen: useCoordgen,
 			explicitHydrogens,
