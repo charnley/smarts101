@@ -1,4 +1,4 @@
-import { PALETTE_DARK, PALETTE_LIGHT } from './utils.js';
+import { DEFAULT_DARK, DEFAULT_LIGHT, PALETTE_DARK, PALETTE_LIGHT } from './utils.js';
 
 /**
  * Single place that defines how molecules look. Every RDKit drawing goes
@@ -27,14 +27,20 @@ export const STRUCTURE_DRAWING_OPTIONS = {
 };
 
 /**
- * @param {{ darkMode?: boolean } & Record<string, any>} [params]
- *   `darkMode` selects the atom palette; everything else overrides the defaults.
+ * @param {{ isDarkMode?: boolean } & Record<string, any>} [params]
+ *   `isDarkMode` selects the atom palette; everything else overrides the defaults.
  * @returns {Record<string, any>}
  */
-export function getDrawingOptions({ darkMode = false, ...overrides } = {}) {
+export function getDrawingOptions({ isDarkMode = false, ...overrides } = {}) {
+	// RDKit's default bondNoteColour is light blue; keep all labels in the
+	// same foreground colour as the atoms.
+	const noteColour = isDarkMode ? DEFAULT_DARK : DEFAULT_LIGHT;
 	return {
 		...BASE_DRAWING_OPTIONS,
-		atomColourPalette: darkMode ? PALETTE_DARK : PALETTE_LIGHT,
+		atomColourPalette: isDarkMode ? PALETTE_DARK : PALETTE_LIGHT,
+		atomNoteColour: noteColour,
+		bondNoteColour: noteColour,
+		annotationColour: noteColour,
 		...overrides,
 	};
 }

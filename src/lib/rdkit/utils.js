@@ -5,8 +5,8 @@ import wasmUrl from '@rdkit/rdkit/RDKit_minimal.wasm?url';
  * Atom colour palettes for light and dark backgrounds.
  */
 
-const DEFAULT_DARK = [1.0, 1.0, 1.0];
-const DEFAULT_LIGHT = [0.0, 0.0, 0.0];
+export const DEFAULT_DARK = [1.0, 1.0, 1.0];
+export const DEFAULT_LIGHT = [0.0, 0.0, 0.0];
 
 export const PALETTE_DARK = {
 	0: DEFAULT_DARK,
