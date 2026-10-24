@@ -8,8 +8,6 @@
 	import SmartsEditor from '$lib/components/SmartsEditor.svelte';
 	import { Textarea } from '$lib/components/ui/textarea/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
-	import * as Tabs from '$lib/components/ui/tabs/index.js';
-	import * as Tooltip from '$lib/components/ui/tooltip/index.js';
 	import * as ToggleGroup from '$lib/components/ui/toggle-group/index.js';
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
 	import * as Sheet from '$lib/components/ui/sheet/index.js';
@@ -17,7 +15,9 @@
 	import { Label } from '$lib/components/ui/label/index.js';
 	import SettingsIcon from '@lucide/svelte/icons/settings';
 	import CircleQuestionMarkIcon from '@lucide/svelte/icons/circle-question-mark';
-	import CopyIcon from '@lucide/svelte/icons/copy';
+	import LockIcon from '@lucide/svelte/icons/lock';
+	import SparklesIcon from '@lucide/svelte/icons/sparkles';
+	import PencilIcon from '@lucide/svelte/icons/pencil';
 	import ListFilter from '@lucide/svelte/icons/list-filter';
 	import PanelRightOpen from '@lucide/svelte/icons/panel-right-open';
 	import PanelRightClose from '@lucide/svelte/icons/panel-right-close';
@@ -193,15 +193,6 @@
 	let gridClass = $derived(COLS_CLASS[effectiveMolCols] ?? COLS_CLASS[1]);
 	let molSize = $derived(MOL_SIZE[effectiveMolCols] ?? MOL_SIZE[1]);
 
-	/** Columns for the Generate tab — reaction mode doesn't collapse it to 1 */
-	let genMolCols = $derived(
-		/** @type {1|2|3|4} */ (
-			explainOpen ? Math.max(1, settings.columnsPerRow - 1) : settings.columnsPerRow
-		),
-	);
-	let genGridClass = $derived(COLS_CLASS[genMolCols] ?? COLS_CLASS[1]);
-	let genMolSize = $derived(MOL_SIZE[genMolCols] ?? MOL_SIZE[1]);
-
 	// ── State ────────────────────────────────────────────────────────────────
 	let molecules = $state(
 		withIds(DEFAULT_MOLECULES.map((m) => ({ structureDefinition: m.smiles }))),
@@ -214,13 +205,13 @@
 	 */
 	let matchStates = $state(DEFAULT_MOLECULES.map(() => false));
 
-	/** Molecules produced by the Generate tab — separate from the main grid list */
+	/** Molecules found by Smarter SMARTS for the current query (used in dynamic targets mode) */
 	let generatedMolecules = $state(
 		/** @type {{ id: number, structureDefinition: string, name?: string }[]} */ ([]),
 	);
 
-	/** 'grid' shows the molecule cards; 'edit' shows the textarea editor; 'gen' shows the generator */
-	let viewMode = $state(/** @type {'grid' | 'edit' | 'gen'} */ ('grid'));
+	/** With no target molecules, targets are found dynamically from the SMARTS query */
+	let isDynamicTargets = $derived(molecules.length === 0);
 
 	/** Raw text in the textarea editor — synced from molecules when entering edit mode */
 	let textareaValue = $state('');
@@ -431,29 +422,28 @@
 		return { definitions: defs, outline: true, fill: false };
 	});
 
-	// ── View mode toggle ─────────────────────────────────────────────────────
-	function switchToEdit() {
+	// ── Edit targets dialog ──────────────────────────────────────────────────
+	let editOpen = $state(false);
+
+	function openEdit() {
 		textareaValue = toTextarea(molecules);
-		viewMode = 'edit';
+		editOpen = true;
 	}
 
-	function switchToGrid() {
+	/** Apply the edited text to the molecule list when the dialog closes. */
+	function applyEdit() {
 		const parsed = fromTextarea(textareaValue);
-		if (parsed.length > 0) {
-			molecules = parsed;
-			matchStates = parsed.map(() => false);
-		}
-		viewMode = 'grid';
+		molecules = parsed;
+		matchStates = parsed.map(() => false);
 	}
 
-	/** @param {string} v */
-	function onViewModeChange(v) {
-		if (v === 'edit') switchToEdit();
-		else if (v === 'grid') switchToGrid();
-		else if (v === 'gen') viewMode = 'gen';
+	/** @param {boolean} open */
+	function onEditOpenChange(open) {
+		if (!open) applyEdit();
 	}
 
-	function copyGenerated() {
+	/** Copy the dynamically found molecules into the targets, switching to static targets. */
+	function lockTargets() {
 		if (generatedMolecules.length === 0) return;
 		const list = withIds(
 			generatedMolecules.map(({ structureDefinition, name }) => ({ structureDefinition, name })),
@@ -461,7 +451,13 @@
 		molecules = list;
 		matchStates = list.map(() => false);
 		textareaValue = toTextarea(list);
-		viewMode = 'grid';
+	}
+
+	/** Clear the targets so they are found dynamically from the SMARTS query. */
+	function loadDynamic() {
+		molecules = [];
+		matchStates = [];
+		textareaValue = '';
 	}
 
 	// ── Load a named molecule set ─────────────────────────────────────────────
@@ -514,24 +510,41 @@
 
 <div class="flex flex-col gap-4 py-2">
 	<!-- SMARTS input — full width -->
-	<section class="sticky top-16 z-10 w-full bg-background/95 pt-2 pb-2 backdrop-blur-sm">
-		<SmartsEditor
-			bind:value={rawSmarts}
-			onchange={(v) => {
-				if (debounceTimer) clearTimeout(debounceTimer);
-				debounceTimer = setTimeout(() => {
-					if (parser) smartsTree = rawSmarts.trim() ? parser.parse(rawSmarts) : null;
-					validateAndApply(rawSmarts);
-				}, SMARTS_INPUT_DEBOUNCE_MS);
-			}}
-			oncursorchange={(pos) => {
-				cursorPos = pos;
-			}}
-			{focusOnSection}
-			highlightRange={explainHighlightRange}
-			{errorRanges}
-			invalid={!!smartsError}
-		/>
+	<section
+		class="sticky top-16 z-10 flex w-full items-start gap-2 bg-background/95 pt-2 pb-2 backdrop-blur-sm"
+	>
+		<div class="min-w-0 flex-1">
+			<SmartsEditor
+				bind:value={rawSmarts}
+				onchange={(v) => {
+					if (debounceTimer) clearTimeout(debounceTimer);
+					debounceTimer = setTimeout(() => {
+						if (parser) smartsTree = rawSmarts.trim() ? parser.parse(rawSmarts) : null;
+						validateAndApply(rawSmarts);
+					}, SMARTS_INPUT_DEBOUNCE_MS);
+				}}
+				oncursorchange={(pos) => {
+					cursorPos = pos;
+				}}
+				{focusOnSection}
+				highlightRange={explainHighlightRange}
+				{errorRanges}
+				invalid={!!smartsError}
+			/>
+		</div>
+		<div class="flex items-center gap-2">
+			<Button
+				variant="outline"
+				size="icon-lg"
+				aria-label="Settings"
+				onclick={() => (settingsOpen = true)}
+			>
+				<SettingsIcon size={16} />
+			</Button>
+			<Button variant="outline" size="icon-lg" aria-label="Info" onclick={() => (infoOpen = true)}>
+				<CircleQuestionMarkIcon size={16} />
+			</Button>
+		</div>
 	</section>
 
 	<!-- Content row: CSS grid so explain takes exactly 1 column-unit -->
@@ -539,195 +552,114 @@
 		<!-- Molecules column -->
 		{#if !moleculesHidden}
 			<div class="flex min-w-0 flex-1 flex-col gap-3">
-				<Tabs.Root value={viewMode} onValueChange={onViewModeChange}>
-					<div class="flex items-center justify-between">
-						<div class="flex items-center gap-1">
-							<Tooltip.Provider delayDuration={0}>
-								<Tabs.List>
-									<Tooltip.Root>
-										<Tooltip.Trigger>
-											{#snippet child({ props })}
-												<Tabs.Trigger value="grid" {...props}>View Results</Tabs.Trigger>
-											{/snippet}
-										</Tooltip.Trigger>
-										<Tooltip.Content side="top">View SMARTS matches</Tooltip.Content>
-									</Tooltip.Root>
-
-									<Tooltip.Root>
-										<Tooltip.Trigger>
-											{#snippet child({ props })}
-												<Tabs.Trigger value="edit" {...props}>Edit Molecules</Tabs.Trigger>
-											{/snippet}
-										</Tooltip.Trigger>
-										<Tooltip.Content side="top">Edit target SMILES/SDF molecules</Tooltip.Content>
-									</Tooltip.Root>
-
-									<Tooltip.Root>
-										<Tooltip.Trigger>
-											{#snippet child({ props })}
-												<Tabs.Trigger value="gen" {...props}>Generate Molecules</Tabs.Trigger>
-											{/snippet}
-										</Tooltip.Trigger>
-										<Tooltip.Content side="top">
-											Use Smarter SMARTS<sup>tm</sup> to find matching molecules
-										</Tooltip.Content>
-									</Tooltip.Root>
-								</Tabs.List>
-							</Tooltip.Provider>
+				<!-- Header row -->
+				<div class="flex items-center justify-between">
+					<div class="flex items-center gap-1">
+						<Button variant="outline" size="sm" onclick={openEdit}>
+							<PencilIcon size={16} />
+							Edit targets
+						</Button>
+						{#if isDynamicTargets}
 							<Button
 								variant="outline"
 								size="icon-sm"
-								aria-label="Settings"
-								onclick={() => (settingsOpen = true)}
+								aria-label="Lock found molecules as targets"
+								title="Lock found molecules as targets"
+								disabled={generatedMolecules.length === 0}
+								onclick={lockTargets}
 							>
-								<SettingsIcon size={16} />
+								<LockIcon size={16} />
 							</Button>
-							<Button
-								variant="outline"
-								size="icon-sm"
-								aria-label="Info"
-								onclick={() => (infoOpen = true)}
-							>
-								<CircleQuestionMarkIcon size={16} />
-							</Button>
-						</div>
-						<div class="flex items-center gap-1">
-							{#if !explainOpen || moleculesHidden}
-								<Button
-									variant="outline"
-									size="sm"
-									aria-label="Toggle explain"
-									onclick={toggleExplain}
-								>
-									{#if explainOpen}
-										<PanelRightClose size={16} />
-									{:else}
-										<PanelRightOpen size={16} />
-									{/if}
-									Explain
-								</Button>
-							{/if}
-						</div>
+							<span class="ml-1 text-xs text-muted-foreground">Dynamic targets</span>
+						{/if}
 					</div>
-
-					<Tabs.Content value="grid">
-						<div class="grid gap-4 {gridClass}">
-							{#if isReaction}
-								{#each reactionResults as entry (entry.smarts)}
-									<ReactionCard
-										slides={entry.slides}
-										{highlights}
-										width={molSize.width}
-										height={molSize.height}
-										bind:reactantFragmentIndex={carouselReactantFragmentIndex}
-										bind:productFragmentIndex={carouselProductFragmentIndex}
-									/>
-								{/each}
-								{#if reactionRunning}
-									<p class="col-span-full animate-pulse text-xs text-muted-foreground">running…</p>
-								{:else if reactionResults.length === 0}
-									<p class="col-span-full text-xs text-muted-foreground">
-										No results — molecules must match all reactant fragments.
-									</p>
+					<div class="flex items-center gap-1">
+						{#if !explainOpen || moleculesHidden}
+							<Button
+								variant="outline"
+								size="sm"
+								aria-label="Toggle explain"
+								onclick={toggleExplain}
+							>
+								{#if explainOpen}
+									<PanelRightClose size={16} />
+								{:else}
+									<PanelRightOpen size={16} />
 								{/if}
-							{:else}
-								{#each molecules as mol, i (mol.id)}
-									<div
-										class={settings.filterMatchesOnly && activeSmarts && !matchStates[i]
-											? 'hidden'
-											: ''}
-									>
-										<MoleculeBox
-											structureDefinition={mol.structureDefinition}
-											{highlights}
-											width={molSize.width}
-											height={molSize.height}
-											useCoordgen={settings.useCoordgen}
-											explicitHydrogens={settings.explicitHydrogens}
-											bind:hasMatch={matchStates[i]}
-										/>
-									</div>
-								{/each}
-							{/if}
-						</div>
-					</Tabs.Content>
+								Explain
+							</Button>
+						{/if}
+					</div>
+				</div>
 
-					<Tabs.Content value="edit">
-						<div class="flex flex-col gap-2">
-							<Textarea
-								class="max-h-[70vh] w-full resize-y overflow-auto font-mono text-sm leading-relaxed whitespace-pre"
-								bind:value={textareaValue}
-								spellcheck={false}
-								autocomplete="off"
-								rows={Math.max(8, textareaValue.split('\n').length + 2)}
+				<!-- Kept mounted (hidden when not dynamic) so the worker and its results persist -->
+				<div class={isDynamicTargets && !isReaction ? '' : 'hidden'}>
+					<GeneratePanel
+						smarts={rawSmarts}
+						active={isDynamicTargets && !isReaction}
+						onresults={(items) => {
+							generatedMolecules = withIds(
+								items.map((it) => ({ structureDefinition: it.smiles, name: it.name })),
+							);
+						}}
+					/>
+				</div>
+
+				<div class="grid gap-4 {gridClass}">
+					{#if isReaction}
+						{#each reactionResults as entry (entry.smarts)}
+							<ReactionCard
+								slides={entry.slides}
+								{highlights}
+								width={molSize.width}
+								height={molSize.height}
+								bind:reactantFragmentIndex={carouselReactantFragmentIndex}
+								bind:productFragmentIndex={carouselProductFragmentIndex}
 							/>
-							<p class="m-0 text-sm text-muted-foreground">
-								<strong>Format:</strong> SMILES per line or multi-SDF input.
+						{/each}
+						{#if reactionRunning}
+							<p class="col-span-full animate-pulse text-xs text-muted-foreground">running…</p>
+						{:else if isDynamicTargets}
+							<p class="col-span-full text-xs text-muted-foreground">
+								Reactions need target molecules — use Edit targets to add some.
 							</p>
-							{#if isMediumScreen.value}
-								<div class="flex flex-wrap items-center gap-1.5">
-									<span class="text-sm text-muted-foreground">Start from:</span>
-									{#each Object.entries(SETS) as [key, set]}
-										<Button
-											variant="outline"
-											size="sm"
-											class="rounded-full"
-											onclick={() => loadSet(/** @type {keyof typeof SETS} */ (key))}
-										>
-											{set.label}
-										</Button>
-									{/each}
-								</div>
-							{:else}
-								<Button variant="outline" size="sm" onclick={() => (setsSheetOpen = true)}>
-									<ListFilter size={16} />
-									Start from…
-								</Button>
-							{/if}
-						</div>
-					</Tabs.Content>
-
-					<Tabs.Content value="gen">
-						<div class="flex flex-col gap-3">
-							<GeneratePanel
-								smarts={rawSmarts}
-								active={viewMode === 'gen'}
-								onresults={(items) => {
-									const list = withIds(
-										items.map((it) => ({ structureDefinition: it.smiles, name: it.name })),
-									);
-									generatedMolecules = list;
-								}}
+						{:else if reactionResults.length === 0}
+							<p class="col-span-full text-xs text-muted-foreground">
+								No results — molecules must match all reactant fragments.
+							</p>
+						{/if}
+					{:else if isDynamicTargets}
+						{#each generatedMolecules as mol (mol.id)}
+							<MoleculeBox
+								structureDefinition={mol.structureDefinition}
+								name={mol.name}
+								{highlights}
+								width={molSize.width}
+								height={molSize.height}
+								useCoordgen={settings.useCoordgen}
+								explicitHydrogens={settings.explicitHydrogens}
 							/>
-
-							{#if generatedMolecules.length > 0}
-								<div class="flex items-center justify-between">
-									<div class="text-sm text-muted-foreground">
-										Showing {generatedMolecules.length} matches
-									</div>
-									<Button variant="outline" size="sm" onclick={copyGenerated}>
-										<CopyIcon size={16} />
-										Copy to View/Edit
-									</Button>
-								</div>
-							{/if}
-
-							<div class="grid gap-4 {genGridClass}">
-								{#each generatedMolecules as mol (mol.id)}
-									<MoleculeBox
-										structureDefinition={mol.structureDefinition}
-										name={mol.name}
-										{highlights}
-										width={genMolSize.width}
-										height={genMolSize.height}
-										useCoordgen={settings.useCoordgen}
-										explicitHydrogens={settings.explicitHydrogens}
-									/>
-								{/each}
+						{/each}
+					{:else}
+						{#each molecules as mol, i (mol.id)}
+							<div
+								class={settings.filterMatchesOnly && activeSmarts && !matchStates[i]
+									? 'hidden'
+									: ''}
+							>
+								<MoleculeBox
+									structureDefinition={mol.structureDefinition}
+									{highlights}
+									width={molSize.width}
+									height={molSize.height}
+									useCoordgen={settings.useCoordgen}
+									explicitHydrogens={settings.explicitHydrogens}
+									bind:hasMatch={matchStates[i]}
+								/>
 							</div>
-						</div>
-					</Tabs.Content>
-				</Tabs.Root>
+						{/each}
+					{/if}
+				</div>
 			</div>
 		{/if}
 
@@ -735,9 +667,7 @@
 		{#if explainOpen}
 			<div class="flex min-w-0 flex-1 flex-col gap-2">
 				<div class="flex items-center justify-between">
-					<span class="text-xs font-medium tracking-wide text-muted-foreground uppercase"
-						>Explanation</span
-					>
+					<span class="text-xs font-medium tracking-wide text-muted-foreground uppercase"></span>
 					<div class="flex items-center gap-1">
 						<Button variant="outline" size="sm" aria-label="Toggle explain" onclick={toggleExplain}>
 							<PanelRightClose size={16} />
@@ -756,6 +686,53 @@
 	</div>
 </div>
 
+<!-- Edit targets dialog -->
+<Dialog.Root bind:open={editOpen} onOpenChange={onEditOpenChange}>
+	<Dialog.Content class="sm:max-w-5xl">
+		<Dialog.Header>
+			<Dialog.Title>Edit targets</Dialog.Title>
+		</Dialog.Header>
+		<div class="flex flex-col gap-2">
+			<p class="m-0 text-sm text-muted-foreground">
+				<strong>Format:</strong> SMILES per line or multi-SDF input. Leave empty to use
+				<strong>Dynamic Targets</strong>: molecules matching your SMARTS are found for you.
+			</p>
+			{#if isMediumScreen.value}
+				<div class="flex flex-wrap items-center gap-1.5">
+					<span class="text-sm text-muted-foreground">Start from:</span>
+					<Button variant="outline" size="sm" class="rounded-full" onclick={loadDynamic}>
+						<SparklesIcon size={14} />
+						Dynamic Targets
+					</Button>
+					{#each Object.entries(SETS) as [key, set]}
+						<Button
+							variant="outline"
+							size="sm"
+							class="rounded-full"
+							onclick={() => loadSet(/** @type {keyof typeof SETS} */ (key))}
+						>
+							{set.label}
+						</Button>
+					{/each}
+				</div>
+			{:else}
+				<Button variant="outline" size="sm" onclick={() => (setsSheetOpen = true)}>
+					<ListFilter size={16} />
+					Start from…
+				</Button>
+			{/if}
+			<Textarea
+				class="max-h-[60vh] w-full resize-y overflow-auto font-mono text-sm leading-relaxed whitespace-pre"
+				bind:value={textareaValue}
+				placeholder="Empty: Dynamic Targets"
+				spellcheck={false}
+				autocomplete="off"
+				rows={Math.max(8, textareaValue.split('\n').length + 2)}
+			/>
+		</div>
+	</Dialog.Content>
+</Dialog.Root>
+
 <!-- Sets sheet (mobile) -->
 <Sheet.Root bind:open={setsSheetOpen}>
 	<Sheet.Content side="left">
@@ -763,6 +740,16 @@
 			<Sheet.Title>Start from…</Sheet.Title>
 		</Sheet.Header>
 		<div class="flex flex-col gap-2 p-4">
+			<Button
+				variant="outline"
+				onclick={() => {
+					loadDynamic();
+					setsSheetOpen = false;
+				}}
+			>
+				<SparklesIcon size={16} />
+				Dynamic Targets
+			</Button>
 			{#each Object.entries(SETS) as [key, set]}
 				<Button
 					variant="outline"
@@ -863,13 +850,13 @@
 					highlighted in the molecule grid below as you type.
 				</p>
 				<ul class="ml-4 list-disc">
-					<li><strong>View Results</strong> — see which molecules match the current SMARTS.</li>
 					<li>
-						<strong>Edit Molecules</strong> — edit the target molecules in either SMILES list or SDF format.
+						<strong>Edit targets</strong> — edit the target molecules in either SMILES list or SDF format.
 					</li>
 					<li>
-						<strong>Generate Molecules</strong> — Find example molecules from your SMARTS pattern, using
-						Smarter SMARTS.
+						<strong>Dynamic Targets</strong> — leave the targets empty and matching example molecules
+						are found from your SMARTS pattern, using Smarter SMARTS. Use the lock button to copy them
+						into the targets.
 					</li>
 				</ul>
 			</section>
@@ -877,9 +864,9 @@
 			<section class="flex flex-col gap-2">
 				<h3 class="font-semibold">Reactions</h3>
 				<p>
-					You can use <code>>></code> SMARTS reaction syntax in "view" and you will see the target
-					transform. Note that if you have multiple reactants with <code>.</code> you will need the same
-					amount of SMILES in your "Edit" molecules.
+					You can use <code>>></code> SMARTS reaction syntax and you will see the target transform.
+					Note that if you have multiple reactants with <code>.</code> you will need the same amount of
+					SMILES in your targets.
 				</p>
 			</section>
 
