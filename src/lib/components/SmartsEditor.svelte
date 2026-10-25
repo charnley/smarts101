@@ -260,6 +260,16 @@
 				stripNewlines,
 				cmPlaceholder('SMARTS, e.g. [OX2H]'),
 				EditorView.lineWrapping,
+				// Disable browser spellcheck, autocorrect and Grammarly-style extensions
+				EditorView.contentAttributes.of({
+					spellcheck: 'false',
+					autocorrect: 'off',
+					autocapitalize: 'off',
+					autocomplete: 'off',
+					'data-gramm': 'false',
+					'data-gramm_editor': 'false',
+					'data-enable-grammarly': 'false',
+				}),
 			],
 		});
 
