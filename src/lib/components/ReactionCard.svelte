@@ -80,12 +80,13 @@
 	class="relative flex flex-col gap-1 overflow-hidden rounded-lg border border-border bg-card p-2 transition-shadow duration-150"
 >
 	<div class="flex items-center gap-1">
-		<div class="flex flex-1 flex-col items-center gap-0.5">
+		<div class="flex min-w-0 flex-1 flex-col items-center gap-0.5">
 			{#if !reactantSmiles}
 				<div
 					class="flex items-center justify-center"
-					style:width="{molWidth}px"
-					style:height="{height}px"
+					style:width="100%"
+					style:max-width="{molWidth}px"
+					style:aspect-ratio="{molWidth} / {height}"
 				>
 					<CircleXIcon size={32} class="text-muted-foreground/40" />
 				</div>
@@ -95,6 +96,7 @@
 					width={molWidth}
 					{height}
 					{highlights}
+					fluid
 				/>
 			{/if}
 			{#if reactantTotalFragments > 1}
@@ -106,12 +108,13 @@
 
 		<ChevronsRightIcon size={30} class="shrink-0 text-muted-foreground/80" />
 
-		<div class="flex flex-1 flex-col items-center gap-0.5">
+		<div class="flex min-w-0 flex-1 flex-col items-center gap-0.5">
 			{#if !productSmiles}
 				<div
 					class="flex items-center justify-center"
-					style:width="{molWidth}px"
-					style:height="{height}px"
+					style:width="100%"
+					style:max-width="{molWidth}px"
+					style:aspect-ratio="{molWidth} / {height}"
 				>
 					<CircleXIcon size={32} class="text-muted-foreground/40" />
 				</div>
@@ -121,6 +124,7 @@
 					width={molWidth}
 					{height}
 					highlights={{ definitions: [], outline: true, fill: false }}
+					fluid
 				/>
 			{/if}
 			{#if productTotalFragments > 1}

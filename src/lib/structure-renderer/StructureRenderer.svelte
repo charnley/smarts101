@@ -20,6 +20,7 @@
 	 *   explicitHydrogens?: boolean,
 	 *   hasMatch?: boolean,
 	 *   outlinesOnTop?: boolean,
+	 *   fluid?: boolean,
 	 * }}
 	 */
 	let {
@@ -48,6 +49,7 @@
 		hasMatch = $bindable(false),
 		/** Draw SMARTS outlines over the molecule (true) or behind it (false). */
 		outlinesOnTop = true,
+		fluid = false,
 	} = $props();
 
 	// Resolve dark mode: prop override takes priority, otherwise follow the app theme.
@@ -184,8 +186,10 @@
 
 <div
 	class="sr-shell"
-	style:width="{width}px"
-	style:height="{height}px"
+	style:width={fluid ? '100%' : `${width}px`}
+	style:max-width={fluid ? `${width}px` : null}
+	style:height={fluid ? 'auto' : `${height}px`}
+	style:aspect-ratio={fluid ? `${width} / ${height}` : null}
 	class:is-rendering={isRendering}
 >
 	<div class="sr-container" bind:this={container}>

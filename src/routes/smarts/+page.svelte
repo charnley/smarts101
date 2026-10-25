@@ -161,37 +161,39 @@
 		3: { width: 280, height: 200 },
 		4: { width: 220, height: 160 },
 	};
+	const AUTO_MOL_SIZE = { width: 400, height: 280 };
+	const AUTO_GRID_STYLE =
+		'grid-template-columns: repeat(auto-fill, minmax(min(100%, max(280px, calc((100% - 3rem) / 4))), 1fr))';
 
-	/**
-	 * Effective mol columns = columnsPerRow minus one slot for explain when open.
-	 * Minimum 1.
-	 */
+	let isAuto = $derived(settings.columnsPerRow === 'auto');
+	let fixedCols = $derived(isAuto ? 3 : Number(settings.columnsPerRow));
+
 	let effectiveMolCols = $derived(
-		/** @type {1|2|3|4} */ (
-			isReaction
-				? 1
-				: explainOpen
-					? Math.max(1, settings.columnsPerRow - 1)
-					: settings.columnsPerRow
-		),
+		/** @type {1|2|3|4} */ (isReaction ? 1 : explainOpen ? Math.max(1, fixedCols - 1) : fixedCols),
 	);
 
-	/** When only 1 total column and explain open, hide molecules entirely */
-	let moleculesHidden = $derived(explainOpen && settings.columnsPerRow === 1 && !isReaction);
+	let moleculesHidden = $derived(!isAuto && explainOpen && fixedCols === 1 && !isReaction);
 
-	/**
-	 * CSS grid-template-columns for the content row.
-	 * Explain gets 1fr, molecules get (columnsPerRow-1)fr so proportions match.
-	 * When explain closed: just 1fr (molecules full width).
-	 */
-	let contentRowStyle = $derived(
+	let contentRowClass = $derived(
 		explainOpen && !moleculesHidden
-			? `grid-template-columns: ${Math.max(1, settings.columnsPerRow - 1)}fr 1fr`
+			? isAuto
+				? 'grid grid-cols-1 gap-4 sm:grid-cols-[2fr_1fr]'
+				: 'grid gap-4'
+			: 'flex',
+	);
+	let contentRowStyle = $derived(
+		explainOpen && !moleculesHidden && !isAuto
+			? `grid-template-columns: ${Math.max(1, fixedCols - 1)}fr 1fr`
 			: '',
 	);
 
-	let gridClass = $derived(COLS_CLASS[effectiveMolCols] ?? COLS_CLASS[1]);
-	let molSize = $derived(MOL_SIZE[effectiveMolCols] ?? MOL_SIZE[1]);
+	let gridClass = $derived(
+		isReaction || !isAuto ? (COLS_CLASS[effectiveMolCols] ?? 'grid-cols-1') : '',
+	);
+	let gridStyle = $derived(isAuto && !isReaction ? AUTO_GRID_STYLE : '');
+	let molSize = $derived(
+		isAuto && !isReaction ? AUTO_MOL_SIZE : (MOL_SIZE[effectiveMolCols] ?? MOL_SIZE[1]),
+	);
 
 	// ── State ────────────────────────────────────────────────────────────────
 	let molecules = $state(
@@ -548,10 +550,12 @@
 	</section>
 
 	<!-- Content row: CSS grid so explain takes exactly 1 column-unit -->
-	<div class={explainOpen && !moleculesHidden ? 'grid gap-4' : 'flex'} style={contentRowStyle}>
+	<div class={contentRowClass} style={contentRowStyle}>
 		<!-- Molecules column -->
 		{#if !moleculesHidden}
-			<div class="flex min-w-0 flex-1 flex-col gap-3">
+			<div
+				class="flex min-w-0 flex-1 flex-col gap-3 {isAuto && explainOpen ? 'max-sm:hidden' : ''}"
+			>
 				<!-- Header row -->
 				<div class="flex items-center justify-between">
 					<div class="flex items-center gap-1">
@@ -605,7 +609,7 @@
 					/>
 				</div>
 
-				<div class="grid gap-4 {gridClass}">
+				<div class="grid gap-4 {gridClass}" style={gridStyle}>
 					{#if isReaction}
 						{#each reactionResults as entry (entry.smarts)}
 							<ReactionCard
@@ -643,9 +647,9 @@
 					{:else}
 						{#each molecules as mol, i (mol.id)}
 							<div
-								class={settings.filterMatchesOnly && activeSmarts && !matchStates[i]
+								class="min-w-0 {settings.filterMatchesOnly && activeSmarts && !matchStates[i]
 									? 'hidden'
-									: ''}
+									: ''}"
 							>
 								<MoleculeBox
 									structureDefinition={mol.structureDefinition}
@@ -688,11 +692,13 @@
 
 <!-- Edit targets dialog -->
 <Dialog.Root bind:open={editOpen} onOpenChange={onEditOpenChange}>
-	<Dialog.Content class="sm:max-w-5xl">
+	<Dialog.Content
+		class="max-h-[calc(100dvh-2rem)] min-w-0 overflow-y-auto sm:max-w-[min(64rem,calc(100%-2rem))]"
+	>
 		<Dialog.Header>
 			<Dialog.Title>Edit targets</Dialog.Title>
 		</Dialog.Header>
-		<div class="flex flex-col gap-2">
+		<div class="flex min-w-0 flex-col gap-2">
 			<p class="m-0 text-sm text-muted-foreground">
 				<strong>Format:</strong> SMILES per line or multi-SDF input. Leave empty to use
 				<strong>Dynamic Targets</strong>: molecules matching your SMARTS are found for you.
@@ -722,7 +728,7 @@
 				</Button>
 			{/if}
 			<Textarea
-				class="max-h-[60vh] w-full resize-y overflow-auto font-mono text-sm leading-relaxed whitespace-pre"
+				class="max-h-[60dvh] w-full max-w-full min-w-0 resize-y overflow-auto font-mono text-sm leading-relaxed whitespace-pre"
 				bind:value={textareaValue}
 				placeholder="Empty: Dynamic Targets"
 				spellcheck={false}
@@ -780,10 +786,14 @@
 					type="single"
 					value={String(settings.columnsPerRow)}
 					onValueChange={(/** @type {string} */ v) => {
-						if (v) settings.columnsPerRow = /** @type {1|2|3} */ (Number(v));
+						if (v === 'auto') settings.columnsPerRow = 'auto';
+						else if (v) settings.columnsPerRow = /** @type {1|2|3|4} */ (Number(v));
 					}}
 					class="justify-start"
 				>
+					<ToggleGroup.Item value="auto" variant="outline" size="sm" class="w-14">
+						Auto
+					</ToggleGroup.Item>
 					<ToggleGroup.Item value="1" variant="outline" size="sm" class="w-10">1</ToggleGroup.Item>
 					<ToggleGroup.Item value="2" variant="outline" size="sm" class="w-10">2</ToggleGroup.Item>
 					<ToggleGroup.Item value="3" variant="outline" size="sm" class="w-10">3</ToggleGroup.Item>
