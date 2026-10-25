@@ -377,16 +377,10 @@ export default grammar({
 		primitive_charge_neg: (_$) => token(choice(seq('-', /[0-9]+/), seq('-', RANGE), /-+/)),
 
 		// chirality  (smarts.ll:108, smarts.yy:713)
-		// @@ must be tried before @; class tokens (@TH, @AL…) before bare @
-		primitive_chirality: (_$) =>
-			token(
-				choice(
-					seq('@@', /[A-Z][A-Z]?/, /[0-9]+/, optional('?')), // @@TH1?
-					'@@',
-					seq('@', /[A-Z][A-Z]?/, /[0-9]+/, optional('?')), // @TH1?
-					'@',
-				),
-			),
+		// Only tetrahedral chirality is supported by RDKit's SMARTS matching:
+		// @ = @TH1, @@ = @TH2. The other classes (@AL, @SP, @TB, @OH) are parsed
+		// by RDKit but silently dropped, and the Daylight '?' suffix is a parse error.
+		primitive_chirality: (_$) => token(choice('@@', '@TH1', '@TH2', '@')),
 
 		// -----------------------------------------------------------------------
 		// bond_expr / bond_query / bondd  (smarts.yy:820)

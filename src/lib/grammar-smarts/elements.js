@@ -1,9 +1,11 @@
 /**
- * Periodic table, indexed by atomic number - 1.
+ * Periodic table, indexed by atomic number (index 0 is the unknown/dummy atom,
+ * so that no -1 offset is needed).
  * Each entry is [symbol, name].
  * @type {ReadonlyArray<readonly [string, string]>}
  */
 const ELEMENTS = [
+	['*', 'Unknown'],
 	['H', 'Hydrogen'],
 	['He', 'Helium'],
 	['Li', 'Lithium'],
@@ -125,7 +127,7 @@ const ELEMENTS = [
 ];
 
 /** @type {Map<string, string>} symbol -> name */
-const NAME_BY_SYMBOL = new Map(ELEMENTS.map(([symbol, name]) => [symbol, name]));
+const NAME_BY_SYMBOL = new Map(ELEMENTS.slice(1).map(([symbol, name]) => [symbol, name]));
 
 /**
  * Full element name for a (case-sensitive, capitalised) symbol, e.g. 'Fe' -> 'Iron'.
@@ -137,12 +139,12 @@ export function elementNameBySymbol(symbol) {
 }
 
 /**
- * Full element name for an atomic number, e.g. 6 -> 'Carbon'.
+ * Full element name for an atomic number, e.g. 6 -> 'Carbon'; 0 -> 'Unknown'.
  * @param {number} atomicNumber
  * @returns {string | undefined}
  */
 export function elementNameByNumber(atomicNumber) {
-	return ELEMENTS[atomicNumber - 1]?.[1];
+	return ELEMENTS[atomicNumber]?.[1];
 }
 
 /**

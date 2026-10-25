@@ -67,9 +67,17 @@ describe('bracketed_atom', () => {
 		expect(hasError('[C@@H]')).toBe(false);
 	});
 
-	it('parses [C@TH1] (chirality class)', () => {
-		expect(hasError('[C@TH1]')).toBe(false);
+	it.each(['[C@TH1]', '[C@TH2]'])('parses %s (tetrahedral chirality class)', (s) => {
+		expect(hasError(s)).toBe(false);
 	});
+
+	// Parsed by RDKit but dropped, or rejected by RDKit: not supported here.
+	it.each(['[C@AL1]', '[C@SP1]', '[C@TB1]', '[C@TH1?]', '[C@?]', '[C@@?]'])(
+		'rejects %s (unsupported chirality)',
+		(s) => {
+			expect(hasError(s)).toBe(true);
+		},
+	);
 });
 
 describe('atom_expr operators', () => {

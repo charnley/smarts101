@@ -322,9 +322,10 @@ export function explicitTitle(type, text) {
 	}
 
 	if (type === 'primitive_chirality') {
-		if (text === '@') return 'Anticlockwise chirality';
-		if (text === '@@') return 'Clockwise chirality';
-		return `Chirality ${text}`;
+		// @ is shorthand for @TH1, @@ for @TH2 (tetrahedral is all RDKit supports)
+		if (text === '@' || text === '@TH1') return 'Anticlockwise chirality';
+		if (text === '@@' || text === '@TH2') return 'Clockwise chirality';
+		return null;
 	}
 
 	const letter = COUNT_LETTER[/** @type {keyof typeof COUNT_LETTER} */ (type)];

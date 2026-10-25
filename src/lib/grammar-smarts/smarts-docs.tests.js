@@ -56,11 +56,13 @@ function title(primitive) {
 
 describe('elements', () => {
 	it('has 118 elements with correct ends', () => {
+		expect(elementNameByNumber(0)).toBe('Unknown');
 		expect(elementNameByNumber(1)).toBe('Hydrogen');
 		expect(elementNameByNumber(6)).toBe('Carbon');
 		expect(elementNameByNumber(118)).toBe('Oganesson');
 		expect(elementNameByNumber(119)).toBeUndefined();
 		expect(elementNameBySymbol('Fe')).toBe('Iron');
+		expect(elementNameBySymbol('*')).toBeUndefined();
 	});
 });
 
@@ -91,6 +93,7 @@ describe('atomic identity in brackets', () => {
 		['se', 'Aromatic Selenium'],
 		['#6', 'Carbon'],
 		['#26', 'Iron'],
+		['#0', 'Unknown'],
 		['#200', 'Atomic number 200'],
 	])('[%s] -> %s', (primitive, expected) => {
 		expect(title(primitive)).toBe(expected);
@@ -187,7 +190,8 @@ describe('hybridization and chirality', () => {
 		['^5', 'SP3D2 hybridized atom'],
 		['@', 'Anticlockwise chirality'],
 		['@@', 'Clockwise chirality'],
-		['@TH1', 'Chirality @TH1'],
+		['@TH1', 'Anticlockwise chirality'],
+		['@TH2', 'Clockwise chirality'],
 	])('[%s] -> %s', (primitive, expected) => {
 		expect(title(primitive)).toBe(expected);
 	});
