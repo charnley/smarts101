@@ -1,3 +1,5 @@
+import { aromaticElementName, elementNameByNumber, elementNameBySymbol } from './elements.js';
+
 /**
  * @typedef {{
  *   title: string,
@@ -71,6 +73,7 @@ export const NODE_DOCS = {
 
 	// ── Bonds ─────────────────────────────────────────────────────────────────
 	bond_primitive: { title: 'Bond' },
+	bond_expr: { title: 'Bond query' },
 	bond_expr_and_lo: { title: 'Bond low-AND' },
 	bond_expr_or: { title: 'Bond OR' },
 	bond_expr_and_hi: { title: 'Bond high-AND' },
@@ -113,6 +116,228 @@ function simpleAtomSubtype(text) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Value-aware titles
+//
+// Titles spell out what the primitive means, e.g. "Aliphatic Carbon" or
+// "Atom in exactly 6-sized ring", instead of a generic label per node type.
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * @typedef {{ kind: 'exact', n: number }
+ *   | { kind: 'range', lo: number | null, hi: number | null }} Quantity
+ */
+
+/** @type {Quantity} */
+const EXACTLY_ONE = { kind: 'exact', n: 1 };
+/** @type {Quantity} */
+const AT_LEAST_ONE = { kind: 'range', lo: 1, hi: null };
+
+/**
+ * Meaning of a primitive written without a number (e.g. `D`, `R`, `+`).
+ * Keep in sync with the how-to-smarts page (src/routes/how-to-smarts/+page.svelte):
+ * Hydrogen Count, Degree and Connectivity, Ring Membership, Formal Charge,
+ * Heteroatom Neighbors.
+ *
+ * @type {Record<string, Quantity>}
+ */
+export const BARE_DEFAULTS = {
+	primitive_degree: EXACTLY_ONE, // D
+	primitive_nonH_degree: EXACTLY_ONE, // d
+	primitive_connectivity: EXACTLY_ONE, // X
+	primitive_valence: EXACTLY_ONE, // v
+	primitive_total_h: EXACTLY_ONE, // H
+	primitive_implicit_h: AT_LEAST_ONE, // h
+	primitive_ring_membership: AT_LEAST_ONE, // R
+	primitive_ring_size: AT_LEAST_ONE, // r
+	primitive_ring_size_ex: AT_LEAST_ONE, // k
+	primitive_ring_bond: AT_LEAST_ONE, // x
+	primitive_hetero_nbr: AT_LEAST_ONE, // z
+	primitive_aliph_hetero_nbr: AT_LEAST_ONE, // Z
+	primitive_charge_pos: EXACTLY_ONE, // +
+	primitive_charge_neg: EXACTLY_ONE, // -
+};
+
+/**
+ * Parse the value part of a numeric primitive.
+ * `rest` is the text after the leading letter: '', '3', '{2-4}', '{2-}', '{-4}'.
+ *
+ * @param {string} rest
+ * @param {Quantity | undefined} bareDefault
+ * @returns {Quantity | null}
+ */
+function parseQuantity(rest, bareDefault) {
+	if (rest === '') return bareDefault ?? null;
+	if (/^[0-9]+$/.test(rest)) return { kind: 'exact', n: Number(rest) };
+	const m = /^\{([0-9]*)-([0-9]*)\}$/.exec(rest);
+	if (!m || (m[1] === '' && m[2] === '')) return null;
+	return {
+		kind: 'range',
+		lo: m[1] === '' ? null : Number(m[1]),
+		hi: m[2] === '' ? null : Number(m[2]),
+	};
+}
+
+/** @param {Quantity} q */
+function isAny(q) {
+	return q.kind === 'range' && q.lo === 1 && q.hi === null;
+}
+
+/**
+ * "exactly 3 explicit connections", "between 2 and 4 ...", "at least 2 ...", "at most 3 ...".
+ *
+ * @param {Quantity} q
+ * @param {[string, string]} [unit]  singular and plural noun
+ * @returns {string}
+ */
+function quantityPhrase(q, unit) {
+	/** @param {number} n */
+	const noun = (n) => (unit ? ` ${n === 1 ? unit[0] : unit[1]}` : '');
+	if (q.kind === 'exact') return `exactly ${q.n}${noun(q.n)}`;
+	if (q.lo !== null && q.hi !== null) return `between ${q.lo} and ${q.hi}${noun(q.hi)}`;
+	if (q.lo !== null) return `at least ${q.lo}${noun(q.lo)}`;
+	return `at most ${q.hi}${noun(/** @type {number} */ (q.hi))}`;
+}
+
+/**
+ * Like quantityPhrase, but an exact value is written bare ("5", not "exactly 5").
+ * @param {Quantity} q
+ */
+function sizePhrase(q) {
+	return q.kind === 'exact' ? String(q.n) : quantityPhrase(q);
+}
+
+/**
+ * Title builders for numeric primitives, keyed by node type.
+ * @type {Record<string, (q: Quantity) => string>}
+ */
+const COUNT_TITLES = {
+	primitive_degree: (q) =>
+		`Atom with ${quantityPhrase(q, ['explicit connection', 'explicit connections'])}`,
+	primitive_nonH_degree: (q) =>
+		`Atom with ${quantityPhrase(q, ['heavy-atom neighbor', 'heavy-atom neighbors'])}`,
+	primitive_connectivity: (q) =>
+		`Atom with ${quantityPhrase(q, ['total connection', 'total connections'])}`,
+	primitive_valence: (q) => `Atom with total valence of ${quantityPhrase(q)}`,
+	primitive_total_h: (q) => `Atom with ${quantityPhrase(q, ['total hydrogen', 'total hydrogens'])}`,
+	primitive_implicit_h: (q) =>
+		`Atom with ${quantityPhrase(q, ['implicit hydrogen', 'implicit hydrogens'])}`,
+	primitive_ring_membership: (q) =>
+		isAny(q) ? 'Atom in any ring' : `Atom in ${quantityPhrase(q, ['ring', 'rings'])}`,
+	primitive_ring_size: (q) =>
+		isAny(q) ? 'Atom in any ring' : `Atom in smallest ring of size ${sizePhrase(q)}`,
+	primitive_ring_size_ex: (q) => {
+		if (isAny(q)) return 'Atom in any ring';
+		if (q.kind === 'exact') return `Atom in exactly ${q.n}-sized ring`;
+		return `Atom in ring of size ${quantityPhrase(q)}`;
+	},
+	primitive_ring_bond: (q) => `Atom with ${quantityPhrase(q, ['ring bond', 'ring bonds'])}`,
+	primitive_hetero_nbr: (q) =>
+		`Atom with ${quantityPhrase(q, ['heteroatom neighbor', 'heteroatom neighbors'])}`,
+	primitive_aliph_hetero_nbr: (q) =>
+		`Atom with ${quantityPhrase(q, ['aliphatic heteroatom neighbor', 'aliphatic heteroatom neighbors'])}`,
+};
+
+/** Leading letter of each numeric primitive's text. */
+const COUNT_LETTER = {
+	primitive_degree: 'D',
+	primitive_nonH_degree: 'd',
+	primitive_connectivity: 'X',
+	primitive_valence: 'v',
+	primitive_total_h: 'H',
+	primitive_implicit_h: 'h',
+	primitive_ring_membership: 'R',
+	primitive_ring_size: 'r',
+	primitive_ring_size_ex: 'k',
+	primitive_ring_bond: 'x',
+	primitive_hetero_nbr: 'z',
+	primitive_aliph_hetero_nbr: 'Z',
+};
+
+const HYBRIDIZATION = ['S', 'SP', 'SP2', 'SP3', 'SP3D', 'SP3D2'];
+
+/**
+ * Title for a formal charge primitive: `+`, `++`, `+2`, `-`, `--`, `-2`, `+{1-2}`.
+ *
+ * @param {string} text
+ * @returns {string | null}
+ */
+function chargeTitle(text) {
+	const sign = text.charAt(0);
+	const rest = text.slice(1);
+	const word = sign === '+' ? 'Positive' : 'Negative';
+	// '+' / '++' / '+++' (or the '-' equivalents): the sign repeated n times means charge n
+	if (/^[+-]*$/.test(rest)) return `Charge ${sign}${text.length}`;
+	const q = parseQuantity(rest, undefined);
+	if (!q) return null;
+	if (q.kind === 'exact') return `Charge ${sign}${q.n}`;
+	return `${word} charge ${quantityPhrase(q)}`;
+}
+
+/**
+ * Explicit title for a node, or null when the generic NODE_DOCS title should be used.
+ *
+ * @param {string} type  tree-sitter node type
+ * @param {string} text  matched source text
+ * @returns {string | null}
+ */
+export function explicitTitle(type, text) {
+	if (type === 'simple_atom') {
+		if (text === '*') return 'Any atom';
+		if (text === 'A') return 'Any aliphatic atom';
+		if (text === 'a') return 'Any aromatic atom';
+		if (AROMATIC_SIMPLE.has(text)) {
+			const name = aromaticElementName(text);
+			return name ? `Aromatic ${name}` : null;
+		}
+		const name = elementNameBySymbol(text);
+		return name ? `Aliphatic ${name}` : null;
+	}
+
+	if (type === 'primitive_element') {
+		// Lowercase bracket-only aromatic atoms: si as se te
+		if (text === text.toLowerCase()) {
+			const name = aromaticElementName(text);
+			return name ? `Aromatic ${name}` : null;
+		}
+		const name = elementNameBySymbol(text);
+		if (!name) return `Element ${text}`;
+		return ALIPHATIC_SIMPLE.has(text) ? `Aliphatic ${name}` : name;
+	}
+
+	if (type === 'primitive_atomic_num') {
+		const n = Number(text.slice(1));
+		return elementNameByNumber(n) ?? `Atomic number ${n}`;
+	}
+
+	if (type === 'isotope') return `Isotope (mass number) ${text}`;
+	if (type === 'atom_map') return `Atom map ${text.slice(1)}`;
+
+	if (type === 'primitive_hybridization') {
+		const name = HYBRIDIZATION[Number(text.slice(1))];
+		return name ? `${name} hybridized atom` : null;
+	}
+
+	if (type === 'primitive_charge_pos' || type === 'primitive_charge_neg') {
+		return chargeTitle(text);
+	}
+
+	if (type === 'primitive_chirality') {
+		// @ is shorthand for @TH1, @@ for @TH2 (tetrahedral is all RDKit supports)
+		if (text === '@' || text === '@TH1') return 'Anticlockwise chirality';
+		if (text === '@@' || text === '@TH2') return 'Clockwise chirality';
+		return null;
+	}
+
+	const letter = COUNT_LETTER[/** @type {keyof typeof COUNT_LETTER} */ (type)];
+	if (letter !== undefined) {
+		const q = parseQuantity(text.slice(letter.length), BARE_DEFAULTS[type]);
+		return q ? COUNT_TITLES[type](q) : null;
+	}
+
+	return null;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Per-bond-primitive docs
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -123,7 +348,7 @@ const BOND_DOCS = {
 	'#': { title: 'Triple bond' },
 	':': { title: 'Aromatic bond' },
 	'~': { title: 'Any bond' },
-	'@': { title: 'Ring bond' },
+	'@': { title: 'Any ring bond' },
 	'/': { title: 'Directional bond up' },
 	'\\': { title: 'Directional bond down' },
 	$: { title: 'Quadruple bond' },
@@ -180,7 +405,8 @@ function nodeToEntry(node, text, src) {
 	// ── simple_atom: classify subtype ──────────────────────────────────────
 	if (type === 'simple_atom') {
 		const subtype = simpleAtomSubtype(text);
-		const doc = NODE_DOCS[subtype] ?? NODE_DOCS['simple_atom'];
+		const title = explicitTitle(type, text);
+		const doc = title ? { title } : (NODE_DOCS[subtype] ?? NODE_DOCS['simple_atom']);
 		return { type, subtype, text, startIndex: node.startIndex, endIndex: node.endIndex, doc };
 	}
 
@@ -208,8 +434,8 @@ function nodeToEntry(node, text, src) {
 	if (type.startsWith('bond_expr') || type === 'bond_expr') {
 		const entries = walkBondExprChildren(node, src);
 		if (entries.length === 1) return entries[0];
-		// multiple entries: find the real combinator type for the doc
-		const doc = NODE_DOCS['bond_primitive'];
+		// multiple entries: a combined bond query, its parts are listed as children
+		const doc = NODE_DOCS['bond_expr'];
 		return {
 			type,
 			text,
@@ -259,7 +485,8 @@ function nodeToEntry(node, text, src) {
 
 	// ── isotope, atom_map ────────────────────────────────────────────────────
 	if (type === 'isotope' || type === 'atom_map') {
-		const doc = NODE_DOCS[type];
+		const title = explicitTitle(type, text);
+		const doc = title ? { title } : NODE_DOCS[type];
 		if (doc) return { type, text, startIndex: node.startIndex, endIndex: node.endIndex, doc };
 	}
 
@@ -281,7 +508,8 @@ function nodeToEntry(node, text, src) {
 
 	// ── named primitives ─────────────────────────────────────────────────────
 	if (type.startsWith('primitive_')) {
-		const doc = NODE_DOCS[type];
+		const title = explicitTitle(type, text);
+		const doc = title ? { title } : NODE_DOCS[type];
 		if (doc) return { type, text, startIndex: node.startIndex, endIndex: node.endIndex, doc };
 	}
 

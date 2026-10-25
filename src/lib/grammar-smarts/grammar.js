@@ -347,8 +347,8 @@ export default grammar({
 		// h / h2 / h{N-M}  — implicit H count  (smarts.ll:231, smarts.yy:697)
 		primitive_implicit_h: (_$) => token(choice(seq('h', /[0-9]+/), seq('h', RANGE), 'h')),
 
-		// R / R2  — ring membership  (smarts.ll:230, smarts.yy:631)
-		primitive_ring_membership: (_$) => token(choice(seq('R', /[0-9]+/), 'R')),
+		// R / R2 / R{N-M}  — ring membership  (smarts.ll:230, smarts.yy:631)
+		primitive_ring_membership: (_$) => token(choice(seq('R', /[0-9]+/), seq('R', RANGE), 'R')),
 
 		// r / r5 / r{5-7}  — minimum ring size  (smarts.ll:231, smarts.yy:637)
 		primitive_ring_size: (_$) => token(choice(seq('r', /[0-9]+/), seq('r', RANGE), 'r')),
@@ -372,21 +372,15 @@ export default grammar({
 		primitive_aliph_hetero_nbr: (_$) => token(choice(seq('Z', /[0-9]+/), seq('Z', RANGE), 'Z')),
 
 		// charge_spec  (smarts.yy:878)
-		// +2 / ++ / +  and  -2 / -- / -
-		primitive_charge_pos: (_$) => token(choice(seq('+', /[0-9]+/), /\++/)),
-		primitive_charge_neg: (_$) => token(choice(seq('-', /[0-9]+/), /-+/)),
+		// +2 / ++ / + / +{N-M}  and  -2 / -- / - / -{N-M}
+		primitive_charge_pos: (_$) => token(choice(seq('+', /[0-9]+/), seq('+', RANGE), /\++/)),
+		primitive_charge_neg: (_$) => token(choice(seq('-', /[0-9]+/), seq('-', RANGE), /-+/)),
 
 		// chirality  (smarts.ll:108, smarts.yy:713)
-		// @@ must be tried before @; class tokens (@TH, @AL…) before bare @
-		primitive_chirality: (_$) =>
-			token(
-				choice(
-					seq('@@', /[A-Z][A-Z]?/, /[0-9]+/, optional('?')), // @@TH1?
-					'@@',
-					seq('@', /[A-Z][A-Z]?/, /[0-9]+/, optional('?')), // @TH1?
-					'@',
-				),
-			),
+		// Only tetrahedral chirality is supported by RDKit's SMARTS matching:
+		// @ = @TH1, @@ = @TH2. The other classes (@AL, @SP, @TB, @OH) are parsed
+		// by RDKit but silently dropped, and the Daylight '?' suffix is a parse error.
+		primitive_chirality: (_$) => token(choice('@@', '@TH1', '@TH2', '@')),
 
 		// -----------------------------------------------------------------------
 		// bond_expr / bond_query / bondd  (smarts.yy:820)

@@ -325,8 +325,17 @@
 	/>
 
 	<p>
-		The <code>@?</code> and <code>@@?</code> "unspecified chirality" tokens appear in the original Daylight
-		specification but are not supported in RDKit and will cause a parse error.
+		<code>@</code> and <code>@@</code> are shorthand for the explicit tetrahedral forms
+		<code>@TH1</code> and <code>@TH2</code>, so <code>[C@TH1]</code> is the same as
+		<code>[C@]</code>.
+	</p>
+
+	<p>
+		The original Daylight specification also defines <code>@?</code> and <code>@@?</code>
+		"unspecified chirality" tokens, and other chiral classes (<code>@AL</code>, <code>@SP</code>,
+		<code>@TB</code>, <code>@OH</code>). These are not supported by RDKit in SMARTS: the first are a
+		parse error, and the classes are parsed but silently ignored. Only tetrahedral chirality is
+		supported here.
 	</p>
 
 	<p>
