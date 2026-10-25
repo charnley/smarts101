@@ -127,6 +127,8 @@ const BOND_DOCS = {
 	'/': { title: 'Directional bond up' },
 	'\\': { title: 'Directional bond down' },
 	$: { title: 'Quadruple bond' },
+	'->': { title: 'Dative bond (left-to-right)' },
+	'<-': { title: 'Dative bond (right-to-left)' },
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
