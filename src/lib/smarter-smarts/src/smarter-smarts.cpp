@@ -76,6 +76,7 @@ public:
                 RDKit::SubstructMatchParameters params;
                 params.uniquify = true;
                 params.recursionPossible = true;
+                params.useChirality = true;
                 params.maxMatches = 1;
                 auto matches =
                     RDKit::SubstructMatch(*mol_ptr, *m_query, params);
