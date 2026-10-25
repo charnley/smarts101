@@ -99,7 +99,7 @@ export async function validateSmarts(smarts) {
 
 /**
  * Find the maximum common substructure (MCS) of a list of molecules and return it as SMARTS.
- * Runs synchronously on the calling thread, bounded by `timeoutSeconds`.
+ * Runs synchronously on the calling thread, bounded by `timeoutSeconds`: call it from a worker.
  * Entries that RDKit cannot parse are skipped and counted in `skipped`.
  * @param {string[]} structureDefinitions SMILES or molblocks
  * @param {{ timeoutSeconds?: number, explicitHydrogens?: boolean }} [options]
@@ -109,22 +109,22 @@ export async function findMcsSmarts(structureDefinitions, options = {}) {
 	const { timeoutSeconds = 10, explicitHydrogens = false } = options;
 	const rdkit = await getRDKit();
 
-	/** @type {import('@rdkit/rdkit').Mol[]} */
+	/** @type {any[]} */
 	const mols = [];
 	let skipped = 0;
-	for (const def of structureDefinitions) {
-		const mol = rdkit.get_mol(def);
-		if (!mol || !mol.is_valid()) {
-			mol?.delete();
-			skipped++;
-			continue;
-		}
-		if (def.includes('\n') && !explicitHydrogens) mol.remove_hs_in_place();
-		mols.push(mol);
-	}
-
 	const list = new rdkit.MolList();
 	try {
+		for (const def of structureDefinitions) {
+			const mol = rdkit.get_mol(def);
+			if (!mol || !mol.is_valid()) {
+				mol?.delete();
+				skipped++;
+				continue;
+			}
+			if (def.includes('\n') && !explicitHydrogens) mol.remove_hs_in_place();
+			mols.push(mol);
+		}
+
 		// MCS of fewer than two molecules is meaningless (and throws in RDKit)
 		if (mols.length < 2)
 			return { smarts: '', numAtoms: 0, numBonds: 0, canceled: false, ms: 0, skipped };

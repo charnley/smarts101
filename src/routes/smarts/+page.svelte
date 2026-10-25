@@ -1,5 +1,5 @@
 <script>
-	import { onMount } from 'svelte';
+	import { onMount, onDestroy } from 'svelte';
 	import MoleculeBox from '$lib/components/MoleculeBox.svelte';
 	import ReactionCard from '$lib/components/ReactionCard.svelte';
 	import { runReaction } from '$lib/structure-renderer/reaction-runner.js';
@@ -27,7 +27,8 @@
 	import GeneratePanel from '$lib/components/GeneratePanel.svelte';
 	import { settings } from '$lib/settings.svelte.js';
 	import { isMediumScreen } from '$lib/breakpoints.svelte.js';
-	import { validateSmarts, findMcsSmarts } from '$lib/rdkit/utils.js';
+	import { validateSmarts } from '$lib/rdkit/utils.js';
+	import { findMcsSmartsInWorker, terminateMcsWorker } from '$lib/rdkit/mcs.js';
 	import { Parser, Language } from 'web-tree-sitter';
 	import smartsWasmUrl from '$lib/grammar-smarts/tree-sitter-smarts.wasm?url';
 	import coreWasmUrl from 'web-tree-sitter/web-tree-sitter.wasm?url';
@@ -487,36 +488,68 @@
 
 	// ── Generate SMARTS from targets (maximum common substructure) ───────────
 	let isGenerating = $state(false);
-	let generateFailedOpen = $state(false);
-	let generateFailedReason = $state('');
+	let generateNoticeOpen = $state(false);
+	let generateNoticeTitle = $state('');
+	let generateNoticeReason = $state('');
+
+	/**
+	 * @param {string} title
+	 * @param {string} reason
+	 */
+	function showGenerateNotice(title, reason) {
+		generateNoticeTitle = title;
+		generateNoticeReason = reason;
+		generateNoticeOpen = true;
+	}
+
+	onDestroy(terminateMcsWorker);
 
 	async function generateSmarts() {
 		if (isGenerating) return;
 		isGenerating = true;
-		// Let the spinner paint before the synchronous MCS call blocks the main thread
-		await new Promise((resolve) => setTimeout(resolve, 50));
+		// The result is discarded if the targets or the SMARTS change while the search runs
+		const targets = molecules;
+		const smartsBefore = rawSmarts;
 		try {
-			const result = await findMcsSmarts(
-				molecules.map((m) => m.structureDefinition),
+			const result = await findMcsSmartsInWorker(
+				targets.map((m) => m.structureDefinition),
 				{ explicitHydrogens: settings.explicitHydrogens },
 			);
-			console.log(
-				`[MCS] ${molecules.length} molecules, ${result.numAtoms} atoms, ` +
-					`${result.ms.toFixed(0)} ms${result.canceled ? ' (timed out)' : ''}`,
-			);
+			if (targets !== molecules || smartsBefore !== rawSmarts) return;
+
 			if (!result.smarts) {
-				generateFailedReason =
-					molecules.length - result.skipped < 2
-						? 'At least two valid target molecules are needed to find a shared substructure.'
-						: 'The target molecules have no substructure in common.';
-				generateFailedOpen = true;
+				if (result.canceled) {
+					showGenerateNotice(
+						'Timed out',
+						'Finding a shared substructure took too long. Try fewer or more similar target molecules.',
+					);
+				} else if (targets.length - result.skipped < 2) {
+					showGenerateNotice(
+						'No SMARTS generated',
+						'At least two valid target molecules are needed to find a shared substructure.',
+					);
+				} else {
+					showGenerateNotice(
+						'No SMARTS generated',
+						'The target molecules have no substructure in common.',
+					);
+				}
 				return;
 			}
+
 			rawSmarts = result.smarts;
 			applySmartsChange();
+			if (result.canceled) {
+				showGenerateNotice(
+					'Timed out',
+					'The search took too long, so the SMARTS is the best partial result and may be smaller than the true common substructure.',
+				);
+			}
 		} catch (e) {
-			generateFailedReason = `Generating a SMARTS failed: ${e instanceof Error ? e.message : e}`;
-			generateFailedOpen = true;
+			showGenerateNotice(
+				'No SMARTS generated',
+				`Generating a SMARTS failed: ${e instanceof Error ? e.message : e}`,
+			);
 		} finally {
 			isGenerating = false;
 		}
@@ -581,8 +614,7 @@
 				variant="outline"
 				size="icon-lg"
 				aria-label="Generate SMARTS from targets"
-				title="Generate SMARTS from the target molecules"
-				disabled={isGenerating || isDynamicTargets}
+				disabled={isGenerating || isDynamicTargets || isReaction}
 				onclick={generateSmarts}
 			>
 				{#if isGenerating}
@@ -832,12 +864,12 @@
 	</Sheet.Content>
 </Sheet.Root>
 
-<!-- Generate SMARTS failed dialog -->
-<Dialog.Root bind:open={generateFailedOpen}>
+<!-- Generate SMARTS notice dialog -->
+<Dialog.Root bind:open={generateNoticeOpen}>
 	<Dialog.Content class="sm:max-w-md">
 		<Dialog.Header>
-			<Dialog.Title>No SMARTS generated</Dialog.Title>
-			<Dialog.Description>{generateFailedReason}</Dialog.Description>
+			<Dialog.Title>{generateNoticeTitle}</Dialog.Title>
+			<Dialog.Description>{generateNoticeReason}</Dialog.Description>
 		</Dialog.Header>
 	</Dialog.Content>
 </Dialog.Root>
@@ -933,6 +965,10 @@
 				<ul class="ml-4 list-disc">
 					<li>
 						<strong>Edit targets</strong> — edit the target molecules in either SMILES list or SDF format.
+					</li>
+					<li>
+						<strong>Generate SMARTS</strong> — the wand button next to the editor replaces the SMARTS
+						with the largest substructure shared by all target molecules.
 					</li>
 					<li>
 						<strong>Dynamic Targets</strong> — leave the targets empty and matching example molecules
