@@ -210,6 +210,41 @@ describe('bond_expr operators', () => {
 	});
 });
 
+describe('dative bonds', () => {
+	it('parses -> and <-', () => {
+		expect(hasError('[#7]->[*]')).toBe(false);
+		expect(hasError('[*]<-[#7]')).toBe(false);
+		expect(hasError('N->[Pt]')).toBe(false);
+		expect(hasError('[Pt]<-N')).toBe(false);
+	});
+
+	it('parses the how-to example', () => {
+		expect(hasError('[Fe]->CC1=O.CN(C1)(C)->[Pt]')).toBe(false);
+	});
+
+	it('parses dative bonds in branches', () => {
+		expect(hasError('[Pt](<-N)<-N')).toBe(false);
+		expect(hasError('[Pt](->N)->N')).toBe(false);
+	});
+
+	it('parses dative bonds in bond expressions', () => {
+		expect(hasError('N!->[Pt]')).toBe(false);
+		expect(hasError('N->,=[Pt]')).toBe(false);
+		expect(hasError('N-;->[Pt]')).toBe(false);
+	});
+
+	it('produces a dative bond_primitive', () => {
+		expect(sexp('N->[Pt]')).toContain('bond_primitive');
+		expect(sexp('N->[Pt]')).not.toContain('reaction');
+	});
+
+	it('still parses reactions next to dative bonds', () => {
+		expect(hasError('N->[Pt]>>C')).toBe(false);
+		expect(hasError('C>N->[Pt]>O')).toBe(false);
+		expect(sexp('N->[Pt]>>C')).toContain('reaction');
+	});
+});
+
 describe('branches', () => {
 	it('parses nested branches C(C(O))', () => {
 		expect(hasError('C(C(O))')).toBe(false);
