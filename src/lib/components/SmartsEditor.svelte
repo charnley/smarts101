@@ -211,6 +211,14 @@
 			textAlign: 'left',
 			width: '100%',
 		},
+		'.cm-placeholder': {
+			display: 'inline-block',
+			maxWidth: '100%',
+			whiteSpace: 'nowrap',
+			overflow: 'hidden',
+			textOverflow: 'ellipsis',
+			verticalAlign: 'bottom',
+		},
 		'.cm-smarts-dim': {
 			opacity: '0.3',
 		},
@@ -250,7 +258,7 @@
 				baseTheme,
 				noNewlines,
 				stripNewlines,
-				cmPlaceholder('Enter a SMARTS pattern, e.g. [OX2H] for hydroxyl…'),
+				cmPlaceholder('SMARTS, e.g. [OX2H]'),
 				EditorView.lineWrapping,
 			],
 		});

@@ -37,6 +37,7 @@
 			{height}
 			{useCoordgen}
 			{explicitHydrogens}
+			fluid
 			bind:hasMatch
 		/>
 	</div>

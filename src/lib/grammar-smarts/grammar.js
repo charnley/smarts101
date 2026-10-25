@@ -414,12 +414,11 @@ export default grammar({
 		bond_expr_and_im: ($) => prec.left(4, seq($.bond_primitive, $.bond_expr)),
 
 		// bondd  (smarts.yy:847)
-		// Note: dative bonds -> and <- are valid in RDKit but conflict with the
-		// reaction separator > at the scanner level; they require external quoting
-		// or bracket context and are omitted here for parse safety.
 		bond_primitive: (_$) =>
 			token(
 				choice(
+					'->', // dative right  (donor -> acceptor)
+					'<-', // dative left   (acceptor <- donor)
 					'=', // double        BOND_TOKEN
 					'~', // any           BOND_TOKEN
 					'$', // quadruple     BOND_TOKEN
