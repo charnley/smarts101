@@ -733,6 +733,11 @@
 				placeholder="Empty: Dynamic Targets"
 				spellcheck={false}
 				autocomplete="off"
+				autocorrect="off"
+				autocapitalize="off"
+				data-gramm="false"
+				data-gramm_editor="false"
+				data-enable-grammarly="false"
 				rows={Math.max(8, textareaValue.split('\n').length + 2)}
 			/>
 		</div>
