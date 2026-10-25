@@ -13,10 +13,12 @@
 	import * as Sheet from '$lib/components/ui/sheet/index.js';
 	import { Checkbox } from '$lib/components/ui/checkbox/index.js';
 	import { Label } from '$lib/components/ui/label/index.js';
+	import { Spinner } from '$lib/components/ui/spinner/index.js';
 	import SettingsIcon from '@lucide/svelte/icons/settings';
 	import CircleQuestionMarkIcon from '@lucide/svelte/icons/circle-question-mark';
 	import LockIcon from '@lucide/svelte/icons/lock';
 	import SparklesIcon from '@lucide/svelte/icons/sparkles';
+	import WandSparklesIcon from '@lucide/svelte/icons/wand-sparkles';
 	import PencilIcon from '@lucide/svelte/icons/pencil';
 	import ListFilter from '@lucide/svelte/icons/list-filter';
 	import PanelRightOpen from '@lucide/svelte/icons/panel-right-open';
@@ -25,7 +27,7 @@
 	import GeneratePanel from '$lib/components/GeneratePanel.svelte';
 	import { settings } from '$lib/settings.svelte.js';
 	import { isMediumScreen } from '$lib/breakpoints.svelte.js';
-	import { validateSmarts } from '$lib/rdkit/utils.js';
+	import { validateSmarts, findMcsSmarts } from '$lib/rdkit/utils.js';
 	import { Parser, Language } from 'web-tree-sitter';
 	import smartsWasmUrl from '$lib/grammar-smarts/tree-sitter-smarts.wasm?url';
 	import coreWasmUrl from 'web-tree-sitter/web-tree-sitter.wasm?url';
@@ -474,6 +476,52 @@
 	// ── Debounced SMARTS validation ──────────────────────────────────────────
 	let debounceTimer = /** @type {ReturnType<typeof setTimeout>|null} */ (null);
 
+	/** Re-parse and validate after rawSmarts changed (debounced when typing). */
+	function applySmartsChange() {
+		if (debounceTimer) clearTimeout(debounceTimer);
+		debounceTimer = setTimeout(() => {
+			if (parser) smartsTree = rawSmarts.trim() ? parser.parse(rawSmarts) : null;
+			validateAndApply(rawSmarts);
+		}, SMARTS_INPUT_DEBOUNCE_MS);
+	}
+
+	// ── Generate SMARTS from targets (maximum common substructure) ───────────
+	let generating = $state(false);
+	let generateFailedOpen = $state(false);
+	let generateFailedReason = $state('');
+
+	async function generateSmarts() {
+		if (generating) return;
+		generating = true;
+		// Let the spinner paint before the synchronous MCS call blocks the main thread
+		await new Promise((resolve) => setTimeout(resolve, 50));
+		try {
+			const result = await findMcsSmarts(
+				molecules.map((m) => m.structureDefinition),
+				{ explicitHydrogens: settings.explicitHydrogens },
+			);
+			console.log(
+				`[MCS] ${molecules.length} molecules, ${result.numAtoms} atoms, ` +
+					`${result.ms.toFixed(0)} ms${result.canceled ? ' (timed out)' : ''}`,
+			);
+			if (!result.smarts) {
+				generateFailedReason =
+					molecules.length - result.skipped < 2
+						? 'At least two valid target molecules are needed to find a shared substructure.'
+						: 'The target molecules have no substructure in common.';
+				generateFailedOpen = true;
+				return;
+			}
+			rawSmarts = result.smarts;
+			applySmartsChange();
+		} catch (e) {
+			generateFailedReason = `Generating a SMARTS failed: ${e instanceof Error ? e.message : e}`;
+			generateFailedOpen = true;
+		} finally {
+			generating = false;
+		}
+	}
+
 	async function validateAndApply(/** @type {string} */ smarts) {
 		const trimmed = smarts.trim();
 		if (!trimmed) {
@@ -518,13 +566,7 @@
 		<div class="min-w-0 flex-1">
 			<SmartsEditor
 				bind:value={rawSmarts}
-				onchange={(v) => {
-					if (debounceTimer) clearTimeout(debounceTimer);
-					debounceTimer = setTimeout(() => {
-						if (parser) smartsTree = rawSmarts.trim() ? parser.parse(rawSmarts) : null;
-						validateAndApply(rawSmarts);
-					}, SMARTS_INPUT_DEBOUNCE_MS);
-				}}
+				onchange={applySmartsChange}
 				oncursorchange={(pos) => {
 					cursorPos = pos;
 				}}
@@ -535,6 +577,20 @@
 			/>
 		</div>
 		<div class="flex items-center gap-2">
+			<Button
+				variant="outline"
+				size="icon-lg"
+				aria-label="Generate SMARTS from targets"
+				title="Generate SMARTS from the target molecules"
+				disabled={generating || isDynamicTargets}
+				onclick={generateSmarts}
+			>
+				{#if generating}
+					<Spinner />
+				{:else}
+					<WandSparklesIcon size={16} />
+				{/if}
+			</Button>
 			<Button
 				variant="outline"
 				size="icon-lg"
@@ -770,6 +826,16 @@
 		</div>
 	</Sheet.Content>
 </Sheet.Root>
+
+<!-- Generate SMARTS failed dialog -->
+<Dialog.Root bind:open={generateFailedOpen}>
+	<Dialog.Content class="sm:max-w-md">
+		<Dialog.Header>
+			<Dialog.Title>No SMARTS generated</Dialog.Title>
+			<Dialog.Description>{generateFailedReason}</Dialog.Description>
+		</Dialog.Header>
+	</Dialog.Content>
+</Dialog.Root>
 
 <!-- Settings dialog -->
 <Dialog.Root bind:open={settingsOpen}>
