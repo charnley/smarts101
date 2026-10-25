@@ -486,13 +486,13 @@
 	}
 
 	// ── Generate SMARTS from targets (maximum common substructure) ───────────
-	let generating = $state(false);
+	let isGenerating = $state(false);
 	let generateFailedOpen = $state(false);
 	let generateFailedReason = $state('');
 
 	async function generateSmarts() {
-		if (generating) return;
-		generating = true;
+		if (isGenerating) return;
+		isGenerating = true;
 		// Let the spinner paint before the synchronous MCS call blocks the main thread
 		await new Promise((resolve) => setTimeout(resolve, 50));
 		try {
@@ -518,7 +518,7 @@
 			generateFailedReason = `Generating a SMARTS failed: ${e instanceof Error ? e.message : e}`;
 			generateFailedOpen = true;
 		} finally {
-			generating = false;
+			isGenerating = false;
 		}
 	}
 
@@ -582,10 +582,10 @@
 				size="icon-lg"
 				aria-label="Generate SMARTS from targets"
 				title="Generate SMARTS from the target molecules"
-				disabled={generating || isDynamicTargets}
+				disabled={isGenerating || isDynamicTargets}
 				onclick={generateSmarts}
 			>
-				{#if generating}
+				{#if isGenerating}
 					<Spinner />
 				{:else}
 					<WandSparklesIcon size={16} />
