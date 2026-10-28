@@ -92,7 +92,7 @@ function descriptorToPath(desc, scope) {
  * @returns {Array<{ d: string, bbox: { x: number, y: number, width: number, height: number } }>}
  */
 function computeOutline(shapeDescriptors, viewBox, options = {}) {
-	const { offset = 6, miterLimit = 8, flatten = 1, strokeExpand = 6 } = options;
+	const { offset = 6, miterLimit = 8, flatten = 1, strokeExpand = 6, smooth = 0 } = options;
 
 	const vbW = viewBox.w;
 	const vbH = viewBox.h;
@@ -193,6 +193,10 @@ function computeOutline(shapeDescriptors, viewBox, options = {}) {
 	// Outer boundary only, no inner holes
 	merged = extractOuterBoundary(merged, scope);
 	ensureClosed(merged, scope);
+
+	// Morphological closing: grow then shrink by the same distance. Fills the small dents
+	// and pinches where bond bands meet atom shapes, and leaves the rest of the outline alone.
+	if (smooth > 0) merged = closeGaps(merged, smooth, scope);
 	if (typeof merged.reduce === 'function') merged.reduce();
 
 	const b = merged.bounds;
@@ -237,6 +241,21 @@ function extractOuterBoundary(item, scope) {
 		}
 	}
 	return merged;
+}
+
+function closeGaps(item, distance, scope) {
+	try {
+		const grown = PaperOffset.offset(item, distance, { join: 'round', insert: false });
+		if (!grown || !(Math.abs(grown.area || 0) > 0)) return item;
+		const outer = extractOuterBoundary(grown, scope);
+		const shrunk = PaperOffset.offset(outer, -distance, { join: 'round', insert: false });
+		if (!shrunk || !(Math.abs(shrunk.area || 0) > 0)) return item;
+		const result = extractOuterBoundary(shrunk, scope);
+		ensureClosed(result, scope);
+		return result;
+	} catch (_) {
+		return item;
+	}
 }
 
 function ensureClosed(item, scope) {
