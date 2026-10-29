@@ -36,12 +36,27 @@ async function setupPage(page, config) {
 	await page.keyboard.press('Control+a');
 	await page.keyboard.type(SMARTS, { delay: 15 });
 
-	// Wait for highlight render
-	await page.waitForTimeout(600);
-	await page.waitForFunction(() => !document.querySelector('.sr-shell.is-rendering'), {
+	// Wait for highlight render. The page debounces the input, validates the SMARTS,
+	// searches in workers and then draws the outlines, none of which sets `is-rendering`
+	// (that only covers the base molecule drawing), so wait for the outlines themselves.
+	await page.waitForSelector('.sr-shell .contour-highlight', {
+		state: 'attached',
 		timeout: 30000,
 	});
-	await page.waitForTimeout(300);
+
+	// Outlines are added molecule by molecule, wait until the count stops changing.
+	await page.waitForFunction(
+		() => {
+			const count = document.querySelectorAll('.sr-shell .contour-highlight').length;
+			// @ts-ignore
+			const stable = count === window.__highlightCount;
+			// @ts-ignore
+			window.__highlightCount = count;
+			return stable;
+		},
+		undefined,
+		{ timeout: 30000, polling: 500 },
+	);
 }
 
 for (const [name, config] of Object.entries(CONFIGS)) {

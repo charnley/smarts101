@@ -4,7 +4,10 @@ import { hexToRgbaArray, rgbaArrayToString } from './color-utils.js';
 
 const NS = 'http://www.w3.org/2000/svg';
 const BASE_OFFSET = 2;
-const DEFAULT_ATOM_RADIUS = 8;
+/** Fallback band half-width at the reference size, when RDKit drew no atom shapes. */
+const DEFAULT_BAND_RADIUS = 7;
+/** Drawing height (viewBox units) at which BASE_OFFSET and friends were tuned. */
+const REFERENCE_SIZE = 220;
 
 /**
  * @typedef {Object} ShapeDescriptor
@@ -30,7 +33,7 @@ const DEFAULT_ATOM_RADIUS = 8;
  */
 
 /**
- * @typedef {{ atoms: Map<number, ShapeDescriptor[]>, bonds: Map<number, ShapeDescriptor[]>, viewBox: { w: number, h: number }, atomRadius: number }} ShapeIndex
+ * @typedef {{ atoms: Map<number, ShapeDescriptor[]>, bonds: Map<number, ShapeDescriptor[]>, viewBox: { w: number, h: number }, bandRadius: number, scale: number }} ShapeIndex
  */
 
 /** @type {Worker[]} */
@@ -170,7 +173,10 @@ export function buildShapeIndex(svgRoot) {
 		atoms: new Map(),
 		bonds: new Map(),
 		viewBox: { w, h },
-		atomRadius: DEFAULT_ATOM_RADIUS,
+		bandRadius: 0,
+		// RDKit's fixedScale makes atoms, labels and bond lengths grow with the render size,
+		// so margins measured in viewBox units have to grow with it too.
+		scale: Math.min(w, h) / REFERENCE_SIZE || 1,
 	};
 
 	for (const el of svgRoot.children) {
@@ -184,15 +190,16 @@ export function buildShapeIndex(svgRoot) {
 		map.set(key, [...(map.get(key) ?? []), desc]);
 	}
 
-	// Bond band width follows the RDKit atom-highlight radius so bonds and atoms
-	// get the same margin, independent of bondLineWidth. Labelled atoms (N, OH, ...)
-	// get stretched ellipses, so the smallest radius is the bare-atom one.
+	// Half-width of the band drawn around bonds. RDKit sizes the (invisible) atom highlight
+	// ellipses from the drawing scale, and stretches them for labelled atoms (O, N, OH, ...).
+	// Matching the tallest label means the band meets heteroatoms without a step, and it
+	// ignores bondLineWidth, which does not scale with the drawing.
 	const radii = [...index.atoms.values()]
 		.flat()
 		.filter((s) => s.type === 'ellipse' || s.type === 'circle')
-		.flatMap((s) => [s.rx ?? s.r ?? 0, s.ry ?? s.r ?? 0])
+		.map((s) => Math.min(s.rx ?? s.r ?? 0, s.ry ?? s.r ?? 0))
 		.filter((r) => r > 0);
-	if (radii.length) index.atomRadius = Math.min(...radii);
+	index.bandRadius = radii.length ? Math.max(...radii) : DEFAULT_BAND_RADIUS * index.scale;
 	return index;
 }
 
@@ -264,11 +271,12 @@ export async function createSurroundingOutline({
 	if (!shapes.length) return group;
 
 	const options = {
-		offset: Math.ceil(BASE_OFFSET + overlap * BASE_OFFSET * 2) + extraOffset,
+		offset: (BASE_OFFSET + overlap * BASE_OFFSET * 2 + extraOffset) * shapeIndex.scale,
 		miterLimit: BASE_OFFSET + overlap,
-		flatten: 1,
+		flatten: 0.25,
 		mergeClusters: true,
-		strokeExpand: 2 * shapeIndex.atomRadius,
+		strokeExpand: 2 * shapeIndex.bandRadius,
+		smooth: 9 * shapeIndex.scale,
 	};
 
 	let d;
