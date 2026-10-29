@@ -1,5 +1,5 @@
 <script>
-	import { onMount } from 'svelte';
+	import { onMount, onDestroy } from 'svelte';
 	import MoleculeBox from '$lib/components/MoleculeBox.svelte';
 	import ReactionCard from '$lib/components/ReactionCard.svelte';
 	import { runReaction } from '$lib/structure-renderer/reaction-runner.js';
@@ -13,10 +13,12 @@
 	import * as Sheet from '$lib/components/ui/sheet/index.js';
 	import { Checkbox } from '$lib/components/ui/checkbox/index.js';
 	import { Label } from '$lib/components/ui/label/index.js';
+	import { Spinner } from '$lib/components/ui/spinner/index.js';
 	import SettingsIcon from '@lucide/svelte/icons/settings';
 	import CircleQuestionMarkIcon from '@lucide/svelte/icons/circle-question-mark';
 	import LockIcon from '@lucide/svelte/icons/lock';
 	import SparklesIcon from '@lucide/svelte/icons/sparkles';
+	import WandSparklesIcon from '@lucide/svelte/icons/wand-sparkles';
 	import PencilIcon from '@lucide/svelte/icons/pencil';
 	import ListFilter from '@lucide/svelte/icons/list-filter';
 	import PanelRightOpen from '@lucide/svelte/icons/panel-right-open';
@@ -26,6 +28,7 @@
 	import { settings } from '$lib/settings.svelte.js';
 	import { isMediumScreen } from '$lib/breakpoints.svelte.js';
 	import { validateSmarts } from '$lib/rdkit/utils.js';
+	import { findMcsSmartsInWorker, terminateMcsWorker } from '$lib/rdkit/mcs.js';
 	import { Parser, Language } from 'web-tree-sitter';
 	import smartsWasmUrl from '$lib/grammar-smarts/tree-sitter-smarts.wasm?url';
 	import coreWasmUrl from 'web-tree-sitter/web-tree-sitter.wasm?url';
@@ -474,6 +477,84 @@
 	// ── Debounced SMARTS validation ──────────────────────────────────────────
 	let debounceTimer = /** @type {ReturnType<typeof setTimeout>|null} */ (null);
 
+	/** Re-parse and validate after rawSmarts changed (debounced when typing). */
+	function applySmartsChange() {
+		if (debounceTimer) clearTimeout(debounceTimer);
+		debounceTimer = setTimeout(() => {
+			if (parser) smartsTree = rawSmarts.trim() ? parser.parse(rawSmarts) : null;
+			validateAndApply(rawSmarts);
+		}, SMARTS_INPUT_DEBOUNCE_MS);
+	}
+
+	// ── Generate SMARTS from targets (maximum common substructure) ───────────
+	let isGenerating = $state(false);
+	let generateNoticeOpen = $state(false);
+	let generateNoticeTitle = $state('');
+	let generateNoticeReason = $state('');
+
+	/**
+	 * @param {string} title
+	 * @param {string} reason
+	 */
+	function showGenerateNotice(title, reason) {
+		generateNoticeTitle = title;
+		generateNoticeReason = reason;
+		generateNoticeOpen = true;
+	}
+
+	onDestroy(terminateMcsWorker);
+
+	async function generateSmarts() {
+		if (isGenerating) return;
+		isGenerating = true;
+		// The result is discarded if the targets or the SMARTS change while the search runs
+		const targets = molecules;
+		const smartsBefore = rawSmarts;
+		try {
+			const result = await findMcsSmartsInWorker(
+				targets.map((m) => m.structureDefinition),
+				{ explicitHydrogens: settings.explicitHydrogens },
+			);
+			if (targets !== molecules || smartsBefore !== rawSmarts) return;
+
+			if (!result.smarts) {
+				if (result.canceled) {
+					showGenerateNotice(
+						'Timed out',
+						'Finding a shared substructure took too long. Try fewer or more similar target molecules.',
+					);
+				} else if (targets.length - result.skipped < 2) {
+					showGenerateNotice(
+						'No SMARTS generated',
+						'At least two valid target molecules are needed to find a shared substructure.',
+					);
+				} else {
+					showGenerateNotice(
+						'No SMARTS generated',
+						'The target molecules have no substructure in common.',
+					);
+				}
+				return;
+			}
+
+			rawSmarts = result.smarts;
+			applySmartsChange();
+			if (result.canceled) {
+				showGenerateNotice(
+					'Timed out',
+					'The search took too long, so the SMARTS is the best partial result and may be smaller than the true common substructure.',
+				);
+			}
+		} catch (e) {
+			showGenerateNotice(
+				'No SMARTS generated',
+				`Generating a SMARTS failed: ${e instanceof Error ? e.message : e}`,
+			);
+		} finally {
+			isGenerating = false;
+		}
+	}
+
 	async function validateAndApply(/** @type {string} */ smarts) {
 		const trimmed = smarts.trim();
 		if (!trimmed) {
@@ -518,13 +599,7 @@
 		<div class="min-w-0 flex-1">
 			<SmartsEditor
 				bind:value={rawSmarts}
-				onchange={(v) => {
-					if (debounceTimer) clearTimeout(debounceTimer);
-					debounceTimer = setTimeout(() => {
-						if (parser) smartsTree = rawSmarts.trim() ? parser.parse(rawSmarts) : null;
-						validateAndApply(rawSmarts);
-					}, SMARTS_INPUT_DEBOUNCE_MS);
-				}}
+				onchange={applySmartsChange}
 				oncursorchange={(pos) => {
 					cursorPos = pos;
 				}}
@@ -535,6 +610,19 @@
 			/>
 		</div>
 		<div class="flex items-center gap-2">
+			<Button
+				variant="outline"
+				size="icon-lg"
+				aria-label="Generate SMARTS from targets"
+				disabled={isGenerating || isDynamicTargets || isReaction}
+				onclick={generateSmarts}
+			>
+				{#if isGenerating}
+					<Spinner />
+				{:else}
+					<WandSparklesIcon size={16} />
+				{/if}
+			</Button>
 			<Button
 				variant="outline"
 				size="icon-lg"
@@ -776,6 +864,16 @@
 	</Sheet.Content>
 </Sheet.Root>
 
+<!-- Generate SMARTS notice dialog -->
+<Dialog.Root bind:open={generateNoticeOpen}>
+	<Dialog.Content class="sm:max-w-md">
+		<Dialog.Header>
+			<Dialog.Title>{generateNoticeTitle}</Dialog.Title>
+			<Dialog.Description>{generateNoticeReason}</Dialog.Description>
+		</Dialog.Header>
+	</Dialog.Content>
+</Dialog.Root>
+
 <!-- Settings dialog -->
 <Dialog.Root bind:open={settingsOpen}>
 	<Dialog.Content class="sm:max-w-md">
@@ -867,6 +965,10 @@
 				<ul class="ml-4 list-disc">
 					<li>
 						<strong>Edit targets</strong> — edit the target molecules in either SMILES list or SDF format.
+					</li>
+					<li>
+						<strong>Generate SMARTS</strong> — the wand button next to the editor replaces the SMARTS
+						with the largest substructure shared by all target molecules.
 					</li>
 					<li>
 						<strong>Dynamic Targets</strong> — leave the targets empty and matching example molecules

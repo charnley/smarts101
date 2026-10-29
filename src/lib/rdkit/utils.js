@@ -83,3 +83,60 @@ export async function validateSmarts(smarts) {
 	const errors = lines.length ? [lines.join('\n')] : [];
 	return { valid: mol !== null, errors };
 }
+
+// ── Maximum common substructure ───────────────────────────────────────────
+
+/**
+ * @typedef {{
+ *   smarts: string,
+ *   numAtoms: number,
+ *   numBonds: number,
+ *   canceled: boolean,
+ *   ms: number,
+ *   skipped: number,
+ * }} McsResult
+ */
+
+/**
+ * Find the maximum common substructure (MCS) of a list of molecules and return it as SMARTS.
+ * Runs synchronously on the calling thread, bounded by `timeoutSeconds`: call it from a worker.
+ * Entries that RDKit cannot parse are skipped and counted in `skipped`.
+ * @param {string[]} structureDefinitions SMILES or molblocks
+ * @param {{ timeoutSeconds?: number, explicitHydrogens?: boolean }} [options]
+ * @returns {Promise<McsResult>}
+ */
+export async function findMcsSmarts(structureDefinitions, options = {}) {
+	const { timeoutSeconds = 10, explicitHydrogens = false } = options;
+	const rdkit = await getRDKit();
+
+	/** @type {any[]} */
+	const mols = [];
+	let skipped = 0;
+	const list = new rdkit.MolList();
+	try {
+		for (const def of structureDefinitions) {
+			const mol = rdkit.get_mol(def);
+			if (!mol || !mol.is_valid()) {
+				mol?.delete();
+				skipped++;
+				continue;
+			}
+			if (def.includes('\n') && !explicitHydrogens) mol.remove_hs_in_place();
+			mols.push(mol);
+		}
+
+		// MCS of fewer than two molecules is meaningless (and throws in RDKit)
+		if (mols.length < 2)
+			return { smarts: '', numAtoms: 0, numBonds: 0, canceled: false, ms: 0, skipped };
+
+		for (const mol of mols) list.append(mol);
+		const start = performance.now();
+		const raw = rdkit.get_mcs_as_json(list, JSON.stringify({ Timeout: timeoutSeconds }));
+		const ms = performance.now() - start;
+		const { smarts = '', numAtoms = 0, numBonds = 0, canceled = false } = JSON.parse(raw);
+		return { smarts, numAtoms, numBonds, canceled, ms, skipped };
+	} finally {
+		list.delete();
+		for (const mol of mols) mol.delete();
+	}
+}
